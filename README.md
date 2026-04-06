@@ -36,19 +36,6 @@ I want to encode my thinking and automate as much as possible. How I would run a
 
 Each skill lives in `skills/<name>/SKILL.md`. These are prompt templates that Claude reads and executes. There is no build step. Edit the SKILL.md directly to change behavior.
 
-### Available skills
-
-| Skill | What it does |
-|-------|-------------|
-| `/onboard` | Onboard an existing project, produce artifacts so other skills can operate |
-| `/research` | Research a topic, technology, or approach and produce a structured summary |
-| `/new-project` | Start a new greenfield software project from idea to working scaffold |
-| `/new-startup` | Walk from startup idea through validation, positioning, and initial setup |
-| `/debug` | Investigate a software issue to find the root cause |
-| `/review` | Review PR/MR, branch diff, or other code changes |
-| `/address-review` | Address PR/MR review comments, implement fixes, draft responses |
-| `/receiving-code-review` | Evaluate review feedback with technical rigor, verify before implementing, push back when wrong |
-
 ## Installation
 
 **Requirements:** Claude Code, Nix, Git

@@ -20,19 +20,6 @@ Distributed as a Claude Code plugin via `.claude-plugin/`.
 Each skill lives in `skills/<name>/SKILL.md`. These are prompt templates that Claude
 reads and executes. Edit the SKILL.md directly to change behavior.
 
-### Available skills
-
-| Skill | What it does |
-|-------|-------------|
-| `/onboard` | Onboard an existing project |
-| `/research` | Research a topic and produce a structured summary |
-| `/new-project` | Scaffold a greenfield software project |
-| `/new-startup` | Walk from startup idea through validation and setup |
-| `/debug` | Investigate a software issue to find root cause |
-| `/review` | Review PR/MR, branch diff, or other code changes |
-| `/address-review` | Address review comments, implement fixes, draft responses |
-| `/receiving-code-review` | Evaluate review feedback technically, verify before implementing, push back when wrong |
-
 ## Project structure
 
 ```
