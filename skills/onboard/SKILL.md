@@ -1,3 +1,7 @@
+---
+description: Get up to speed on an existing codebase. Use when starting work on an unfamiliar project.
+---
+
 # Onboard
 
 Get up to speed on an existing codebase. Produce a clear picture of what the project does, how it is built, and how to work in it.

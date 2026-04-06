@@ -1,3 +1,7 @@
+---
+description: Find the root cause of a software issue. No guessing, no shotgun fixes.
+---
+
 # Debug
 
 Find the root cause of a software issue. No guessing, no shotgun fixes.

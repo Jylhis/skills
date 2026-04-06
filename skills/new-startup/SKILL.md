@@ -1,3 +1,7 @@
+---
+description: Validate a startup idea and, if it holds up, scaffold the initial project.
+---
+
 # New Startup
 
 Go from startup idea to a validated concept and, if it holds up, an initial project.

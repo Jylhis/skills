@@ -1,3 +1,7 @@
+---
+description: Scaffold a greenfield software project from idea to working repo.
+---
+
 # New Project
 
 Start a greenfield software project. Go from idea to a working repo the user can build on.

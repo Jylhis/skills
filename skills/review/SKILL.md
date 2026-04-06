@@ -1,10 +1,14 @@
+---
+description: Review code changes before they land. Works with PRs, MRs, branch diffs, or staged changes.
+---
+
 # Review
 
 Review code changes before they land. Works with PRs, MRs, branch diffs, or staged changes.
 
 ## Steps
 
-1. Figure out what to review. If the user gave a PR number, fetch it. Otherwise, diff the current branch against the base branch (`git diff main...HEAD` or equivalent).
+1. Figure out what to review. If the user gave a PR number, fetch it. Otherwise, diff the current branch against the base branch (detect the default branch dynamically, don't assume `main`).
 2. Read the full diff. Understand what changed, what it connects to, and what the intent was.
 3. Check for:
    - **Correctness**: does it do what it claims? Edge cases handled?

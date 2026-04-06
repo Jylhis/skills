@@ -1,3 +1,7 @@
+---
+description: Research a topic, technology, or approach and produce a decision-ready summary.
+---
+
 # Research
 
 Investigate a topic, technology, library, or approach. Produce a summary the user can make decisions from.
