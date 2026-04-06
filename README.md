@@ -47,6 +47,7 @@ Each skill lives in `skills/<name>/SKILL.md`. These are prompt templates that Cl
 | `/debug` | Investigate a software issue to find the root cause |
 | `/review` | Review PR/MR, branch diff, or other code changes |
 | `/address-review` | Address PR/MR review comments, implement fixes, draft responses |
+| `/receiving-code-review` | Evaluate review feedback with technical rigor, verify before implementing, push back when wrong |
 
 ## Installation
 

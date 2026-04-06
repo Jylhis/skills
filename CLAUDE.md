@@ -31,6 +31,7 @@ reads and executes. Edit the SKILL.md directly to change behavior.
 | `/debug` | Investigate a software issue to find root cause |
 | `/review` | Review PR/MR, branch diff, or other code changes |
 | `/address-review` | Address review comments, implement fixes, draft responses |
+| `/receiving-code-review` | Evaluate review feedback technically, verify before implementing, push back when wrong |
 
 ## Project structure
 
