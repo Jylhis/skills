@@ -1,0 +1,24 @@
+description: claude-config skill and routing evals
+
+prompts:
+  - "{{prompt}}"
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-6
+    config:
+      max_tokens: 1024
+
+defaultTest:
+  options:
+    provider:
+      id: anthropic:messages:claude-sonnet-4-6
+
+tests:
+  - description: placeholder routing test
+    vars:
+      prompt: "say hello"
+    metadata:
+      tags: ["@routing"]
+    assert:
+      - type: contains-any
+        value: ["hello", "Hello", "hi", "Hi"]
