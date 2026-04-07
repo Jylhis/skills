@@ -109,16 +109,6 @@ preflight() {
   log_action ok preflight "REPO_ROOT=$REPO_ROOT CLAUDE_DIR=$CLAUDE_DIR"
 }
 
-init_submodules() {
-  phase "init submodules"
-  if [[ -f "$REPO_ROOT/.gitmodules" ]]; then
-    run git -C "$REPO_ROOT" submodule update --init --recursive
-    log_action ok submodules "initialized"
-  else
-    log_action skip submodules "no .gitmodules"
-  fi
-}
-
 # link_one_file SRC DST
 link_one_file() {
   local src="$1" dst="$2"
@@ -212,16 +202,6 @@ migrate_plugins() {
     local resolved
     resolved="$(readlink -f "$dst" 2>/dev/null || true)"
     if [[ "$resolved" == "$src" ]]; then
-      # Check if any unexpected dirs appeared (marketplace UI write-conflict warning)
-      if [[ -f "$src/.marker" ]]; then
-        local extras
-        extras="$(find "$src" -mindepth 1 -maxdepth 1 -type d \
-                  ! -name jstack-vendored 2>/dev/null || true)"
-        if [[ -n "$extras" ]]; then
-          warn "unexpected dirs under repo/plugins/ — marketplace UI may have written here:"
-          while IFS= read -r line; do warn "  $line"; done <<< "$extras"
-        fi
-      fi
       log_action skip "$dst" "already linked"
       return 0
     fi
@@ -375,7 +355,6 @@ EOF
 
 main() {
   preflight
-  init_submodules
   seed_claude_md
   link_files
   link_dirs

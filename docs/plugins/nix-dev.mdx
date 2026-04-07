@@ -1,0 +1,61 @@
+---
+title: "nix-dev"
+description: "7 Nix skills plus the mcp-nixos MCP server."
+---
+
+`plugins/nix-dev/` ships seven Nix-related skills and a `.mcp.json` that
+wires up the
+[`utensils/mcp-nixos`](https://github.com/utensils/mcp-nixos) MCP server
+for NixOS option and package lookups.
+
+<Note>
+The upstream plugin also shipped a non-standard `.lsp.json` file declaring
+`nil` as an LSP server. Claude Code does not consume `.lsp.json`, and `nil`
+is already provided by `runtime/default.nix`, so the file was dropped
+during import.
+</Note>
+
+## Manifest
+
+```json
+{
+  "name": "nix-dev",
+  "version": "0.1.0",
+  "description": "Nix development intelligence: Nix language, NixOS modules, flakes, devenv, nixpkgs, home-manager, plus nil LSP and mcp-nixos integration",
+  "author": { "name": "Markus Jylhänkangas" }
+}
+```
+
+## MCP server
+
+```json
+{
+  "mcpServers": {
+    "mcp-nixos": {
+      "type": "stdio",
+      "command": "nix",
+      "args": ["run", "github:utensils/mcp-nixos", "--"]
+    }
+  }
+}
+```
+
+This is a real MCP server. On first use, `nix run` fetches and builds
+`utensils/mcp-nixos` from the GitHub flake.
+
+## Skills
+
+| Skill | Description |
+|---|---|
+| `devenv` | `devenv.sh` patterns: `devenv.nix`, `devenv.yaml`, shells, processes, services, pre-commit hooks, cachix, ad-hoc environments |
+| `flakes` | Flake schema, inputs, outputs, lock files, follows, overlays |
+| `home-manager` | Module structure, options, file management, user services |
+| `nix-debugging` | `nix repl`, `--show-trace`, error decoding, store path inspection |
+| `nix-language` | Syntax, types, attribute sets, function semantics |
+| `nixos-modules` | Module system, options, mkOption, imports, assertions |
+| `nixpkgs` | Package definitions, derivations, fetchers, overlays, overrides |
+
+## Sources
+
+The skills are authored as part of the `nix-dev` plugin. No separate
+upstream attribution applies.

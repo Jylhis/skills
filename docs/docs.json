@@ -1,0 +1,41 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "jstack",
+  "description": "Personal Claude Code configuration: skills, agents, slash commands, hooks, settings, and plugin bundles installed into ~/.claude via a symlink-based install script.",
+  "colors": {
+    "primary": "#7c3aed",
+    "light": "#a78bfa",
+    "dark": "#5b21b6"
+  },
+  "navigation": [
+    {
+      "group": "Get started",
+      "pages": ["index", "install", "develop", "architecture"]
+    },
+    {
+      "group": "Plugins",
+      "pages": [
+        "plugins/rust-dev",
+        "plugins/golang-dev",
+        "plugins/nix-dev",
+        "plugins/productivity",
+        "plugins/skill-creator",
+        "plugins/obsidian"
+      ]
+    }
+  ],
+  "footer": {
+    "links": [
+      {
+        "header": "Repository",
+        "items": [
+          {
+            "label": "Source",
+            "url": "https://github.com/Jylhis"
+          }
+        ]
+      }
+    ]
+  }
+}

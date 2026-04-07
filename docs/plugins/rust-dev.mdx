@@ -1,0 +1,89 @@
+---
+title: "rust-dev"
+description: "29 Rust skills covering ownership, lifetimes, error handling, concurrency, and domain patterns."
+---
+
+`plugins/rust-dev/` ships 29 Rust skills sourced from
+[`actionbook/rust-skills`](https://github.com/actionbook/rust-skills) (MIT,
+by ZhangHanDong).
+
+<Note>
+The upstream `.mcp.json` file declared `rust-analyzer` as an MCP server with
+an `extensionToLanguage` field. That layout mixes LSP and MCP semantics and
+was not adopted in jstack — `.mcp.json` was intentionally dropped during
+import. To make `rust-analyzer` available on `PATH`, add it to
+`runtime/default.nix`.
+</Note>
+
+## Manifest
+
+```json
+{
+  "name": "rust-dev",
+  "version": "1.0.0",
+  "description": "Rust development intelligence: 29 skills covering ownership, lifetimes, error handling, concurrency, domain patterns, and LSP tooling plus rust-analyzer integration",
+  "author": { "name": "Markus Jylhänkangas" }
+}
+```
+
+## Skills
+
+### Language mechanics
+
+| Skill | Description |
+|---|---|
+| `m01-ownership` | Ownership, borrowing, and lifetime issues |
+| `m02-resource` | Smart pointers and resource management |
+| `m03-mutability` | Mutability and interior mutability patterns |
+| `m04-zero-cost` | Generics, traits, zero-cost abstraction |
+| `m05-type-driven` | Type-driven design, newtype, type state |
+| `m06-error-handling` | `Result`, `Option`, `thiserror`, `anyhow` |
+| `m07-concurrency` | `async`/`await`, `Send`/`Sync`, thread safety |
+
+### Design and architecture
+
+| Skill | Description |
+|---|---|
+| `m09-domain` | Domain modeling in Rust |
+| `m10-performance` | Performance optimization and benchmarking |
+| `m11-ecosystem` | Crate integration and ecosystem guidance |
+| `m12-lifecycle` | Resource lifecycle design (RAII, `Drop`) |
+| `m13-domain-error` | Domain error handling strategy |
+| `m14-mental-model` | Rust mental models and learning |
+| `m15-anti-pattern` | Anti-pattern detection and code review |
+
+### Domain packs
+
+| Skill | Description |
+|---|---|
+| `domain-cli` | CLI tools with `clap`, `ratatui`, `indicatif` |
+| `domain-cloud-native` | Cloud-native apps and microservices |
+| `domain-embedded` | Embedded / `no_std` Rust |
+| `domain-fintech` | Financial technology applications |
+| `domain-iot` | IoT applications |
+| `domain-ml` | ML/AI applications in Rust |
+| `domain-web` | Web services and APIs |
+
+### LSP-driven analyzers
+
+| Skill | Description |
+|---|---|
+| `rust-code-navigator` | Navigate code via go-to-definition / references |
+| `rust-refactor-helper` | Safe refactoring with LSP impact analysis |
+| `rust-trait-explorer` | Explore trait implementations |
+| `rust-symbol-analyzer` | Project structure analysis via LSP symbols |
+| `rust-call-graph` | Function call graphs |
+| `rust-deps-visualizer` | ASCII dependency-tree visualizer |
+
+### Core
+
+| Skill | Description |
+|---|---|
+| `coding-guidelines` | Style, naming, best practices |
+| `unsafe-checker` | `unsafe` review, FFI, raw pointers |
+
+## Sources
+
+- [`actionbook/rust-skills`](https://github.com/actionbook/rust-skills) — 29 skills by ZhangHanDong (MIT)
+
+Skills retain the license of their original source.

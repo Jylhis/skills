@@ -1,0 +1,9 @@
+{
+  "name": "skill-creator",
+  "version": "0.1.0",
+  "description": "Create new Claude Code skills, improve existing skills, and measure skill quality through evals and benchmarks. Use when the user says things like \"create a skill\", \"turn this into a skill\", \"make a skill for X\", \"write a SKILL.md\", \"run evals on my skill\", \"benchmark my skill\", \"optimize my skill description\", \"improve triggering\", or \"test my skill\". Also use when the user has a workflow or conversation they want to capture as a reusable skill. Do not use for writing CLAUDE.md files, creating plugins, or general prompt engineering unrelated to skills.",
+  "author": {
+    "name": "Anthropic",
+    "email": "support@anthropic.com"
+  }
+}

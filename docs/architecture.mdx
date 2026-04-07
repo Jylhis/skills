@@ -1,0 +1,96 @@
+---
+title: "Architecture"
+description: "How install.bash, the runtime, and plugin bundles fit together."
+---
+
+jstack is a single repository that owns every tracked file under
+`~/.claude/`. Three concerns are kept separate: **layout** (what files
+exist in the repo), **install** (how they reach `~/.claude/`), and
+**runtime** (what binaries Claude Code can call).
+
+## Layout
+
+```
+.
+├── settings.json              # source of truth for ~/.claude/settings.json
+├── CLAUDE.md                  # source of truth for ~/.claude/CLAUDE.md
+├── skills/                    # personal skills (dir-per-skill, SKILL.md inside)
+├── agents/                    # personal subagent .md files
+├── commands/                  # personal slash command .md files
+├── hooks/                     # hook scripts referenced from settings.json
+├── plugins/                   # one directory per plugin bundle
+├── runtime/default.nix        # pkgs.buildEnv with MCP servers, LSPs
+├── evals/                     # promptfoo eval suite
+└── scripts/
+    ├── install.bash           # link the repo into ~/.claude, build runtime
+    └── eval.bash              # run promptfoo (--fast for routing only)
+```
+
+## Install model
+
+`scripts/install.bash` is a symlink installer. For each tracked top-level
+file or directory, it:
+
+1. Refuses to run as root.
+2. Verifies the repo looks like a jstack checkout (`settings.json` and
+   `skills/` must exist).
+3. Symlinks `settings.json` and `CLAUDE.md` into `~/.claude/`.
+4. Symlinks `skills/`, `agents/`, `commands/`, `hooks/`, and `plugins/`
+   into `~/.claude/`.
+5. Builds the runtime via `nix-build runtime/default.nix` and links the
+   result under `~/.local/state/claude-config/runtime`.
+6. Updates the shell `rc` so `~/.local/state/claude-config/runtime/bin` is
+   on `PATH`.
+
+Anything the installer would displace is moved into a timestamped backup
+under `~/.claude/.claude-config-backups/<timestamp>/`. A `RESTORE.md` is
+dropped alongside.
+
+The installer is **idempotent**: re-running on a clean tree reports zero
+actions.
+
+## Runtime model
+
+`runtime/default.nix` is a `pkgs.buildEnv` derivation. Whatever binaries
+it includes are exposed to Claude Code via `PATH`. The current build
+includes:
+
+- `pyright` — Python LSP
+- `nil` — Nix LSP
+- `typescript-language-server` — TS/JS LSP
+
+Additional MCP servers and LSPs go in the same `paths` list. After
+editing `runtime/default.nix`, re-run `install.bash` to rebuild and
+re-link.
+
+## Plugins
+
+Each plugin lives at `plugins/<name>/` and is self-contained. The
+expected layout per plugin:
+
+```
+plugins/<name>/
+├── .claude-plugin/plugin.json   # required: name, description, author
+├── README.md                    # what it ships, sources, license
+├── .mcp.json                    # optional: MCP server wiring
+└── skills/
+    └── <skill-name>/SKILL.md
+```
+
+`install.bash` symlinks the entire `plugins/` tree as a single unit, so
+new plugins are picked up without touching the installer.
+
+## Marketplace UI conflict
+
+After install, `~/.claude/plugins/` is a symlink into this repo. If you
+install a plugin via Claude Code's marketplace UI (`/plugin install foo`),
+it writes a new directory under `plugins/` and shows up in `git status`.
+Either commit the new plugin to the repo or revert it.
+
+## Why no submodules
+
+An earlier iteration of jstack vendored upstream plugin sources via git
+submodules under `vendor/`, with symlinks into `plugins/jstack-vendored/`.
+That layer was removed: every plugin currently shipped is owned content
+that lives directly under `plugins/<name>/`. There is no `vendor/` and no
+`bump-vendor.bash`.

@@ -1,0 +1,92 @@
+---
+title: "Develop"
+description: "devenv shell, lint, and the promptfoo eval suite."
+---
+
+## Enter the dev shell
+
+The repo ships a `devenv.nix` that pins Node, npins, jq/yq, ripgrep,
+shellcheck, and the markdown linter. With `direnv` configured, the shell
+is automatic:
+
+```bash
+direnv allow
+```
+
+Without `direnv`:
+
+```bash
+devenv shell
+```
+
+## Available scripts
+
+Inside the dev shell, the following scripts are exposed:
+
+| Command | What it does |
+|---|---|
+| `install` | Alias for `bash scripts/install.bash` |
+| `lint` | Run `markdownlint-cli2` over `skills/**/SKILL.md`, `agents/*.md`, `commands/*.md`, then `jq empty settings.json` |
+| `eval` | Run the full promptfoo suite via `bash scripts/eval.bash` |
+| `eval-fast` | Run only the routing tests via `bash scripts/eval.bash --fast` |
+
+## Lint
+
+```bash
+lint
+```
+
+Catches:
+
+- Malformed Markdown in personal skills, agents, and commands
+- Invalid JSON in `settings.json`
+
+The plugin bundles under `plugins/` are intentionally excluded from
+`lint`'s globs because they carry upstream-authored content and should not
+be reformatted casually.
+
+## Eval
+
+```bash
+eval        # full suite
+eval-fast   # routing only
+```
+
+The eval harness lives under `evals/` and uses
+[promptfoo](https://www.promptfoo.dev/) (installed via npm in the dev
+shell). `eval-fast` skips end-to-end tests and is the right loop for
+working on skill descriptions and routing triggers.
+
+## Editing skills
+
+<Steps>
+  <Step title="Edit the SKILL.md">
+    Personal skills live under `skills/<skill-name>/SKILL.md`. Plugin skills
+    live under `plugins/<plugin>/skills/<skill-name>/SKILL.md`.
+  </Step>
+  <Step title="Lint">
+    Run `lint` to catch formatting errors before committing.
+  </Step>
+  <Step title="Re-run install">
+    Run `install` (idempotent). New skills become visible to `~/.claude` on
+    the next session.
+  </Step>
+  <Step title="Verify routing">
+    Run `eval-fast` to check that triggering still does what you expect.
+  </Step>
+</Steps>
+
+## Adding a plugin
+
+Drop a new directory under `plugins/<name>/` with at minimum:
+
+```
+plugins/<name>/
+├── .claude-plugin/plugin.json
+├── README.md
+└── skills/
+    └── <skill-name>/SKILL.md
+```
+
+`install.bash` symlinks `plugins/` wholesale into `~/.claude/plugins`, so
+no further wiring is needed once the directory exists.

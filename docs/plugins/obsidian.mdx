@@ -1,0 +1,52 @@
+---
+title: "obsidian"
+description: "5 skills for Obsidian markdown, canvas, bases, CLI, and web extraction."
+---
+
+`plugins/obsidian/` ships five skills for working with Obsidian
+knowledge bases, sourced from
+[`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills)
+(MIT).
+
+<Warning>
+Two skills depend on external CLI tools that are not in
+`runtime/default.nix`:
+
+- `defuddle` requires the
+  [Defuddle CLI](https://github.com/kepano/defuddle).
+- `obsidian-cli` requires the
+  [Obsidian CLI](https://github.com/Yakitrak/obsidian-cli).
+
+The skills will trigger on matching prompts but will fail at exec time if
+the corresponding CLI is not on `PATH`.
+</Warning>
+
+## Manifest
+
+```json
+{
+  "name": "obsidian",
+  "description": "Obsidian knowledge base skills — markdown, canvas, bases, CLI, and web content extraction",
+  "author": "kepano"
+}
+```
+
+## Skills
+
+| Skill | Description |
+|---|---|
+| `defuddle` | Extract clean markdown from web pages using the Defuddle CLI |
+| `json-canvas` | Create and edit JSON Canvas files (`.canvas`) with nodes, edges, and groups |
+| `obsidian-bases` | Create and edit Obsidian Bases (`.base` files) with views, filters, and formulas |
+| `obsidian-cli` | Interact with Obsidian vaults via the Obsidian CLI |
+| `obsidian-markdown` | Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, and properties |
+
+Three skills (`json-canvas`, `obsidian-bases`, `obsidian-markdown`) ship
+additional `references/` files (function references, callouts, embeds,
+properties, examples).
+
+## Sources
+
+- [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) — 5 skills by kepano (MIT)
+
+Skills retain the licenses of their original sources.
