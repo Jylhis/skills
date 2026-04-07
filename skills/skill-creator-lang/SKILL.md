@@ -35,8 +35,26 @@ This is a meta skill. It does not write application code. It produces other skil
 
    Do not assume.
 
-5. **Research.** Delegate research to the `research` skill or the `Explore` subagent.
-   Hand it a concrete brief listing every topic in step 6. Ask for:
+5. **Check for an existing skill.** Look in the chosen output location for a skill
+   matching this language or stack. If one exists:
+   - Read it in full. Treat it as the starting point, not as truth.
+   - Still run the full research pass from scratch (step 6). Do not skip research
+     just because a skill is already there — versions, tooling, and best practices
+     drift.
+   - Validate every claim in the existing skill against current sources: tool names,
+     commands, version numbers, links, recommended libraries, footguns. Mark each as
+     `confirmed`, `outdated`, or `superseded`.
+   - Consolidate findings: keep what is still correct, replace what is outdated, add
+     what is missing.
+   - For any **major difference** (toolchain swap, version jump, idiom reversal,
+     dropped or added recommendation), stop and confirm with the user before
+     overwriting. List the old value, the new value, and why it changed. Minor edits
+     (link updates, command flag tweaks) can proceed without confirmation.
+   - When writing the file in step 9, overwrite in place. Do not create a parallel
+     skill.
+
+6. **Research.** Delegate research to the `research` skill or the `Explore` subagent.
+   Hand it a concrete brief listing every topic in step 7. Ask for:
    - Official documentation URLs
    - The dominant idiomatic style guide (community or vendor)
    - The current consensus toolchain (formatter, linter, test runner, build tool,
@@ -53,7 +71,7 @@ This is a meta skill. It does not write application code. It produces other skil
 
    Do not synthesize from training knowledge alone. Verify against current sources.
 
-6. **Cover every topic.** The generated skill must answer all of these for the target
+7. **Cover every topic.** The generated skill must answer all of these for the target
    language or stack:
    - **Paradigm:** dynamic vs static, compiled vs interpreted vs JIT, functional /
      OO / multi-paradigm, memory model
@@ -82,32 +100,37 @@ This is a meta skill. It does not write application code. It produces other skil
    - **MCP servers:** the chosen MCP server(s) for this ecosystem and what each
      exposes. State explicitly if none exist.
 
-7. **Be opinionated.** For every choice, pick one recommendation and commit. Do not
+8. **Be opinionated.** For every choice, pick one recommendation and commit. Do not
    list alternatives. If the user asks why later, the research notes back the choice.
    Hype-driven choices are out; prefer mature, widely-used tools.
 
-8. **Write the files.** Create the skill directory with:
+9. **Write the files.** Create the skill directory with:
    - `SKILL.md` — the prompt document, structured like other jstack skills
    - `reference.md` — longer-form notes: links to official docs, the rationale for
      each opinionated pick, and any topic that did not fit cleanly in `SKILL.md`
    - Additional reference files only if a topic genuinely needs its own document
      (e.g. `testing.md`, `tooling.md`). Do not split for the sake of splitting.
 
-9. **Include tool detection.** The generated `SKILL.md` must contain a self-contained
-   bash block that checks whether each recommended tool is installed and reports what
-   is missing. The block should not install anything. Example shape:
+   If an existing skill was found in step 5, overwrite the same files in place
+   rather than creating a parallel directory.
 
-   ```bash
-   for tool in <tool1> <tool2> <tool3>; do
-     command -v "$tool" >/dev/null && echo "ok: $tool" || echo "MISSING: $tool"
-   done
-   ```
+10. **Include tool detection.** The generated `SKILL.md` must contain a self-contained
+    bash block that checks whether each recommended tool is installed and reports what
+    is missing. The block should not install anything. Example shape:
 
-   List the actual tools the skill recommends.
+    ```bash
+    for tool in <tool1> <tool2> <tool3>; do
+      command -v "$tool" >/dev/null && echo "ok: $tool" || echo "MISSING: $tool"
+    done
+    ```
 
-10. **Show the user what was written.** Print the file paths and a one-paragraph
-    summary of the choices made (version, toolchain, test runner). Do not ask for
-    approval after the fact — the choices were already confirmed in steps 1–4.
+    List the actual tools the skill recommends.
+
+11. **Show the user what was written.** Print the file paths and a one-paragraph
+    summary of the choices made (version, toolchain, test runner). If updating an
+    existing skill, also list what changed (confirmed / outdated / superseded /
+    added). Do not ask for approval after the fact — the choices were already
+    confirmed in steps 1–5.
 
 ## Generated skill format
 
@@ -128,7 +151,7 @@ description: <one sentence: what this skill teaches Claude>
 
 ## Tool detection
 
-<bash block from step 9>
+<bash block from step 10>
 
 ## Idiomatic style
 
