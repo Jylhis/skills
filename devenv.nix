@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   packages = with pkgs; [
     markdownlint-cli2
@@ -94,7 +94,8 @@
     [ -f treefmt.toml ] || fail "treefmt.toml missing"
     pass "treefmt available"
 
-    # 7. Plugin manifests are valid JSON.
+    # 7. Any plugin manifests that exist are valid JSON.
+    # Zero plugins is allowed (e.g. base configuration / fresh setup).
     echo "-- test 7/7: plugin .claude-plugin/plugin.json files valid"
     found=0
     for f in plugins/*/.claude-plugin/plugin.json; do
@@ -102,7 +103,6 @@
       jq empty "$f" || fail "invalid JSON in $f"
       found=$((found + 1))
     done
-    [ "$found" -gt 0 ] || fail "no plugin manifests found"
     pass "$found plugin manifests valid"
 
     echo "==> all 7 tests passed"
