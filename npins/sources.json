@@ -1,0 +1,37 @@
+{
+  "pins": {
+    "devenv": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "cachix",
+        "repo": "devenv"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "35b8c42eb10c196dc84611852325c722b6f10750",
+      "url": "https://github.com/cachix/devenv/archive/35b8c42eb10c196dc84611852325c722b6f10750.tar.gz",
+      "hash": "sha256-/br4g2hAmCIPaMx3a8862AfcNyBGOgoqjke6X786s8A="
+    },
+    "home-manager": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "nix-community",
+        "repo": "home-manager"
+      },
+      "branch": "release-25.05",
+      "submodules": false,
+      "revision": "44831a7eaba4360fb81f2acc5ea6de5fde90aaa3",
+      "url": "https://github.com/nix-community/home-manager/archive/44831a7eaba4360fb81f2acc5ea6de5fde90aaa3.tar.gz",
+      "hash": "sha256-WHkdBlw6oyxXIra/vQPYLtqY+3G8dUVZM8bEXk0t8x4="
+    },
+    "nixpkgs": {
+      "type": "Channel",
+      "name": "nixpkgs-unstable",
+      "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.05pre976537.a3db02183b5d/nixexprs.tar.xz",
+      "hash": "sha256-rFByy+vYdvd2IZ7GYibTcc4fuJKj5+g/YkJxqxvt2+o="
+    }
+  },
+  "version": 7
+}

@@ -1,0 +1,6 @@
+.devenv/
+.devenv.flake.nix
+.direnv/
+result
+result-*
+.claude/settings.local.json
