@@ -3,14 +3,13 @@
 let
   cfg = config.programs.jstack;
   runtimePkg = import (/. + cfg.repoPath + "/runtime");
-  mkLink = path:
-    config.lib.file.mkOutOfStoreSymlink (cfg.repoPath + "/" + path);
+  mkLink = path: config.lib.file.mkOutOfStoreSymlink (cfg.repoPath + "/" + path);
 
   pluginsDir = /. + cfg.repoPath + "/plugins";
   pluginBundles = lib.pipe (builtins.readDir pluginsDir) [
     (lib.filterAttrs (_: type: type == "directory"))
-    (lib.filterAttrs (name: _:
-      builtins.pathExists (pluginsDir + "/${name}/.claude-plugin/plugin.json")
+    (lib.filterAttrs (
+      name: _: builtins.pathExists (pluginsDir + "/${name}/.claude-plugin/plugin.json")
     ))
     (lib.mapAttrsToList (name: _: pluginsDir + "/${name}"))
   ];

@@ -1,4 +1,9 @@
-{ pkgs, ... }: {
+{ pkgs, config, ... }:
+let
+  settings = import ./settings.nix;
+  runtimePkg = import ./runtime;
+in
+{
   packages = with pkgs; [
     markdownlint-cli2
     jq
@@ -12,15 +17,29 @@
     gnused
     shellcheck
     just
+    runtimePkg
   ];
+
+  env.JSTACK_RUNTIME = "${runtimePkg}";
 
   enterShell = ''
     echo "jstack dev shell"
     echo "skills: $(ls skills 2>/dev/null | wc -l)  agents: $(ls agents 2>/dev/null | wc -l)  commands: $(ls commands 2>/dev/null | wc -l)  plugins: $(ls plugins 2>/dev/null | wc -l)"
+
+    # Symlink content dirs into .claude/ so Claude picks them up for this project.
+    # Uses real paths (not nix store copies) to preserve live editing.
+    for dir in plugins skills agents commands hooks; do
+      ln -sfn "$DEVENV_ROOT/$dir" "$DEVENV_ROOT/.claude/$dir"
+    done
   '';
 
   # https://devenv.sh/integrations/claude-code/
   claude.code.enable = true;
+
+  # Merge settings.nix into the devenv-generated .claude/settings.json.
+  # Must use the same key as the claude module (absolute path) so the
+  # module system merges the two attrsets instead of creating two entries.
+  files.${config.claude.code.settingsPath}.json = settings;
 
   # https://devenv.sh/integrations/treefmt/
   treefmt = {
