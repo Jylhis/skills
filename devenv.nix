@@ -9,7 +9,6 @@ in
     jq
     yq-go
     npins
-    nodejs_20
     git
     fd
     ripgrep
@@ -49,10 +48,6 @@ in
       programs = {
         nixfmt.enable = true;
         shfmt.enable = true;
-        prettier = {
-          enable = true;
-          package = pkgs.nodePackages.prettier;
-        };
       };
       # Only format files authored by this project. Plugin bundles,
       # scripts/, docs/, etc. are vendored/upstream-owned and left alone.
