@@ -59,7 +59,7 @@
 
   scripts.lint.exec = ''
     treefmt --fail-on-change
-    markdownlint-cli2 "skills/**/SKILL.md" "agents/*.md" "commands/*.md" || true
+    markdownlint-cli2 "skills/**/SKILL.md" "agents/*.md" "commands/*.md"
     jq empty settings.json && echo "settings.json ok"
   '';
 
