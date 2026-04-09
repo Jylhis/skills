@@ -1,21 +1,25 @@
 # jstack
 
-Multi-agent AI configuration: skills, agents, slash commands, hooks,
-settings, and plugin bundles. Supports **Claude Code**, **Codex CLI**, and
-**Gemini CLI**. Installed via a symlink-based `install.bash` script or
-Home Manager module.
+My vibecoding setup. Heavily inprogress. Do not expect stability or even working setup.
 
-The full documentation site lives in [`docs/`](docs/) and is rendered
-with [Mintlify](https://mintlify.com). Run `mintlify dev` from inside
-`docs/` to preview locally.
+Fully managed with Nix. Bundles skills, agents, commands, hooks, settings, tools, devenlopemnt environment for testing and evaluating performance with promptfoo.
 
-## Supported Agents
+Currently only support claude code, but codex and gemini support is in progress (kind of).
 
-| Agent | Config dir | Instructions | Skills path |
-|---|---|---|---|
-| Claude Code | `~/.claude/` | `CLAUDE.md` | `~/.claude/skills/` + `~/.claude/plugins/*/skills/` |
-| Codex CLI | `~/.codex/` | `AGENTS.md` | `~/.codex/skills/` |
-| Gemini CLI | `~/.gemini/` | `GEMINI.md` | `~/.gemini/skills/` |
+Installation with home-manager module.
+
+<!-- TODO: Remove install.bash installer -->
+
+Docs lives in docs/ folder and is published to https://docs.jylhis.com/jstack
+
+
+## Categories
+
+All things are generally categorised under following  categories:
+
+- **supporting** - These are generally not called by user directly, but instead automatically loaded by models when needed e.g. rust-dev
+- **workflow** - These are the main thing you call e.g. /review , /debug , /troubleshoot
+
 
 ## Layout
 
@@ -55,16 +59,6 @@ with [Mintlify](https://mintlify.com). Run `mintlify dev` from inside
     └── eval.bash              # run promptfoo (--fast, --plugin)
 ```
 
-## Plugin bundles
-
-| Plugin | Skills | Packages | LSP | MCP | What it ships |
-|---|---|---|---|---|---|
-| [rust-dev](plugins/rust-dev) | 29 | — | rust-analyzer | — | Rust language mechanics, design, domain packs, LSP analyzers |
-| [golang-dev](plugins/golang-dev) | 36 | — | gopls | — | Go idioms, perf, testing, security, observability, samber libraries |
-| [nix-dev](plugins/nix-dev) | 7 | nil | nil | mcp-nixos | Nix language, NixOS modules, flakes, devenv, home-manager |
-| [productivity](plugins/productivity) | 1 | — | — | — | Weekly session log appender |
-| [skill-creator](plugins/skill-creator) | 1 | — | — | — | Anthropic's official skill authoring + eval framework |
-| [obsidian](plugins/obsidian) | 5 | — | — | — | Obsidian markdown, canvas, bases, CLI, web extraction |
 
 ## Plugin definition
 
@@ -106,6 +100,8 @@ npins add github anthropics skills     # pin the repo
 List all discovered skills: `just list-skills`
 
 ## Install
+
+<!-- TODO: Remove script installed, instead document home-manager installation -->
 
 Run inside a devenv shell (or anywhere `nix` and standard tools are on
 `PATH`):
@@ -152,28 +148,3 @@ just add-source owner repo     # pin a third-party skill source
 just install-target codex      # install for a specific agent
 ```
 
-## Documentation
-
-The full documentation is in [`docs/`](docs/), rendered with Mintlify:
-
-| Page | Path |
-|---|---|
-| Project overview | [`docs/index.mdx`](docs/index.mdx) |
-| Install | [`docs/install.mdx`](docs/install.mdx) |
-| Develop | [`docs/develop.mdx`](docs/develop.mdx) |
-| Architecture | [`docs/architecture.mdx`](docs/architecture.mdx) |
-| Plugins | [`docs/plugins/`](docs/plugins/) |
-
-To preview locally:
-
-```bash
-cd docs
-mintlify dev
-```
-
-## Marketplace UI conflict
-
-After install, `~/.claude/plugins/` is a symlink into this repo. If you
-install a plugin via Claude Code's marketplace UI (`/plugin install foo`),
-it will write a new directory under `plugins/` and show up in
-`git status`. Either commit the new plugin to the repo or revert it.
