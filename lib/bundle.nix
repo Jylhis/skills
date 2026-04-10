@@ -58,59 +58,19 @@ in
       target ? "claude",
     }:
     let
-      targets = import ./targets.nix;
-      t = targets.${target};
       manifest = import ./manifest.nix { inherit pkgs; };
 
+      pluginManifests = lib.mapAttrs (
+        name: def: manifest.mkPluginManifests { pluginDef = def; inherit target; }
+      ) pluginDefs;
+
       pluginScripts = lib.mapAttrsToList (
-        name: def:
-        let
-          claudeManifest = manifest.mkClaudeManifest def;
-          geminiManifest = manifest.mkGeminiManifest def;
-          mcpConfig = manifest.mkMcpConfig def;
-          lspConfig = manifest.mkLspConfig def;
-        in
+        name: manifestDrv:
         ''
           mkdir -p "$out/${name}"
+          cp -r ${manifestDrv}/. "$out/${name}/"
         ''
-        + (
-          if target == "claude" then
-            ''
-              mkdir -p "$out/${name}/.claude-plugin"
-              cat > "$out/${name}/.claude-plugin/plugin.json" <<'MANIFEST'
-              ${claudeManifest}
-              MANIFEST
-            ''
-          else if target == "gemini" then
-            ''
-              cat > "$out/${name}/gemini-extension.json" <<'MANIFEST'
-              ${geminiManifest}
-              MANIFEST
-            ''
-          else
-            ""
-        )
-        + (
-          if mcpConfig != null && t.mcpConfigFile != null then
-            ''
-              cat > "$out/${name}/${t.mcpConfigFile}" <<'MCPCONF'
-              ${mcpConfig}
-              MCPCONF
-            ''
-          else
-            ""
-        )
-        + (
-          if lspConfig != null && t.lspConfigFile != null then
-            ''
-              cat > "$out/${name}/${t.lspConfigFile}" <<'LSPCONF'
-              ${lspConfig}
-              LSPCONF
-            ''
-          else
-            ""
-        )
-      ) pluginDefs;
+      ) pluginManifests;
     in
     pkgs.runCommand "jstack-plugin-bundle-${target}" { } ''
       mkdir -p $out
