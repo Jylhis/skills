@@ -174,6 +174,25 @@ final: prev: {
 
 Rule: use `prev.foo` for the package you're overriding, `final.bar` for its dependencies.
 
+### Composing Upstream Overlays
+
+When consuming another project's overlay and extending it with custom
+packages:
+
+```nix
+final: prev:
+(upstream.overlays.default final prev) // {
+  my-extra = final.callPackage ./my-extra.nix { };
+}
+```
+
+This works because `final` is the shared fixpoint — the upstream overlay
+is applied first, then custom attributes are merged on top. Both the
+upstream packages and custom packages see the same `final` package set.
+
+Use this pattern when a dependency exposes an overlay that you want to
+extend rather than replace.
+
 ## Cross-Platform
 
 ```nix

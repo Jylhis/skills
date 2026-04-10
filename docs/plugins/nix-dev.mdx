@@ -1,9 +1,9 @@
 ---
 title: "nix-dev"
-description: "7 Nix skills plus the mcp-nixos MCP server."
+description: "10 Nix skills plus the mcp-nixos MCP server."
 ---
 
-`plugins/nix-dev/` ships seven Nix-related skills and a `.mcp.json` that
+`plugins/nix-dev/` ships ten Nix-related skills and a `.mcp.json` that
 wires up the
 [`utensils/mcp-nixos`](https://github.com/utensils/mcp-nixos) MCP server
 for NixOS option and package lookups.
@@ -20,8 +20,8 @@ during import.
 ```json
 {
   "name": "nix-dev",
-  "version": "0.1.0",
-  "description": "Nix development intelligence: Nix language, NixOS modules, flakes, devenv, nixpkgs, home-manager, plus nil LSP and mcp-nixos integration",
+  "version": "0.2.0",
+  "description": "Nix development intelligence: Nix language, NixOS modules, flakes, npins, devenv, nixpkgs, home-manager, hybrid architecture, linting, plus nil LSP and mcp-nixos integration",
   "author": { "name": "Markus Jylhänkangas" }
 }
 ```
@@ -48,12 +48,15 @@ This is a real MCP server. On first use, `nix run` fetches and builds
 | Skill | Description |
 |---|---|
 | `devenv` | `devenv.sh` patterns: `devenv.nix`, `devenv.yaml`, shells, processes, services, pre-commit hooks, cachix, ad-hoc environments |
-| `flakes` | Flake schema, inputs, outputs, lock files, follows, overlays |
+| `flakes` | Flake schema, inputs, outputs, lock files, follows, overlays, pure evaluation constraints |
 | `home-manager` | Module structure, options, file management, user services |
 | `nix-debugging` | `nix repl`, `--show-trace`, error decoding, store path inspection |
+| `nix-hybrid` | Hybrid non-flake + flake architecture, thin wrapper, pin synchronization, Justfile templates |
 | `nix-language` | Syntax, types, attribute sets, function semantics |
+| `nix-linting` | statix, deadnix, nixfmt CLI semantics, CI lint pipelines, statix.toml configuration |
 | `nixos-modules` | Module system, options, mkOption, imports, assertions |
-| `nixpkgs` | Package definitions, derivations, fetchers, overlays, overrides |
+| `nixpkgs` | Package definitions, derivations, fetchers, overlays, overrides, overlay composition |
+| `npins` | Dependency pinning without flakes, sources.json, GitHub vs Channel pins, revision tracking |
 
 ## Sources
 

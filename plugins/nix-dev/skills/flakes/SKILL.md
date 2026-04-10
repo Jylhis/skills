@@ -1,6 +1,6 @@
 ---
 name: flakes
-description: "Use for Nix flakes structure and workflows including flake.nix, flake.lock, nix flake commands, nix develop, nix build, nix run, nix shell, nix fmt, inputs, outputs, devShells, packages, nixosConfigurations, follows, flake-utils, flake-parts, flake templates, eachDefaultSystem, or flake checks."
+description: "Use for Nix flakes structure and workflows including flake.nix, flake.lock, nix flake commands, nix develop, nix build, nix run, nix shell, nix fmt, inputs, outputs, devShells, packages, nixosConfigurations, follows, flake-utils, flake-parts, flake templates, eachDefaultSystem, flake checks, pure evaluation constraints, nix flake check evaluation depth, impure inputs, or flake output safety."
 user-invocable: false
 ---
 
@@ -172,6 +172,30 @@ nix fmt                  # Run configured formatter
 ## Lock File
 
 `flake.lock` pins exact versions of all inputs. Commit it to version control. Update with `nix flake update`.
+
+## Pure Evaluation Constraints
+
+`nix flake check` evaluates different outputs to different depths. This
+matters when `default.nix` uses impure operations (e.g., npins via
+`builtins.fetchTarball`):
+
+| Output | Evaluation depth | Impure safe? |
+|--------|-----------------|-------------|
+| `packages.<system>.*` | **Full** — derivation is evaluated | No — will fail |
+| `checks.<system>.*` | **Full** — evaluated and built | No — will fail |
+| `overlays.default` | Arity check only (body not forced) | Yes |
+| `darwinConfigurations` | Shallow (attrset structure) | Yes |
+| `nixosConfigurations` | Shallow (attrset structure) | Yes |
+| `homeManagerModules` | Non-standard — warns, does NOT fail | Yes |
+
+**Formatter caveat:** If the flake's `systems` list doesn't include the
+current dev platform (e.g., linux-only flake on macOS), `nix fmt` fails
+with `does not provide attribute 'formatter.x86_64-darwin'`. Use
+`nixfmt .` directly or add all dev platforms to the systems list.
+
+In hybrid setups (npins + flake), the flake's nixpkgs input can be
+purely decorative — it exists for downstream consumers and lock file
+synchronization, not for building.
 
 ## flake-utils vs flake-parts
 

@@ -1,6 +1,6 @@
 ---
 name: devenv
-description: "Use for devenv.sh developer environment patterns including devenv.nix, devenv.yaml, devenv shell, devenv up, devenv init, devenv test, devenv languages, devenv processes, devenv services, pre-commit hooks in devenv, cachix caching, devenv.lock, direnv integration, ad-hoc nix environments, or enterShell configuration."
+description: "Use for devenv.sh developer environment patterns including devenv.nix, devenv.yaml, devenv shell, devenv up, devenv init, devenv test, devenv languages, devenv processes, devenv services, pre-commit hooks in devenv, cachix caching, devenv.lock, direnv integration, ad-hoc nix environments, enterShell configuration, nixpkgs pin override, exact nixpkgs commit in devenv.yaml, or cachix devenv-nixpkgs rolling."
 user-invocable: false
 ---
 
@@ -156,6 +156,30 @@ imports:
   - ./backend/devenv.nix
   - ./frontend/devenv.nix
 ```
+
+### Pinning Exact nixpkgs Commit
+
+Override the default nixpkgs input with a specific commit from
+`NixOS/nixpkgs`:
+
+```yaml
+inputs:
+  nixpkgs:
+    url: github:NixOS/nixpkgs/abc123def456789...
+```
+
+After `devenv update`, `devenv.lock` will have
+`nodes.nixpkgs.locked.rev` pointing directly at `NixOS/nixpkgs` — no
+indirection.
+
+**Do NOT use `cachix/devenv-nixpkgs/rolling`** as the nixpkgs input. It
+adds a `nixpkgs-src` indirection node in `devenv.lock`, which causes
+the locked revision to diverge from `cache.nixos.org` hashes. This
+breaks binary cache hits and makes pin synchronization with npins and
+flake.lock impossible.
+
+Use an exact `github:NixOS/nixpkgs/<commit>` URL to keep all three lock
+files in sync. See the `nix-hybrid` skill for the full sync recipe.
 
 ## CLI Commands
 
