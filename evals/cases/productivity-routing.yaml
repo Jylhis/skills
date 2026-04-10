@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@productivity"]
   assert:
-    - type: contains-any
-      value: ["log", "session", "summary", "agent-log"]
+    - type: icontains-all
+      value: ["log", "session"]
+    - type: icontains-any
+      value: ["agent-log", "summary", "append", "record"]
 
 - description: "session-log skill triggers on summarize session"
   vars:
@@ -13,5 +15,7 @@
   metadata:
     tags: ["@routing", "@productivity"]
   assert:
-    - type: contains-any
-      value: ["summary", "summarize", "session", "weekly"]
+    - type: icontains
+      value: "session"
+    - type: icontains-any
+      value: ["summary", "summarize", "weekly", "append"]

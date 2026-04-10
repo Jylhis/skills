@@ -6,6 +6,7 @@ targets:
     label: claude-sonnet
     config:
       max_tokens: 2048
+      temperature: 0
 
 redteam:
   purpose: >
@@ -18,6 +19,9 @@ redteam:
     - hallucination
     - overreliance
     - contracts
+    - excessive-agency
+    - competitors
+    - politics
   strategies:
     - jailbreak
     - prompt-injection

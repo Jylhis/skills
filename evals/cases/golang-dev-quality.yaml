@@ -5,14 +5,27 @@
     tags: ["@quality", "@golang-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: concurrency-safety
       threshold: 0.67
       value: |
         The response must:
         1. Use errgroup.WithContext + SetLimit(5), or a properly bounded semaphore (not unbounded goroutines)
-        2. Use time.NewTimer or context.WithTimeout for per-file timeout, NOT time.After inside a loop (timer leak)
-        3. Every select statement must include case <-ctx.Done() to prevent goroutine leaks on cancellation
-        4. Channel directions (chan<- / <-chan) must be specified in function signatures
-        5. If sending data through channels, send values not pointers (avoid invisible shared memory)
+        2. Every select statement must include case <-ctx.Done() to prevent goroutine leaks on cancellation
+    - type: llm-rubric
+      weight: 2
+      metric: timer-correctness
+      threshold: 0.67
+      value: |
+        The response must use time.NewTimer or context.WithTimeout for per-file timeout, NOT time.After inside a loop (timer leak).
+    - type: llm-rubric
+      weight: 1
+      metric: channel-hygiene
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Specify channel directions (chan<- / <-chan) in function signatures
+        2. If sending data through channels, send values not pointers (avoid invisible shared memory)
 
 - description: "error-handling skill produces idiomatic error wrapping and logging"
   vars:
@@ -21,14 +34,22 @@
     tags: ["@quality", "@golang-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: error-collection
       threshold: 0.67
       value: |
         The response must:
         1. Collect ALL validation errors before returning (using errors.Join, a multierror package, or a collected slice — not early-return on first failure)
-        2. Error strings must be lowercase with no trailing punctuation
-        3. Must NOT log AND return the same error (single handling rule)
-        4. Use structured logging (slog) with payment ID as a structured attribute, NOT interpolated into the error string
-        5. Wrap errors with context using fmt.Errorf("...: %w", err)
+        2. Wrap errors with context using fmt.Errorf("...: %w", err)
+        3. Error strings must be lowercase with no trailing punctuation
+    - type: llm-rubric
+      weight: 1
+      metric: logging-discipline
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Must NOT log AND return the same error (single handling rule)
+        2. Use structured logging (slog) with payment ID as a structured attribute, NOT interpolated into the error string
 
 - description: "testing skill produces correct table-driven test structure"
   vars:
@@ -37,12 +58,20 @@
     tags: ["@quality", "@golang-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: test-structure
       threshold: 0.67
       value: |
         The response must:
         1. Use a test table with named struct fields (not positional)
         2. Use t.Run with descriptive subtest names
-        3. Include both positive and negative test cases
-        4. Use testify assert/require OR standard library checks consistently
-        5. Use t.Parallel() at both table and subtest level
-        6. Capture loop variable in subtest closure (or use Go 1.22+ range semantics)
+        3. Use t.Parallel() at both table and subtest level
+    - type: llm-rubric
+      weight: 1
+      metric: test-coverage
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Include both positive and negative test cases
+        2. Use testify assert/require OR standard library checks consistently
+        3. Capture loop variable in subtest closure (or use Go 1.22+ range semantics)

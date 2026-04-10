@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@claude-ecosystem"]
   assert:
-    - type: contains-any
-      value: ["anthropic", "stream", "SDK", "messages"]
+    - type: icontains
+      value: "anthropic"
+    - type: icontains-any
+      value: ["stream", "SDK", "client"]
 
 - description: "claude-api skill triggers on Claude API tool use"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@claude-ecosystem"]
   assert:
-    - type: contains-any
-      value: ["tool", "function", "claude", "API"]
+    - type: icontains
+      value: "tool"
+    - type: icontains-any
+      value: ["claude", "anthropic", "messages"]
 
 - description: "mcp-builder skill triggers on MCP server question"
   vars:
@@ -22,8 +26,10 @@
   metadata:
     tags: ["@routing", "@claude-ecosystem"]
   assert:
-    - type: contains-any
-      value: ["MCP", "FastMCP", "server", "tool"]
+    - type: icontains
+      value: "mcp"
+    - type: icontains-any
+      value: ["FastMCP", "server", "tool"]
 
 - description: "mcp-builder skill triggers on Model Context Protocol"
   vars:
@@ -31,5 +37,7 @@
   metadata:
     tags: ["@routing", "@claude-ecosystem"]
   assert:
-    - type: contains-any
-      value: ["MCP", "Model Context Protocol", "server", "integration"]
+    - type: icontains-any
+      value: ["MCP", "Model Context Protocol"]
+    - type: icontains-any
+      value: ["server", "tool", "integration", "resource"]

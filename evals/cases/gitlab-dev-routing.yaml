@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@gitlab-dev"]
   assert:
-    - type: contains-any
-      value: ["gitlab-ci", "pipeline", "Docker", "cache"]
+    - type: icontains
+      value: "gitlab"
+    - type: icontains-any
+      value: ["pipeline", "ci", "job", "stage"]
 
 - description: "gitlab-cicd triggers on pipeline debugging"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@gitlab-dev"]
   assert:
-    - type: contains-any
-      value: ["pipeline", "CI", "job", "duplicate"]
+    - type: icontains
+      value: "pipeline"
+    - type: icontains-any
+      value: ["job", "rules", "workflow", "duplicate"]
 
 - description: "glab triggers on merge request workflow"
   vars:
@@ -22,8 +26,10 @@
   metadata:
     tags: ["@routing", "@gitlab-dev"]
   assert:
-    - type: contains-any
-      value: ["merge request", "MR", "glab", "reviewer"]
+    - type: icontains-any
+      value: ["merge request", "MR"]
+    - type: icontains
+      value: "glab"
 
 - description: "glab triggers on GitLab issue management"
   vars:
@@ -31,5 +37,7 @@
   metadata:
     tags: ["@routing", "@gitlab-dev"]
   assert:
-    - type: contains-any
-      value: ["issue", "glab", "label", "GitLab"]
+    - type: icontains
+      value: "glab"
+    - type: icontains-any
+      value: ["issue", "list", "label"]

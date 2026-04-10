@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@nix-dev"]
   assert:
-    - type: contains-any
-      value: ["flake", "devShell", "outputs"]
+    - type: icontains
+      value: "flake"
+    - type: icontains-any
+      value: ["devShell", "outputs", "inputs"]
 
 - description: "nix-language skill triggers on let-in syntax"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@nix-dev"]
   assert:
-    - type: contains-any
-      value: ["let", "rec", "binding"]
+    - type: icontains-all
+      value: ["let", "in"]
+    - type: icontains-any
+      value: ["rec", "binding", "expression", "scope"]
 
 - description: "home-manager skill triggers on home.nix question"
   vars:
@@ -22,8 +26,10 @@
   metadata:
     tags: ["@routing", "@nix-dev"]
   assert:
-    - type: contains-any
-      value: ["home-manager", "programs", "home.nix"]
+    - type: icontains
+      value: "home-manager"
+    - type: icontains-any
+      value: ["programs", "home.nix", "module", "config"]
 
 - description: "devenv skill triggers on devenv.nix question"
   vars:
@@ -31,8 +37,10 @@
   metadata:
     tags: ["@routing", "@nix-dev"]
   assert:
-    - type: contains-any
-      value: ["devenv", "languages", "processes"]
+    - type: icontains
+      value: "devenv"
+    - type: icontains-any
+      value: ["languages", "processes", "services", "shell"]
 
 - description: "nixpkgs skill triggers on overlay question"
   vars:
@@ -40,5 +48,7 @@
   metadata:
     tags: ["@routing", "@nix-dev"]
   assert:
-    - type: contains-any
-      value: ["overlay", "overrideAttrs", "nixpkgs"]
+    - type: icontains
+      value: "overlay"
+    - type: icontains-any
+      value: ["overrideAttrs", "nixpkgs", "final", "prev"]

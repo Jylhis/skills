@@ -1,0 +1,51 @@
+- description: "elisp-conventions skill produces modern Emacs Lisp patterns"
+  vars:
+    prompt: "Write an Emacs Lisp minor mode for automatically saving buffers on focus loss. Use modern conventions: lexical-binding, use-package for setup, keymap-set for keybindings, setopt for customization, defcustom for user options (idle delay, excluded modes). Include autoload cookies."
+  metadata:
+    tags: ["@quality", "@emacs-dev"]
+  assert:
+    - type: llm-rubric
+      weight: 2
+      metric: modern-api-usage
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Include -*- lexical-binding: t -*- on the first line
+        2. Use keymap-set (not define-key or global-set-key)
+        3. Use setopt (not setq) for customization variables
+        4. Use defcustom with :type and :group for user options
+    - type: llm-rubric
+      weight: 1
+      metric: package-structure
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Include ;;;###autoload cookies before the interactive entry point
+        2. Use define-minor-mode to define the mode
+        3. Include a provide form at the end of the file
+
+- description: "elisp-testing skill produces correct ERT test structure"
+  vars:
+    prompt: "Write ERT tests for an Emacs Lisp function (my-parse-url url) that extracts host, port, and path from a URL string. Test: valid HTTP URL, HTTPS with port, path-only relative URL, malformed URL returns nil, empty string returns nil. Use ert-with-temp-file where applicable."
+  metadata:
+    tags: ["@quality", "@emacs-dev"]
+  assert:
+    - type: llm-rubric
+      weight: 2
+      metric: test-correctness
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Use ert-deftest with descriptive test names
+        2. Use should, should-not, or should-error for assertions
+        3. Test both positive cases (valid URLs) and negative cases (malformed, empty)
+        4. NOT use assert or other non-ERT assertion macros
+    - type: llm-rubric
+      weight: 1
+      metric: test-coverage
+      threshold: 0.67
+      value: |
+        The response must cover at least:
+        1. A standard HTTP URL with host and path
+        2. HTTPS URL with explicit port number
+        3. Malformed input returning nil or signaling an error

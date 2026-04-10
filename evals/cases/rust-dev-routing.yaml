@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@rust-dev"]
   assert:
-    - type: contains-any
-      value: ["ownership", "move", "borrow", "clone"]
+    - type: icontains-any
+      value: ["ownership", "move", "borrow"]
+    - type: icontains-any
+      value: ["clone", "reference", "&", "Copy"]
 
 - description: "error-handling skill triggers on Result question"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@rust-dev"]
   assert:
-    - type: contains-any
-      value: ["anyhow", "thiserror", "Result", "error"]
+    - type: icontains
+      value: "anyhow"
+    - type: icontains
+      value: "thiserror"
 
 - description: "concurrency skill triggers on async question"
   vars:
@@ -22,8 +26,10 @@
   metadata:
     tags: ["@routing", "@rust-dev"]
   assert:
-    - type: contains-any
-      value: ["tokio", "async", "channel", "spawn"]
+    - type: icontains
+      value: "tokio"
+    - type: icontains-any
+      value: ["async", "channel", "spawn", "await"]
 
 - description: "performance skill triggers on optimization question"
   vars:
@@ -31,5 +37,7 @@
   metadata:
     tags: ["@routing", "@rust-dev"]
   assert:
-    - type: contains-any
-      value: ["criterion", "benchmark", "profil", "flamegraph"]
+    - type: icontains
+      value: "criterion"
+    - type: icontains-any
+      value: ["benchmark", "profil", "flamegraph", "perf"]

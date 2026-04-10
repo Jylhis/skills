@@ -9,12 +9,19 @@ providers:
     label: claude-sonnet
     config:
       max_tokens: 2048
+      temperature: 0
   - id: openai:chat:gpt-4o
     label: gpt-4o
     config:
       max_tokens: 2048
+      temperature: 0
 
 defaultTest:
+  assert:
+    - type: cost
+      threshold: 0.05
+    - type: latency
+      threshold: 15000
   options:
     provider:
       id: openai:chat:gpt-4o
@@ -33,4 +40,6 @@ tests:
   - file://evals/cases/productivity-routing.yaml
   - file://evals/cases/rust-dev-routing.yaml
   - file://evals/cases/skill-creator-routing.yaml
+  - file://evals/cases/emacs-dev-routing.yaml
   - file://evals/cases/discovery-tests.yaml
+  - file://evals/cases/negative-routing.yaml

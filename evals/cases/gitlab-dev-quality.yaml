@@ -5,15 +5,23 @@
     tags: ["@quality", "@gitlab-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: glab-commands
+      threshold: 0.67
+      value: |
+        The response must:
+        1. MR creation must include --push flag (otherwise branch not on remote)
+        2. MR creation should use --related-issue to link the MR to the issue
+        3. Use --reviewer flag for MR review request (not --assignee)
+    - type: llm-rubric
+      weight: 1
+      metric: gitlab-conventions
       threshold: 0.67
       value: |
         The response must:
         1. Use Quick Actions (glab issue note with /assign, /label, /milestone) to batch metadata changes, not separate update commands
-        2. MR creation must include --push flag (otherwise branch not on remote)
-        3. MR creation should use --related-issue to link the MR to the issue
-        4. Use scoped label syntax for priority (priority::P1)
-        5. Check CI status with glab ci status or glab pipeline view
-        6. Use --reviewer flag for MR review request (not --assignee)
+        2. Use scoped label syntax for priority (priority::P1)
+        3. Check CI status with glab ci status or glab pipeline view
 
 - description: "gitlab-cicd skill produces correct pipeline with no common traps"
   vars:
@@ -22,13 +30,21 @@
     tags: ["@quality", "@gitlab-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: pipeline-correctness
       threshold: 0.67
       value: |
         The response must:
         1. Include workflow:rules to prevent duplicate pipelines (branch AND MR running simultaneously)
         2. Use dependencies: [] on frontend test to skip backend artifact download
-        3. Use !reference or extends: to reuse configuration across jobs (not copy-paste)
-        4. Cache key based on lockfiles (key: files: [Cargo.lock] or similar)
-        5. Deploy job has when: manual for production
-        6. NOT mix rules: with only:/except: in the same job
-        7. Rules lists should handle the default case explicitly (e.g., when: never fallthrough or clear exclusion logic)
+        3. Deploy job has when: manual for production
+    - type: llm-rubric
+      weight: 1
+      metric: ci-best-practices
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Use !reference or extends: to reuse configuration across jobs (not copy-paste)
+        2. Cache key based on lockfiles (key: files: [Cargo.lock] or similar)
+        3. NOT mix rules: with only:/except: in the same job
+        4. Rules lists should handle the default case explicitly (e.g., when: never fallthrough or clear exclusion logic)

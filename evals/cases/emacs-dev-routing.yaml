@@ -1,0 +1,65 @@
+- description: "elisp-conventions triggers on lexical-binding question"
+  vars:
+    prompt: "What are the modern Emacs Lisp conventions for lexical-binding and use-package?"
+  metadata:
+    tags: ["@routing", "@emacs-dev"]
+  assert:
+    - type: icontains
+      value: "lexical-binding"
+    - type: icontains-any
+      value: ["use-package", "require", "autoload"]
+
+- description: "elisp-testing triggers on ERT question"
+  vars:
+    prompt: "How do I write ERT tests for my Emacs Lisp package with ert-deftest?"
+  metadata:
+    tags: ["@routing", "@emacs-dev"]
+  assert:
+    - type: icontains
+      value: "ert"
+    - type: icontains-any
+      value: ["deftest", "should", "test", "assert"]
+
+- description: "emacs-nix-packaging triggers on emacsWithPackages"
+  vars:
+    prompt: "How do I package an Emacs config with emacsWithPackages in Nix?"
+  metadata:
+    tags: ["@routing", "@emacs-dev"]
+  assert:
+    - type: icontains
+      value: "emacsWithPackages"
+    - type: icontains-any
+      value: ["nix", "overlay", "package", "epkgs"]
+
+- description: "emacs-keybindings triggers on keymap-set question"
+  vars:
+    prompt: "How do I use keymap-set and defvar-keymap for modern Emacs keybindings?"
+  metadata:
+    tags: ["@routing", "@emacs-dev"]
+  assert:
+    - type: icontains
+      value: "keymap-set"
+    - type: icontains-any
+      value: ["defvar-keymap", "keymap", "bind", "key"]
+
+- description: "emacs-debugging triggers on debug-on-error"
+  vars:
+    prompt: "My Emacs init is failing on startup. How do I debug with --debug-init?"
+  metadata:
+    tags: ["@routing", "@emacs-dev"]
+  assert:
+    - type: icontains
+      value: "debug"
+    - type: icontains-any
+      value: ["--debug-init", "debug-on-error", "backtrace", "init"]
+
+- description: "elisp-review triggers on byte-compilation warnings"
+  vars:
+    prompt: "How do I fix byte-compilation warnings and run checkdoc on my Elisp package?"
+  metadata:
+    tags: ["@routing", "@emacs-dev"]
+  assert:
+    - type: icontains-any
+      value: ["byte-compil", "checkdoc"]
+    - type: icontains-any
+      value: ["warning", "lint", "package", "fix"]

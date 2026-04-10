@@ -5,14 +5,22 @@
     tags: ["@quality", "@rust-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: thread-safety
       threshold: 0.67
       value: |
         The response must:
         1. Use Arc<Mutex<HashMap>> or Arc<RwLock<HashMap>> for thread-safe sharing
         2. Clone the Arc, NOT the underlying HashMap
         3. NOT move the HashMap into a thread without Arc wrapping
-        4. Explain why Arc is needed instead of Rc (Send + Sync for multi-threading)
-        5. Handle lock poisoning or document why it is acceptable to unwrap
+    - type: llm-rubric
+      weight: 1
+      metric: ownership-explanation
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Explain why Arc is needed instead of Rc (Send + Sync for multi-threading)
+        2. Handle lock poisoning or document why it is acceptable to unwrap
 
 - description: "error-handling skill uses thiserror for library-grade errors"
   vars:
@@ -21,14 +29,22 @@
     tags: ["@quality", "@rust-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: error-type-design
       threshold: 0.67
       value: |
         The response must:
         1. Define a custom ConfigError enum using thiserror (NOT anyhow for library code)
         2. Have distinct error variants for at least: I/O failure, deserialization failure, and validation failure (variant names may differ)
-        3. The caller must pattern-match on ConfigError to distinguish file-not-found (fallback) from parse error (panic)
-        4. Validation errors must describe which field failed and why
-        5. Use ? operator for error propagation, not manual match blocks
+        3. Validation errors must describe which field failed and why
+    - type: llm-rubric
+      weight: 1
+      metric: error-usage
+      threshold: 0.67
+      value: |
+        The response must:
+        1. The caller must pattern-match on ConfigError to distinguish file-not-found (fallback) from parse error (panic)
+        2. Use ? operator for error propagation, not manual match blocks
 
 - description: "concurrency skill produces correct async patterns"
   vars:
@@ -37,11 +53,19 @@
     tags: ["@quality", "@rust-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: concurrency-limiting
       threshold: 0.67
       value: |
         The response must:
         1. Use a semaphore (tokio::sync::Semaphore) or buffered stream for concurrency limiting
         2. NOT use join_all without limiting (would fire all 10 at once)
         3. Collect both Ok and Err results (not short-circuit on first error)
-        4. Use Arc for sharing the semaphore across tasks
-        5. Properly handle the JoinHandle results (flatten the Result<Result<...>>)
+    - type: llm-rubric
+      weight: 1
+      metric: async-correctness
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Use Arc for sharing the semaphore across tasks
+        2. Properly handle the JoinHandle results (flatten the Result<Result<...>>)

@@ -8,8 +8,14 @@ providers:
   - id: anthropic:messages:claude-sonnet-4-6
     config:
       max_tokens: 4096
+      temperature: 0
 
 defaultTest:
+  assert:
+    - type: cost
+      threshold: 0.10
+    - type: latency
+      threshold: 30000
   options:
     provider:
       id: anthropic:messages:claude-sonnet-4-6
@@ -28,8 +34,11 @@ tests:
   - file://evals/cases/productivity-routing.yaml
   - file://evals/cases/rust-dev-routing.yaml
   - file://evals/cases/skill-creator-routing.yaml
+  - file://evals/cases/emacs-dev-routing.yaml
   # Cross-plugin discovery tests (@discovery)
   - file://evals/cases/discovery-tests.yaml
+  # Negative routing tests (@negative)
+  - file://evals/cases/negative-routing.yaml
   # Per-plugin quality tests (@quality)
   - file://evals/cases/claude-ecosystem-quality.yaml
   - file://evals/cases/gitlab-dev-quality.yaml
@@ -39,3 +48,4 @@ tests:
   - file://evals/cases/productivity-quality.yaml
   - file://evals/cases/rust-dev-quality.yaml
   - file://evals/cases/skill-creator-quality.yaml
+  - file://evals/cases/emacs-dev-quality.yaml

@@ -5,14 +5,22 @@
     tags: ["@quality", "@skill-creator"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: assertion-quality
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Assertions are objective and verifiable (no subjective criteria like 'looks good' or 'is professional')
+        2. Assertions test skill quality, not just keyword presence (e.g., 'securityContext sets runAsNonRoot: true' not just 'mentions security')
+    - type: llm-rubric
+      weight: 1
+      metric: test-design
       threshold: 0.67
       value: |
         The response must:
         1. Test prompts are realistic multi-step scenarios (not trivial single operations)
-        2. Assertions are objective and verifiable (no subjective criteria like 'looks good' or 'is professional')
-        3. Assertions test skill quality, not just keyword presence (e.g., 'securityContext sets runAsNonRoot: true' not just 'mentions security')
-        4. Include both happy-path and edge-case coverage (e.g., user provides a Deployment without resource limits)
-        5. Describe a concrete failure detection method (assertion fails -> which skill aspect is broken)
+        2. Include both happy-path and edge-case coverage (e.g., user provides a Deployment without resource limits)
+        3. Describe a concrete failure detection method (assertion fails -> which skill aspect is broken)
 
 - description: "skill-creator produces correct SKILL.md trigger design"
   vars:
@@ -21,11 +29,19 @@
     tags: ["@quality", "@skill-creator"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: trigger-specificity
       threshold: 0.67
       value: |
         The response must:
         1. Include a SKILL.md with proper frontmatter (name, description, at minimum)
         2. Description is specific enough to trigger on migration-related queries but NOT on general SQL questions
         3. Include trigger keywords that match real user phrasing (migration, schema change, ALTER TABLE, rollback)
-        4. Body contains actionable guidance (not just a list of concepts)
-        5. Guidance covers the three requested topics: rollbacks, locking avoidance, data validation
+    - type: llm-rubric
+      weight: 1
+      metric: skill-content
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Body contains actionable guidance (not just a list of concepts)
+        2. Guidance covers the three requested topics: rollbacks, locking avoidance, data validation

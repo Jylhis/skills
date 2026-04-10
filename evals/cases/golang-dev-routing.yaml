@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@golang-dev"]
   assert:
-    - type: contains-any
-      value: ["goroutine", "channel", "select", "go func"]
+    - type: icontains
+      value: "goroutine"
+    - type: icontains-any
+      value: ["channel", "select", "go func", "concurrent"]
 
 - description: "error-handling skill triggers on error wrapping"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@golang-dev"]
   assert:
-    - type: contains-any
-      value: ["errors.Is", "errors.As", "fmt.Errorf", "%w"]
+    - type: icontains
+      value: "error"
+    - type: icontains-any
+      value: ["errors.Is", "errors.As", "fmt.Errorf", "%w", "wrap"]
 
 - description: "testing skill triggers on table-driven test"
   vars:
@@ -22,8 +26,10 @@
   metadata:
     tags: ["@routing", "@golang-dev"]
   assert:
-    - type: contains-any
-      value: ["table", "test", "testify", "assert"]
+    - type: icontains
+      value: "test"
+    - type: icontains-any
+      value: ["table", "testify", "t.Run", "assert"]
 
 - description: "naming skill triggers on naming convention"
   vars:
@@ -31,5 +37,7 @@
   metadata:
     tags: ["@routing", "@golang-dev"]
   assert:
-    - type: contains-any
-      value: ["naming", "convention", "package", "interface"]
+    - type: icontains
+      value: "package"
+    - type: icontains-any
+      value: ["naming", "convention", "interface", "exported"]

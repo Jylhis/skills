@@ -5,15 +5,23 @@
     tags: ["@quality", "@obsidian"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: obsidian-syntax
       threshold: 0.67
       value: |
         The response must:
         1. Use wikilinks [[Note Name]] for all vault-internal links, NOT markdown links [text](url)
-        2. Each note must have YAML frontmatter properties (at minimum: title, and one of status/tags/aliases)
-        3. Use embed syntax ![[image.png]] or ![[Note#section]] for diagrams, NOT inline images with markdown syntax for vault content
-        4. Callout syntax must be correct: > [!type] on first line, content on subsequent > lines
-        5. At least one block ID (^block-id) for subsection linking
-        6. Notes link bidirectionally (Architecture links to Modules AND Modules link back to Architecture)
+        2. Use embed syntax ![[image.png]] or ![[Note#section]] for diagrams, NOT inline images with markdown syntax for vault content
+        3. Callout syntax must be correct: > [!type] on first line, content on subsequent > lines
+    - type: llm-rubric
+      weight: 1
+      metric: note-structure
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Each note must have YAML frontmatter properties (at minimum: title, and one of status/tags/aliases)
+        2. At least one block ID (^block-id) for subsection linking
+        3. Notes link bidirectionally (Architecture links to Modules AND Modules link back to Architecture)
 
 - description: "json-canvas produces valid canvas structure"
   vars:
@@ -22,11 +30,19 @@
     tags: ["@quality", "@obsidian"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: canvas-schema
       threshold: 0.67
       value: |
         The response must:
         1. Output valid JSON matching the JSON Canvas spec (nodes array, edges array)
         2. Each node has id, type, x, y, width, height fields
         3. Edges reference valid node IDs with fromNode/toNode (or fromSide/toSide)
-        4. Group node contains child nodes (via the group type or equivalent)
-        5. Nodes do not overlap (x/y positions are spread out)
+    - type: llm-rubric
+      weight: 1
+      metric: canvas-layout
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Group node contains child nodes (via the group type or equivalent)
+        2. Nodes do not overlap (x/y positions are spread out)

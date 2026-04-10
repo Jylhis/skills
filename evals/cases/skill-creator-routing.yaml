@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@skill-creator"]
   assert:
-    - type: contains-any
-      value: ["skill", "SKILL.md", "create"]
+    - type: icontains
+      value: "skill"
+    - type: icontains-any
+      value: ["SKILL.md", "create", "description", "trigger"]
 
 - description: "skill-creator triggers on skill eval request"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@skill-creator"]
   assert:
-    - type: contains-any
-      value: ["eval", "benchmark", "trigger", "skill"]
+    - type: icontains
+      value: "eval"
+    - type: icontains-any
+      value: ["benchmark", "trigger", "skill", "promptfoo"]
 
 - description: "skill-creator triggers on turn this into a skill"
   vars:
@@ -22,5 +26,7 @@
   metadata:
     tags: ["@routing", "@skill-creator"]
   assert:
-    - type: contains-any
-      value: ["skill", "workflow", "reusable"]
+    - type: icontains
+      value: "skill"
+    - type: icontains-any
+      value: ["workflow", "reusable", "SKILL.md", "trigger"]

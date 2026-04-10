@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@obsidian"]
   assert:
-    - type: contains-any
-      value: ["wikilink", "callout", "Obsidian", "embed"]
+    - type: icontains
+      value: "obsidian"
+    - type: icontains-any
+      value: ["wikilink", "[[", "callout", "embed"]
 
 - description: "json-canvas triggers on canvas file creation"
   vars:
@@ -13,8 +15,10 @@
   metadata:
     tags: ["@routing", "@obsidian"]
   assert:
-    - type: contains-any
-      value: ["canvas", "node", "edge", "flowchart"]
+    - type: icontains
+      value: "canvas"
+    - type: icontains-any
+      value: ["node", "edge", "JSON", "flowchart"]
 
 - description: "obsidian-bases triggers on base file question"
   vars:
@@ -22,8 +26,10 @@
   metadata:
     tags: ["@routing", "@obsidian"]
   assert:
-    - type: contains-any
-      value: ["base", "filter", "formula", "view"]
+    - type: icontains
+      value: "obsidian"
+    - type: icontains-any
+      value: [".base", "filter", "formula", "database"]
 
 - description: "obsidian-cli triggers on vault operations"
   vars:
@@ -31,8 +37,10 @@
   metadata:
     tags: ["@routing", "@obsidian"]
   assert:
-    - type: contains-any
-      value: ["vault", "CLI", "search", "Obsidian"]
+    - type: icontains
+      value: "vault"
+    - type: icontains-any
+      value: ["CLI", "search", "obsidian", "command"]
 
 - description: "defuddle triggers on web page extraction"
   vars:
@@ -40,5 +48,7 @@
   metadata:
     tags: ["@routing", "@obsidian"]
   assert:
-    - type: contains-any
-      value: ["defuddle", "extract", "markdown", "web page"]
+    - type: icontains
+      value: "defuddle"
+    - type: icontains-any
+      value: ["extract", "markdown", "clean", "content"]

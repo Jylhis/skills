@@ -5,16 +5,29 @@
     tags: ["@quality", "@claude-ecosystem"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: api-correctness
       threshold: 0.67
       value: |
         The response must:
         1. Use model 'claude-opus-4-6' (not an older model ID)
         2. Use streaming via client.messages.stream() or equivalent
         3. Use .get_final_message() or .finalMessage() to collect the streaming response
-        4. Apply cache_control on the system prompt and file content blocks
-        5. Place stable content (system prompt, files) before variable content (review request) for cache effectiveness
-        6. Set thinking to adaptive mode (type: 'adaptive'), NOT use budget_tokens
-        7. Set max_tokens to a reasonable value (>= 2000)
+        4. Set max_tokens to a reasonable value (>= 2000)
+    - type: llm-rubric
+      weight: 2
+      metric: caching-strategy
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Apply cache_control on the system prompt and file content blocks
+        2. Place stable content (system prompt, files) before variable content (review request) for cache effectiveness
+    - type: llm-rubric
+      weight: 1
+      metric: thinking-config
+      threshold: 0.67
+      value: |
+        The response must set thinking to adaptive mode (type: 'adaptive'), NOT use budget_tokens.
 
 - description: "mcp-builder skill produces well-designed tool interfaces"
   vars:
@@ -23,12 +36,26 @@
     tags: ["@quality", "@claude-ecosystem"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: tool-design
       threshold: 0.67
       value: |
         The response must:
         1. Use consistent naming prefix across all tools (e.g., github_list_repos, github_get_issue)
-        2. Include pagination parameters (page, per_page) and indicate has_more in output
-        3. Define input constraints (e.g., per_page: 1-100, required fields marked)
-        4. Error messages describe recovery action (e.g., 'rate limit resets at X', not just 'rate limited')
-        5. Tool descriptions mention when pagination is available
-        6. Define output schema structure for each tool
+        2. Define input constraints (e.g., per_page: 1-100, required fields marked)
+        3. Define output schema structure for each tool
+    - type: llm-rubric
+      weight: 1
+      metric: pagination
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Include pagination parameters (page, per_page) on list/search tools
+        2. Indicate has_more or next_page in output
+        3. Tool descriptions mention when pagination is available
+    - type: llm-rubric
+      weight: 1
+      metric: error-handling
+      threshold: 0.67
+      value: |
+        Error messages must describe recovery action (e.g., 'rate limit resets at X', not just 'rate limited').

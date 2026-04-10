@@ -5,6 +5,8 @@
     tags: ["@quality", "@productivity"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: log-format
       threshold: 0.67
       value: |
         The response must:
@@ -12,7 +14,13 @@
         2. Topics are bullet points (- Topic), NOT subheadings (### Topic)
         3. Nested bullets for details, each one sentence max
         4. Include CHUNK: markers for the positioning framework and email draft
-        5. Separate entries correctly between 2026-04-08 and 2026-04-09
-        6. Show appending to existing 2026-04-09 bullets without replacing them
-        7. No explanatory intro or meta-commentary like 'In this session we discussed...'
-        8. Dates in reverse chronological order (newest first) preferred; if chronological, the ordering must be consistent
+    - type: llm-rubric
+      weight: 1
+      metric: log-behavior
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Separate entries correctly between 2026-04-08 and 2026-04-09
+        2. Show appending to existing 2026-04-09 bullets without replacing them
+        3. No explanatory intro or meta-commentary like 'In this session we discussed...'
+        4. Dates in reverse chronological order (newest first) preferred; if chronological, the ordering must be consistent

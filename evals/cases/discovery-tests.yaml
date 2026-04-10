@@ -4,8 +4,10 @@
   metadata:
     tags: ["@routing", "@discovery"]
   assert:
-    - type: contains-any
-      value: ["flake", "home-manager", "nix"]
+    - type: icontains
+      value: "flake"
+    - type: icontains
+      value: "home-manager"
 
 - description: "can reference golang skills by name"
   vars:
@@ -13,5 +15,40 @@
   metadata:
     tags: ["@routing", "@discovery"]
   assert:
-    - type: contains-any
-      value: ["test", "concurrency", "goroutine"]
+    - type: icontains
+      value: "test"
+    - type: icontains-any
+      value: ["concurrency", "goroutine", "parallel"]
+
+- description: "can discover database-related skills across domains"
+  vars:
+    prompt: "Which skills can help me with database access, migrations, and connection pooling?"
+  metadata:
+    tags: ["@routing", "@discovery"]
+  assert:
+    - type: icontains-any
+      value: ["database", "SQL", "connection"]
+    - type: icontains-any
+      value: ["Go", "Rust", "devenv", "postgres"]
+
+- description: "can discover skills for a multi-tool project"
+  vars:
+    prompt: "I have a project with a .gitlab-ci.yml, a flake.nix, and Emacs Lisp source. What skills apply?"
+  metadata:
+    tags: ["@routing", "@discovery"]
+  assert:
+    - type: icontains-any
+      value: ["gitlab", "CI"]
+    - type: icontains-any
+      value: ["flake", "nix"]
+    - type: icontains-any
+      value: ["emacs", "elisp"]
+
+- description: "can discover observability skills"
+  vars:
+    prompt: "What skills help with logging, metrics, and distributed tracing?"
+  metadata:
+    tags: ["@routing", "@discovery"]
+  assert:
+    - type: icontains-any
+      value: ["observability", "logging", "slog", "tracing", "metrics"]

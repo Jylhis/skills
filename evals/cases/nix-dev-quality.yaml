@@ -5,14 +5,22 @@
     tags: ["@quality", "@nix-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: flake-structure
       threshold: 0.67
       value: |
         The response must:
         1. Use eachDefaultSystem or flake-utils to iterate over multiple systems (not hardcode one system)
         2. Define packages and devShells inside the system loop
-        3. Use inputsFrom in the devShell to inherit build dependencies from the package
-        4. Import nixpkgs exactly once (not duplicate imports)
-        5. Define a formatter output (formatter.${system} = ...)
+        3. Import nixpkgs exactly once (not duplicate imports)
+    - type: llm-rubric
+      weight: 1
+      metric: devshell-design
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Use inputsFrom in the devShell to inherit build dependencies from the package
+        2. Define a formatter output (formatter.${system} = ...)
 
 - description: "devenv skill produces correct multi-service environment"
   vars:
@@ -21,15 +29,23 @@
     tags: ["@quality", "@nix-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: service-config
       threshold: 0.67
       value: |
         The response must:
         1. Enable languages.rust and languages.typescript (or languages.javascript)
         2. Configure services.postgres with initialDatabases or initdbArgs
         3. Configure services.redis.enable = true
-        4. Define processes.backend and processes.frontend with exec commands
-        5. Set env.DATABASE_URL and env.REDIS_URL
-        6. Enable pre-commit.hooks (rustfmt, prettier or similar)
+    - type: llm-rubric
+      weight: 1
+      metric: processes-and-env
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Define processes.backend and processes.frontend with exec commands
+        2. Set env.DATABASE_URL and env.REDIS_URL
+        3. Enable pre-commit.hooks (rustfmt, prettier or similar)
 
 - description: "nixpkgs skill produces correct overlay pattern"
   vars:
@@ -38,11 +54,19 @@
     tags: ["@quality", "@nix-dev"]
   assert:
     - type: llm-rubric
+      weight: 2
+      metric: overlay-correctness
       threshold: 0.67
       value: |
         The response must:
         1. Define the overlay as final: prev: (not self: super: which is the old convention)
         2. Use prev.htop.overrideAttrs for patching htop (not override or callPackage)
-        3. Use prev.writeShellScriptBin or similar for the wrapper script
-        4. Apply the overlay via overlays = [ myOverlay ] in the flake nixpkgs import
-        5. NOT use rec {} for the overlay set (causes infinite recursion risk)
+        3. NOT use rec {} for the overlay set (causes infinite recursion risk)
+    - type: llm-rubric
+      weight: 1
+      metric: overlay-integration
+      threshold: 0.67
+      value: |
+        The response must:
+        1. Use prev.writeShellScriptBin or similar for the wrapper script
+        2. Apply the overlay via overlays = [ myOverlay ] in the flake nixpkgs import

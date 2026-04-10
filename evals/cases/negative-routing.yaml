@@ -1,0 +1,77 @@
+- description: "Python question does not produce Go-specific content"
+  vars:
+    prompt: "How do I use asyncio and aiohttp in Python to fetch URLs concurrently?"
+  metadata:
+    tags: ["@routing", "@negative"]
+  assert:
+    - type: not-icontains
+      value: "goroutine"
+    - type: not-icontains
+      value: "go func"
+    - type: not-icontains
+      value: "errgroup"
+
+- description: "JavaScript question does not produce Rust-specific content"
+  vars:
+    prompt: "How do I handle errors in JavaScript with try/catch and async/await?"
+  metadata:
+    tags: ["@routing", "@negative"]
+  assert:
+    - type: not-icontains
+      value: "thiserror"
+    - type: not-icontains
+      value: "anyhow"
+    - type: not-icontains
+      value: "borrow checker"
+
+- description: "Docker question does not produce Nix-specific content"
+  vars:
+    prompt: "How do I write a multi-stage Dockerfile for a Node.js app?"
+  metadata:
+    tags: ["@routing", "@negative"]
+  assert:
+    - type: not-icontains
+      value: "flake.nix"
+    - type: not-icontains
+      value: "devenv"
+    - type: not-icontains
+      value: "nixpkgs"
+
+- description: "GitHub Actions question does not produce GitLab-specific content"
+  vars:
+    prompt: "How do I set up a GitHub Actions CI workflow for a Python project?"
+  metadata:
+    tags: ["@routing", "@negative"]
+  assert:
+    - type: not-icontains
+      value: "gitlab-ci"
+    - type: not-icontains
+      value: ".gitlab"
+    - type: not-icontains
+      value: "glab"
+
+- description: "Notion question does not produce Obsidian-specific content"
+  vars:
+    prompt: "How do I create a Notion database with linked views?"
+  metadata:
+    tags: ["@routing", "@negative"]
+  assert:
+    - type: not-icontains
+      value: "wikilink"
+    - type: not-icontains
+      value: ".canvas"
+    - type: not-icontains
+      value: "obsidian-cli"
+
+- description: "OpenAI SDK question does not produce Claude-specific content"
+  vars:
+    prompt: "How do I use the OpenAI Python SDK to call GPT-4 with function calling?"
+  metadata:
+    tags: ["@routing", "@negative"]
+  assert:
+    - type: not-icontains
+      value: "anthropic"
+    - type: not-icontains
+      value: "claude"
+    - type: not-icontains
+      value: "FastMCP"
