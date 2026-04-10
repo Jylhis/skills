@@ -42,6 +42,10 @@ jobs:
 
       - name: Build dev shell
         run: devenv shell -- echo "shell ok"
+        env:
+          SECRETSPEC_PROVIDER: env
 
       - name: Run devenv tests
         run: devenv test
+        env:
+          SECRETSPEC_PROVIDER: env
