@@ -18,4 +18,12 @@
   spinnerTipsEnabled = false;
   alwaysThinkingEnabled = true;
   effortLevel = "high";
+  extraKnownMarketplaces = {
+    jstack = {
+      source = {
+        source = "github";
+        repo = "Jylhis/jstack";
+      };
+    };
+  };
 }

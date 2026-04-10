@@ -1,0 +1,44 @@
+{
+  "name": "jstack",
+  "owner": {
+    "name": "Markus Jylhänkangas"
+  },
+  "plugins": [
+    {
+      "name": "claude-ecosystem",
+      "source": "./plugins/claude-ecosystem"
+    },
+    {
+      "name": "emacs-dev",
+      "source": "./plugins/emacs-dev"
+    },
+    {
+      "name": "gitlab-dev",
+      "source": "./plugins/gitlab-dev"
+    },
+    {
+      "name": "golang-dev",
+      "source": "./plugins/golang-dev"
+    },
+    {
+      "name": "nix-dev",
+      "source": "./plugins/nix-dev"
+    },
+    {
+      "name": "obsidian",
+      "source": "./plugins/obsidian"
+    },
+    {
+      "name": "productivity",
+      "source": "./plugins/productivity"
+    },
+    {
+      "name": "rust-dev",
+      "source": "./plugins/rust-dev"
+    },
+    {
+      "name": "skill-creator",
+      "source": "./plugins/skill-creator"
+    }
+  ]
+}

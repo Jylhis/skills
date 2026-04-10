@@ -5,6 +5,14 @@
   "env": {
     "CLAUDE_CODE_EFFORT_LEVEL": "high"
   },
+  "extraKnownMarketplaces": {
+    "jstack": {
+      "source": {
+        "repo": "Jylhis/jstack",
+        "source": "github"
+      }
+    }
+  },
   "includeCoAuthoredBy": false,
   "model": "opus[1m]",
   "permissions": {

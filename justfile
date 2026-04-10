@@ -1,4 +1,5 @@
-default: check
+default:
+    @just --list --justfile {{justfile()}}
 
 # Run all checks (lint + typecheck + eval)
 check:
@@ -85,14 +86,14 @@ generate-manifests:
           in if p ? mcpServers && p.mcpServers != {} then { mcpServers = p.mcpServers; } else null \
         " \
       ); \
-      [ "$mcp" != "null" ] && echo "$mcp" | jq -S . > "$dir/.mcp.json"; \
+      [ "$mcp" != "null" ] && echo "$mcp" | jq -S . > "$dir/.mcp.json" || true; \
       lsp=$( \
         nix eval --impure --json --expr " \
           let pkgs = import ./npins {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
           in if p ? lspServers && p.lspServers != {} then p.lspServers else null \
         " \
       ); \
-      [ "$lsp" != "null" ] && echo "$lsp" | jq -S . > "$dir/.lsp.json"; \
+      [ "$lsp" != "null" ] && echo "$lsp" | jq -S . > "$dir/.lsp.json" || true; \
     done
     @echo "Done."
 
