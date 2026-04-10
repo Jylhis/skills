@@ -23,7 +23,7 @@ filter_set=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --fast)
-      args+=(--filter-pattern '@routing')
+      args+=(--filter-metadata 'tags=@routing')
       filter_set=1
       ;;
     --compare)
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
       args=(eval --config promptfooconfig.redteam.yaml)
       ;;
     --quality)
-      args+=(--filter-pattern '@quality')
+      args+=(--filter-metadata 'tags=@quality')
       filter_set=1
       ;;
     --filter)
@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
     --plugin)
       shift
       [[ $# -gt 0 ]] || { echo "--plugin needs a value" >&2; exit 2; }
-      args+=(--filter-pattern "@$1")
+      args+=(--filter-metadata "tags=@$1")
       filter_set=1
       ;;
     --skill)
