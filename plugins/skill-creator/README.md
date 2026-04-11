@@ -1,7 +1,8 @@
 # skill-creator
 
 Anthropic's official skill authoring, eval, and benchmarking framework,
-bundled into jstack.
+bundled into jstack, plus a jstack-native meta skill for generating
+language / stack specialist skills.
 
 ## Contents
 
@@ -15,6 +16,8 @@ bundled into jstack.
   - `references/` — `claude-ai.md`, `cowork.md`, `schemas.md`
   - `assets/eval_review.html`
   - `tests/` — pytest suite
+- `skills/skill-creator-lang/`
+  - `SKILL.md` — meta skill that generates language / stack specialist skills
 
 This plugin is part of [jstack](../../) and is installed into
 `~/.claude/plugins/skill-creator/` automatically by
@@ -25,6 +28,7 @@ This plugin is part of [jstack](../../) and is installed into
 | Skill | Description |
 |---|---|
 | `skill-creator` | Create new Claude Code skills, improve existing skills, and measure skill quality through evals and benchmarks |
+| `skill-creator-lang` | Create an opinionated specialist skill for a programming language or stack (e.g. Python, Ruby on Rails, ROS2). Meta skill that produces other skills. |
 
 **Trigger phrases:** "create a skill", "turn this into a skill", "make a
 skill for X", "write a `SKILL.md`", "run evals on my skill", "benchmark
