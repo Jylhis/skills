@@ -21,6 +21,10 @@
       "source": "./plugins/golang-dev"
     },
     {
+      "name": "jvm-dev",
+      "source": "./plugins/jvm-dev"
+    },
+    {
       "name": "nix-dev",
       "source": "./plugins/nix-dev"
     },
@@ -33,12 +37,24 @@
       "source": "./plugins/productivity"
     },
     {
+      "name": "python-dev",
+      "source": "./plugins/python-dev"
+    },
+    {
       "name": "rust-dev",
       "source": "./plugins/rust-dev"
     },
     {
       "name": "skill-creator",
       "source": "./plugins/skill-creator"
+    },
+    {
+      "name": "storage-dev",
+      "source": "./plugins/storage-dev"
+    },
+    {
+      "name": "typescript-dev",
+      "source": "./plugins/typescript-dev"
     }
   ]
 }
