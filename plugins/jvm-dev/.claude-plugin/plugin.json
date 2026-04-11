@@ -1,0 +1,8 @@
+{
+  "author": {
+    "name": "Markus Jylhänkangas"
+  },
+  "description": "JVM development intelligence: Java 21 LTS, Kotlin 2.0+, Gradle Kotlin DSL, JUnit 5, kotest, plus jdt-language-server and kotlin-language-server LSPs and gradle-mcp",
+  "name": "jvm-dev",
+  "version": "0.1.0"
+}
