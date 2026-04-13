@@ -82,6 +82,22 @@ verify:
     echo "Store paths match."
 ```
 
+## Additional Recipes
+
+```just
+# Build with progress display (requires nom / nix-output-monitor)
+build-nom:
+    nom build --impure
+
+# Browse closure interactively (requires nix-tree)
+closure:
+    nix-tree .#default
+
+# Show closure size
+closure-size:
+    nix path-info -rsSh .#default
+```
+
 ## Platform Notes
 
 - `sed -i ''` is macOS/BSD form. On GNU/Linux, use `sed -i` (no empty

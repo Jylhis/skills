@@ -261,6 +261,108 @@ This is a single atomic migration — do it in one linear pass:
   flakes) or receives inputs from `flake.nix` (module flakes)
 - devenv.sh is the dev shell — do not duplicate it as a flake `devShell`
 
+## nix-darwin Variant
+
+For macOS systems using nix-darwin, the hybrid pattern works the same
+way with `darwin-rebuild` instead of `nixos-rebuild`:
+
+```nix
+# default.nix — module flake with nix-darwin
+{ inputs }:
+{
+  overlays.default = import ./overlay.nix;
+  darwinConfigurations.myhost = inputs.nix-darwin.lib.darwinSystem {
+    system = "aarch64-darwin";
+    modules = [
+      ./hosts/myhost/configuration.nix
+      inputs.home-manager.darwinModules.home-manager
+    ];
+  };
+}
+```
+
+Rebuild: `darwin-rebuild switch --flake .#myhost`
+
+nix-darwin is a flake-only upstream — it must come through flake inputs
+(not npins). See the nix-darwin skill for configuration details.
+
+## flake-parts Integration Path
+
+For projects that benefit from modular flake composition, replace the
+manual `forAllSystems` wrapper with flake-parts:
+
+```nix
+# flake.nix — with flake-parts
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+  };
+
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+    systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+    flake = let proj = import ./default.nix { inherit inputs; }; in {
+      overlays = proj.overlays;
+      homeManagerModules = proj.homeManagerModules or {};
+    };
+    perSystem = { pkgs, system, ... }: {
+      legacyPackages = import (import ./npins).nixpkgs {
+        inherit system;
+        overlays = [ (import ./overlay.nix) ];
+      };
+    };
+  };
+}
+```
+
+The key constraint remains: `default.nix` and `overlay.nix` contain the
+real logic, flake.nix (even with flake-parts) is just a wrapper. See the
+flakes skill's `references/flake-parts.md` for the full flake-parts
+pattern reference.
+
+## Source Filtering
+
+Use `lib.fileset` in the thin wrapper to avoid copying the entire
+project directory to the store:
+
+```nix
+# In overlay.nix or package.nix
+let fs = prev.lib.fileset; in
+{
+  myapp = prev.callPackage ({ stdenv }: stdenv.mkDerivation {
+    pname = "myapp";
+    src = fs.toSource {
+      root = ./.;
+      fileset = fs.unions [ ./src ./Cargo.toml ./Cargo.lock ];
+    };
+  }) {};
+}
+```
+
+## CI Integration
+
+The lint pipeline from the nix-linting skill works with hybrid projects:
+
+```bash
+nixfmt --check .
+statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
+deadnix --fail --exclude npins .devenv result .
+nix flake check     # validates flake outputs
+```
+
+For CI binary caching, see `references/ci-pipeline.md` in the
+nix-linting skill.
+
+## Related Skills
+
+- **npins** — dependency pinning, the source of truth for nixpkgs revision
+- **devenv** — developer environment, services, processes
+- **flakes** — flake structure, inputs, outputs, pure evaluation
+- **nix-linting** — statix, deadnix, nixfmt, CI pipeline
+- **nix-darwin** — macOS system configuration with nix-darwin
+- **nixos-modules** — NixOS module patterns shared with nix-darwin
+- **nix-performance** — closure optimization, IFD avoidance
+
 ## Reference Files
 
 See `references/justfile-package.md` for the package flake Justfile

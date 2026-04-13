@@ -1,6 +1,6 @@
 ---
 name: npins
-description: "Use for npins dependency pinning including npins/sources.json, npins add, npins remove, npins update, npins init, pinning GitHub repos, pinning NixOS channels, importing npins in Nix expressions, npins revision tracking, Channel vs GitHub pin types, npins default.nix, non-flake dependency management, or migrating from channels to GitHub pins."
+description: "Use for npins dependency pinning including npins/sources.json, npins add, npins remove, npins update, npins init, pinning GitHub repos, pinning NixOS channels, importing npins in Nix expressions, npins revision tracking, Channel vs GitHub pin types, npins default.nix, non-flake dependency management, migrating from channels to GitHub pins, NIX_PATH configuration, channel removal, or rebuild.sh workflow."
 user-invocable: false
 ---
 
@@ -70,6 +70,7 @@ first — see "Migrating Channel to GitHub" below.
 
 ```bash
 npins init                                                  # Initialize
+npins init --bare                                           # Initialize empty (no default pins)
 npins add github NixOS nixpkgs --branch nixos-unstable      # Add GitHub pin
 npins add github nix-community home-manager --branch master
 npins add channel nixos-unstable                            # Add channel pin
@@ -133,6 +134,58 @@ in
 # use mylib
 ```
 
+## System-Level NIX_PATH Configuration
+
+When using npins for NixOS or nix-darwin, configure the system so
+`nix-shell -p hello` and `nix run nixpkgs#hello` both use the pinned
+nixpkgs:
+
+```nix
+# pinning.nix — import into your system configuration
+{ config, pkgs, ... }:
+let sources = import ./npins;
+in {
+  nix.registry.nixpkgs.to = {
+    type = "path";
+    path = sources.nixpkgs;
+  };
+  nix.nixPath = [ "nixpkgs=flake:nixpkgs" ];
+}
+```
+
+This makes the flake registry's `nixpkgs` entry point at the pinned
+source, and `NIX_PATH` resolves through the registry. Both legacy and
+new CLI commands use the same pinned version.
+
+## Rebuild Workflow
+
+For NixOS systems managed with npins (no channels):
+
+```bash
+#!/usr/bin/env bash
+cd "$(dirname "$0")"
+cmd=${1:-switch}; shift
+
+nixpkgs_pin=$(nix eval --raw -f npins/default.nix nixpkgs)
+nix_path="nixpkgs=${nixpkgs_pin}:nixos-config=${PWD}/configuration.nix"
+
+sudo env NIX_PATH="${nix_path}" nixos-rebuild "$cmd" --fast "$@"
+```
+
+The `--fast` flag prevents nixos-rebuild from recompiling Nix itself
+before evaluating the config — saves time on every rebuild.
+
+## Channel Removal
+
+After switching to npins, remove channels to avoid confusion:
+
+```bash
+sudo nix-channel --list              # See what's configured
+sudo nix-channel --remove nixos      # Remove each channel
+nix-channel --list                   # Check user channels too
+nix-channel --remove nixpkgs
+```
+
 ## Migrating Channel to GitHub
 
 Channel pins lack `.revision`, which breaks revision-based workflows.
@@ -170,4 +223,5 @@ other lock files (devenv.lock, flake.lock) — see the `nix-hybrid` skill.
   expose npins-derived outputs as `packages.<system>.*` in a flake.
 
 In hybrid setups, npins pins nixpkgs (for dev and as the source of
-truth), while flake inputs handle flake-only upstream dependencies.
+truth), while flake inputs handle flake-only upstream dependencies. See
+the `nix-hybrid` skill for the full architecture.

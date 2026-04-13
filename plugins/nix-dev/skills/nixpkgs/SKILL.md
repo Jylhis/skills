@@ -1,6 +1,6 @@
 ---
 name: nixpkgs
-description: "Use for nixpkgs package management patterns including mkDerivation, callPackage, overlays, override, overrideAttrs, buildPythonPackage, buildRustPackage, buildNpmPackage, buildGoModule, packageOverrides, derivations, fetchFromGitHub, fetchers, stdenv, build phases, nativeBuildInputs, buildInputs, cross-platform packaging, or wrapProgram."
+description: "Use for nixpkgs package management patterns including mkDerivation, callPackage, overlays, override, overrideAttrs, buildPythonPackage, buildRustPackage, buildNpmPackage, buildGoModule, packageOverrides, derivations, fetchFromGitHub, fetchers, stdenv, build phases, nativeBuildInputs, buildInputs, cross-compilation, cross-platform packaging, wrapProgram, lib.fileset source filtering, overlay composition, or meta-attributes."
 user-invocable: false
 ---
 
@@ -14,12 +14,13 @@ nix search nixpkgs#<query>
 
 If the mcp-nixos MCP server is available, use it for richer search with version history and metadata.
 
-## callPackage Pattern
+## The `callPackage` Pattern
+
+`callPackage` is the core composition mechanism of nixpkgs. It takes a function (usually from a file) and auto-fills its arguments from the package set:
 
 ```nix
-# pkgs/tools/misc/hello/default.nix
-{ lib, stdenv, fetchurl }:
-
+# package.nix — a function accepting its dependencies
+{ lib, stdenv, fetchurl, openssl }:
 stdenv.mkDerivation {
   pname = "hello";
   version = "2.12";
@@ -27,16 +28,23 @@ stdenv.mkDerivation {
     url = "mirror://gnu/hello/hello-2.12.tar.gz";
     hash = "sha256-abc123...";
   };
-  meta = with lib; {
-    description = "A program that produces a familiar, friendly greeting";
-    license = licenses.gpl3Plus;
-    platforms = platforms.all;
-  };
+  buildInputs = [ openssl ];
+  meta.license = lib.licenses.gpl3Plus;
 }
 
 # Called via:
-hello = callPackage ./pkgs/tools/misc/hello { };
+hello = callPackage ./package.nix {};
+# callPackage reads the function's argument names via builtins.functionArgs
+# and supplies lib, stdenv, fetchurl, openssl from pkgs automatically.
+# The second arg {} provides manual overrides.
 ```
+
+**Why `callPackage` matters:**
+- **Overridable:** `hello.override { openssl = openssl_1_1; }` swaps one dependency
+- **Cross-compilation:** `callPackage` resolves `nativeBuildInputs` from `buildPackages` through "splicing" — the same `package.nix` works for native and cross builds
+- **Upstreamable:** Packages in `callPackage` form are directly submittable to nixpkgs
+
+Always write packages as functions in separate files and use `callPackage` to instantiate them.
 
 ## stdenv.mkDerivation
 
@@ -58,9 +66,9 @@ stdenv.mkDerivation {
   version = "1.0.0";
   src = fetchFromGitHub { owner = "..."; repo = "..."; rev = "..."; hash = "..."; };
 
-  nativeBuildInputs = [ cmake pkg-config ];  # Build-time only (not propagated)
-  buildInputs = [ openssl zlib ];             # Link-time dependencies
-  propagatedBuildInputs = [ ];                # Also available to dependents
+  nativeBuildInputs = [ cmake pkg-config ];  # Tools that run on the BUILD machine
+  buildInputs = [ openssl zlib ];             # Libraries for the HOST machine
+  propagatedBuildInputs = [ ];                # Also available to downstream dependents
 
   patches = [ ./fix-build.patch ];
   env.NIX_CFLAGS_COMPILE = "-O2";
@@ -69,19 +77,49 @@ stdenv.mkDerivation {
 }
 ```
 
+**`nativeBuildInputs` vs `buildInputs`:** For native builds they are equivalent. For cross-compilation, `nativeBuildInputs` are built for the build machine (compilers, code generators, pkg-config) while `buildInputs` are built for the host machine (libraries to link against). See `references/cross-compilation.md`.
+
+## Source Filtering with `lib.fileset`
+
+Replace `src = ./.;` with precise source filtering to avoid unnecessary rebuilds:
+
+```nix
+let
+  fs = lib.fileset;
+in stdenv.mkDerivation {
+  pname = "myapp";
+  version = "1.0";
+  src = fs.toSource {
+    root = ./.;
+    fileset = fs.unions [
+      ./src
+      ./Cargo.toml
+      ./Cargo.lock
+    ];
+  };
+}
+```
+
+Only files in the fileset enter the store. Changes to README, CI configs, etc. won't trigger rebuilds. Use `fs.fileFilter` for pattern-based filtering and `fs.difference` to exclude files.
+
 ## Fetchers
 
-| Fetcher | Use case |
-|---------|----------|
-| `fetchurl { url; hash; }` | Simple URL download |
-| `fetchFromGitHub { owner; repo; rev; hash; }` | GitHub repos |
-| `fetchFromGitLab { owner; repo; rev; hash; }` | GitLab repos |
-| `fetchgit { url; rev; hash; }` | Generic git |
-| `fetchzip { url; hash; }` | ZIP/tarball with auto-extract |
+| Fetcher | Use Case | Key Attrs |
+|---------|----------|-----------|
+| `fetchurl` | Direct URL download | `url`, `hash` |
+| `fetchFromGitHub` | GitHub repos | `owner`, `repo`, `rev`, `hash` |
+| `fetchFromGitLab` | GitLab repos | `owner`, `repo`, `rev`, `hash` |
+| `fetchgit` | Generic git | `url`, `rev`, `hash` |
+| `fetchzip` | ZIP/tarball with auto-extract | `url`, `hash` |
+| `fetchpatch` | Fetch a patch from URL | `url`, `hash`, `excludes?` |
 
-Get the hash: use `nix-prefetch-url`, `nix-prefetch-github`, or set `hash = "";` and let Nix tell you the correct one in the error.
+**Getting the hash:** Use `nurl` (generates full fetcher calls from URLs), `nix-prefetch-url`, `nix-prefetch-github`, or set `hash = "";` and Nix reports the correct hash in the error.
+
+**Fetchers vs builtins:** `pkgs.fetchurl` is a fixed-output derivation (builds in parallel, cached). `builtins.fetchurl` runs during evaluation and blocks the evaluator. Prefer `pkgs.fetch*` for build-time downloads.
 
 ## Language-Specific Builders
+
+See `references/builders.md` for detailed patterns per language.
 
 ### Python
 
@@ -133,7 +171,7 @@ buildGoModule {
 
 ## Overrides
 
-### overrideAttrs — modify a derivation
+### overrideAttrs — modify derivation attributes
 
 ```nix
 pkgs.hello.overrideAttrs (old: {
@@ -141,6 +179,8 @@ pkgs.hello.overrideAttrs (old: {
   version = "2.13";
 })
 ```
+
+`overrideAttrs` re-runs mkDerivation with the modified attributes. The function receives the previous attributes.
 
 ### override — change callPackage arguments
 
@@ -150,10 +190,13 @@ pkgs.hello.override {
 }
 ```
 
+`override` re-calls the `callPackage` function with different arguments. Only works on packages built with `callPackage`.
+
 ## Overlays
 
+An overlay is a function `final: prev: { ... }` that extends or modifies the package set:
+
 ```nix
-# In flake.nix or ~/.config/nixpkgs/overlays/
 final: prev: {
   # Add a new package
   myapp = final.callPackage ./myapp.nix { };
@@ -165,10 +208,29 @@ final: prev: {
 }
 ```
 
-- `final` (also called `self`) — the fixed-point result (use for dependencies)
-- `prev` (also called `super`) — the previous package set (use for the thing you're modifying)
+### `final` vs `prev`
 
-Rule: use `prev.foo` for the package you're overriding, `final.bar` for its dependencies.
+- **`prev`** — the package set before this overlay. Use for the package you are modifying: `prev.hello`
+- **`final`** — the fully resolved package set after ALL overlays. Use for dependencies: `final.openssl`
+
+**Default rule:** Use `prev` by default. Switch to `final` only when you need a package that another overlay provides or when you need the version of a dependency that other overlays may have modified.
+
+Using `final.foo` where `foo` is the attribute you're defining causes infinite recursion.
+
+### Multiple Overlay Composition
+
+Overlays are applied in order. Each overlay's `prev` is the result of all previous overlays. `final` is always the same for every overlay — the fully composed result.
+
+```nix
+import nixpkgs {
+  overlays = [
+    overlay1  # prev = bare nixpkgs
+    overlay2  # prev = nixpkgs + overlay1
+    overlay3  # prev = nixpkgs + overlay1 + overlay2
+  ];
+  # final = nixpkgs + overlay1 + overlay2 + overlay3 (same for all three)
+}
+```
 
 ### Composing Upstream Overlays
 
@@ -179,18 +241,49 @@ final: prev:
 }
 ```
 
+## Meta-Attributes
+
+```nix
+meta = with lib; {
+  description = "One-line description";
+  homepage = "https://example.com";
+  license = licenses.mit;              # or licenses.gpl3Plus, etc.
+  maintainers = with maintainers; [ alice bob ];
+  platforms = platforms.all;            # or platforms.linux, platforms.darwin
+  mainProgram = "mytool";              # which binary `nix run` executes
+  broken = stdenv.isDarwin;            # mark as broken on specific platforms
+  changelog = "https://example.com/changelog";
+};
+```
+
+`mainProgram` is important for `nix run` — without it, Nix guesses from `pname`.
+
 ## Cross-Platform
 
 ```nix
 buildInputs = [ openssl ]
-  ++ lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.Security ]
+  ++ lib.optionals stdenv.isDarwin [
+    darwin.apple_sdk.frameworks.Security
+    darwin.apple_sdk.frameworks.SystemConfiguration
+  ]
   ++ lib.optionals stdenv.isLinux [ systemd ];
 ```
+
+See `references/cross-compilation.md` for cross-compilation patterns (building for a different architecture).
 
 ## Common Patterns
 
 - **Wrapping binaries**: `wrapProgram $out/bin/foo --prefix PATH : ${lib.makeBinPath [ git ]}`
-- **Shell completions**: install to `$out/share/bash-completion/completions/`, etc.
+- **writeShellApplication**: Creates a script with runtime deps on PATH and shellcheck validation:
+  ```nix
+  pkgs.writeShellApplication {
+    name = "my-script";
+    runtimeInputs = [ pkgs.curl pkgs.jq ];
+    text = ''curl -s "$1" | jq .'';
+  }
+  ```
+- **Shell completions**: install to `$out/share/bash-completion/completions/`, `$out/share/zsh/site-functions/`, `$out/share/fish/vendor_completions.d/`
 - **Desktop entries**: use `makeDesktopItem`
 - **Stripping**: controlled by `dontStrip = true;`
 - **Patching shebangs**: automatic in fixupPhase, disable with `dontPatchShebangs`
+- **Removing references**: `removeReferencesTo` strips store path references from binaries to reduce closure size
