@@ -8,8 +8,8 @@ description: >
 
 # Python testing with pytest
 
-pytest is the standard Python test runner. Do not use `unittest` in new
-projects — it is noisier, less ergonomic, and lacks the fixture model.
+pytest is the standard test runner. Do not use `unittest` in new
+projects.
 
 ## Install (via uv)
 
@@ -31,10 +31,6 @@ my_package/
         └── test_api.py
 ```
 
-Put tests in a `tests/` directory next to `src/`. Use the `src` layout
-for the package itself — it prevents accidental imports from the repo
-root without an install.
-
 ## `pyproject.toml` config
 
 ```toml
@@ -51,16 +47,11 @@ asyncio_mode = "auto"
 
 - `-ra` — short summary of failures.
 - `--strict-markers` — fail on unknown `@pytest.mark.*` usage.
-- `asyncio_mode = "auto"` — pytest-asyncio picks up `async def` tests
-  without decorators.
+- `asyncio_mode = "auto"` — picks up `async def` tests without decorators.
 
 ## Minimal test
 
 ```python
-# tests/test_users.py
-import pytest
-from my_package.users import User, normalize_email
-
 def test_normalize_email_lowercases() -> None:
     assert normalize_email("Foo@Bar.com") == "foo@bar.com"
 
@@ -68,9 +59,7 @@ def test_normalize_email_strips_whitespace() -> None:
     assert normalize_email(" foo@bar.com ") == "foo@bar.com"
 ```
 
-- One assertion per test when possible. Multiple assertions are fine if
-  they test the same behaviour.
-- Test names describe the behaviour: `test_<what>_<condition>`.
+Test names describe the behaviour: `test_<what>_<condition>`.
 
 ## Fixtures
 
@@ -92,11 +81,10 @@ def user(db: Database) -> User:
 ```
 
 - `conftest.py` holds fixtures shared across a directory.
-- Fixture scope: `function` (default), `class`, `module`, `session`.
-  Use the smallest scope that works — session fixtures create hidden
-  test coupling.
-- Fixtures can depend on other fixtures by taking them as parameters.
-- `yield` lets you run teardown after the test.
+- Scope: `function` (default), `class`, `module`, `session`. Use the
+  smallest scope that works.
+- Fixtures can depend on other fixtures.
+- `yield` runs teardown after the test.
 
 ## Parametrize
 
@@ -114,8 +102,7 @@ def test_normalize_email(raw: str, expected: str) -> None:
     assert normalize_email(raw) == expected
 ```
 
-- Always include `ids=` — it makes failure messages readable.
-- Put the complex case table at the top of the file for visibility.
+Always include `ids=` for readable failure messages.
 
 ## Async tests
 
@@ -127,12 +114,9 @@ async def test_fetches_user(client: httpx.AsyncClient) -> None:
     assert user.id == "42"
 ```
 
-No `@pytest.mark.asyncio` needed with auto mode.
-
 ## Mocks
 
-Prefer dependency injection over `unittest.mock`. Pass fakes as
-fixtures:
+Prefer dependency injection over `unittest.mock`. Pass fakes as fixtures:
 
 ```python
 @pytest.fixture
@@ -143,8 +127,6 @@ def fake_http() -> FakeHttpClient:
 When you must patch:
 
 ```python
-from unittest.mock import patch
-
 def test_fetch_retries_on_500(monkeypatch) -> None:
     calls = []
     def fake_get(url: str) -> Response:
@@ -155,20 +137,16 @@ def test_fetch_retries_on_500(monkeypatch) -> None:
     assert len(calls) == 2
 ```
 
-- Prefer `monkeypatch` fixture over `unittest.mock.patch` — it
-  auto-cleans and has clearer errors.
-- Patch the **import site**, not the source. If `module_a` does
-  `from module_b import get`, patch `module_a.get`.
+- Prefer `monkeypatch` over `unittest.mock.patch`.
+- Patch the **import site**, not the source.
 
 ## Assertions
 
-pytest rewrites `assert` statements to give detailed diffs. Use plain
-`assert`:
+pytest rewrites `assert` for detailed diffs. Use plain `assert`:
 
 ```python
 assert user.name == "alice"
 assert sorted(ids) == [1, 2, 3]
-assert "error" not in response
 ```
 
 For exceptions:
@@ -178,15 +156,13 @@ with pytest.raises(ValueError, match="invalid email"):
     normalize_email("not-an-email")
 ```
 
-`match=` is a regex against `str(exception)`.
-
 ## Running
 
 ```bash
 uv run pytest                              # all tests
 uv run pytest tests/test_users.py          # one file
 uv run pytest tests/test_users.py::test_normalize_email_lowercases
-uv run pytest -k "normalize"               # filter by name substring
+uv run pytest -k "normalize"               # filter by name
 uv run pytest -m "not slow"                # marker filter
 uv run pytest --cov=my_package --cov-report=term-missing
 uv run pytest -x                           # stop on first failure
@@ -197,9 +173,9 @@ uv run pytest --lf                         # rerun last failures
 
 - Mocking the thing you're testing.
 - `if` statements inside tests — parametrize instead.
-- Tests that depend on execution order (use `--randomly` to catch this).
+- Tests that depend on execution order.
 - Sleeping with `time.sleep()` — use fake clocks or events.
-- `assert True` / `assert 1 == 1` as a placeholder.
+- `assert True` as a placeholder.
 - Shared mutable state across tests via module-level variables.
 
 ## Tool detection

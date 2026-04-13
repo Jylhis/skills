@@ -9,10 +9,8 @@ description: >
 # Python formatting with ruff format
 
 Ruff ships its own formatter (`ruff format`) that is **drop-in
-compatible with black**. It is ~30x faster and is part of the same
-binary as ruff's linter. In new projects use `ruff format` as the
-single source of truth for formatting. Do not use black, autopep8, or
-yapf.
+compatible with black**, ~30x faster, and part of the same binary as
+ruff's linter. Do not use black, autopep8, or yapf.
 
 ## Config (`pyproject.toml`)
 
@@ -29,15 +27,11 @@ skip-magic-trailing-comma = false
 docstring-code-format = true    # format code blocks inside docstrings
 ```
 
-Opinions:
-
-- `line-length = 88` — black's default, community standard. Don't go
-  higher unless your team agrees.
-- `quote-style = "double"` — consistent with black's opinion. Use
-  single if you're migrating a codebase that uses single quotes and
-  don't want a massive diff.
+- `line-length = 88` — black's default, community standard.
+- `quote-style = "double"` — use single if migrating a single-quote
+  codebase and you want to avoid a massive diff.
 - `docstring-code-format = true` — formats code examples inside
-  docstrings, keeping documentation in sync.
+  docstrings.
 
 ## Running
 
@@ -68,43 +62,16 @@ developers. Format-on-save in the editor is better UX.
 
 ## Format-on-save
 
-All major editors support ruff format:
-
-- **VS Code:** set `"editor.defaultFormatter": "charliermarsh.ruff"` and
+- **VS Code:** `"editor.defaultFormatter": "charliermarsh.ruff"` +
   `"editor.formatOnSave": true` for Python files.
 - **Neovim:** `conform.nvim` with `formatters_by_ft = { python = { "ruff_format" } }`.
-- **PyCharm:** Ruff plugin, "Reformat on save" in settings.
+- **PyCharm:** Ruff plugin, "Reformat on save".
 
 ## Integration with lint
 
 Ruff's linter and formatter can collide on a few style rules. Disable
-the conflicting lint rules (ruff does this automatically if you have
-both configured in the same `pyproject.toml`). See `ruff check --help`
-for the current compatibility list.
-
-`COM` (trailing commas), `E501` (line length), and some quote rules
-should be left to the formatter. Add them to `ignore` under
-`[tool.ruff.lint]`.
-
-## docstring code formatting
-
-With `docstring-code-format = true`, ruff will reformat code blocks
-inside docstrings:
-
-```python
-def transform(data: dict) -> dict:
-    """Transform the input data.
-
-    Example:
-        >>> transform({"a": 1})
-        {'a': 2}
-    """
-    return {k: v + 1 for k, v in data.items()}
-```
-
-The `>>> transform(...)` example will be line-wrapped if it exceeds
-`line-length`. Turn off if your codebase has many long doctest lines
-you don't want touched.
+the conflicting lint rules (`COM`, `E501`, some quote rules) — add
+them to `ignore` under `[tool.ruff.lint]`.
 
 ## Migration from black
 
@@ -113,30 +80,24 @@ uv remove black
 uv add --dev ruff
 ```
 
-Then in `pyproject.toml`:
-
 ```toml
 [tool.ruff]
 line-length = 88   # match your existing black line-length
 
 [tool.ruff.format]
-quote-style = "double"   # or whatever your project used
+quote-style = "double"
 ```
 
-Run `uv run ruff format .` once to catch any edge cases (ruff is 99.9%
-compatible, not 100%). Commit that as a single "switch to ruff format"
-commit so `git blame` stays useful.
+Run `uv run ruff format .` once, commit as a single "switch to ruff
+format" commit so `git blame` stays useful.
 
 ## Anti-patterns
 
 - Running both black **and** ruff format — they will fight.
-- Formatting generated files (e.g. `protoc`-generated `_pb2.py`).
-- Disagreeing with the formatter in PR review — if the tool is
-  producing bad output, fix the tool config, not the code.
-- `# fmt: off` / `# fmt: on` blocks without a one-line explanation of
-  why (usually a table of values where alignment matters).
-- Running format in CI as a separate job from lint — run them together
-  with one `ruff check && ruff format --check`.
+- Formatting generated files (e.g. `_pb2.py`).
+- `# fmt: off` / `# fmt: on` without a reason comment.
+- Running format in CI as a separate job from lint — run them together:
+  `ruff check && ruff format --check`.
 
 ## Tool detection
 

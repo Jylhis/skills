@@ -8,9 +8,8 @@ description: >
 
 # Python error handling
 
-Python uses exceptions as the primary error channel. The core rules:
-catch specific exception types, re-raise with context, and treat
-exceptions as part of the API, not an afterthought.
+Catch specific exception types, re-raise with context, and treat
+exceptions as part of the API.
 
 ## Specific exceptions only
 
@@ -32,15 +31,13 @@ except (ValueError, TypeError) as err:
 ```
 
 - **Catch the narrowest exception** that applies.
-- **Never use bare `except:`** — it catches `KeyboardInterrupt` and
-  `SystemExit` too.
+- **Never use bare `except:`** — catches `KeyboardInterrupt` and
+  `SystemExit`.
 - **Catch `Exception`** only as a last-resort logging boundary at the
   top of a request handler or task runner, and always re-raise or log
   with stack trace.
 
 ## Custom exceptions
-
-Define project-level exception types for domain errors:
 
 ```python
 class AppError(Exception):
@@ -59,15 +56,12 @@ class ValidationError(AppError):
         self.reason = reason
 ```
 
-- Always inherit from `Exception` (not `BaseException`).
+- Inherit from `Exception` (not `BaseException`).
 - Pass structured data (ids, field names) as attributes, not just a
   stringified message.
-- Use a small, flat hierarchy rooted in one `AppError`. Deep trees add
-  cognitive load without value.
+- Small, flat hierarchy rooted in one `AppError`.
 
 ## Exception chaining
-
-When re-raising, preserve the original error:
 
 ```python
 try:
@@ -76,16 +70,12 @@ except httpx.HTTPError as err:
     raise NetworkError(f"failed to fetch {url}") from err
 ```
 
-- `raise X from err` — "X was caused by err", preserves the chain.
-- `raise X from None` — suppress the previous exception in the
-  traceback. Use when the previous one is noise (e.g. KeyError in dict
-  lookup you're converting to NotFoundError).
-- Do **not** stringify the cause into the new exception's message —
-  the traceback already shows it.
+- `raise X from err` — preserves the cause chain.
+- `raise X from None` — suppresses the previous exception (e.g.
+  KeyError -> NotFoundError conversion).
+- Don't stringify the cause into the new message — the traceback shows it.
 
 ## EAFP vs LBYL
-
-Python idiom: "Easier to Ask Forgiveness than Permission."
 
 ```python
 # EAFP — Pythonic
@@ -98,19 +88,16 @@ except KeyError:
 ```
 
 ```python
-# LBYL — acceptable when the check is cheap and the operation is expensive
+# LBYL — acceptable when the check is cheap
 if path.exists():
     return path.read_text()
 return default
 ```
 
-Use EAFP for dict access, attribute access, and anything where the
-"check" doubles the cost. Use LBYL when the check is free (file
-existence, None check).
+Use EAFP for dict/attribute access where the "check" doubles the cost.
+Use LBYL when the check is free (file existence, None check).
 
 ## contextlib
-
-Use `contextlib` for cleanup patterns:
 
 ```python
 from contextlib import contextmanager, suppress
@@ -130,12 +117,9 @@ with temp_file(".json") as path:
 
 - `contextmanager` for simple setup/teardown.
 - `ExitStack` for dynamic cleanup (unknown number of context managers).
-- `suppress(SomeError)` for "ignore this exception" — reads better than
-  `try: ... except SomeError: pass`.
+- `suppress(SomeError)` reads better than `try: ... except SomeError: pass`.
 
 ## ExceptionGroup (Python 3.11+)
-
-Multiple exceptions happening in parallel tasks:
 
 ```python
 try:
@@ -143,7 +127,6 @@ try:
         tg.create_task(fetch_user())
         tg.create_task(fetch_orders())
 except* NetworkError as eg:
-    # eg is an ExceptionGroup of NetworkError(s)
     for err in eg.exceptions:
         log.warning("network failed", exc_info=err)
 except* ValidationError as eg:
@@ -153,8 +136,7 @@ except* ValidationError as eg:
 
 - `except*` filters an ExceptionGroup by type.
 - Re-raises the subset that didn't match.
-- TaskGroup aggregates child errors into an ExceptionGroup
-  automatically.
+- TaskGroup aggregates child errors into an ExceptionGroup automatically.
 
 ## Logging errors
 
@@ -164,18 +146,11 @@ log.error("failed to load user", exc_info=True)
 log.error("failed to load user", exc_info=err)
 ```
 
-- Always pass `exc_info=True` or `exc_info=err` when logging inside
-  `except` — otherwise the stack trace is lost.
+- Always pass `exc_info=True` or `exc_info=err` inside `except` blocks.
 - `log.exception(msg)` is shorthand for `log.error(msg, exc_info=True)`.
-- For structured logging (structlog), pass the exception as an
-  attribute:
-  ```python
-  log.error("load failed", error=repr(err))
-  ```
+- For structlog: `log.error("load failed", error=repr(err))`.
 
 ## try/except audit checklist
-
-When reviewing error handling:
 
 1. Is this `except` catching something specific?
 2. Is the handler doing more than logging + re-raise?
@@ -188,13 +163,10 @@ When reviewing error handling:
 ## Anti-patterns
 
 - `except Exception: pass` — silently swallows everything.
-- `except Exception as err: raise err` — loses traceback (use plain
-  `raise`).
-- Returning `None` instead of raising — makes errors "sneak" through.
-- Raising strings or non-Exception objects.
+- `except Exception as err: raise err` — loses traceback (use `raise`).
+- Returning `None` instead of raising — errors "sneak" through.
 - Catching `Exception` at function boundaries "just in case".
-- Using exceptions for control flow in hot loops (StopIteration is an
-  exception — use iteration protocols instead).
+- Using exceptions for control flow in hot loops.
 - Validating errors by `str(err)` parsing.
 
 ## Tool detection
@@ -207,7 +179,6 @@ done
 
 ## References
 
-- Exceptions tutorial: https://docs.python.org/3/tutorial/errors.html
 - Exception hierarchy: https://docs.python.org/3/library/exceptions.html
 - PEP 654 (ExceptionGroup): https://peps.python.org/pep-0654/
 - contextlib: https://docs.python.org/3/library/contextlib.html
