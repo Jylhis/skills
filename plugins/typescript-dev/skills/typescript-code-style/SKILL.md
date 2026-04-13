@@ -8,10 +8,6 @@ description: >
 
 # TypeScript code style (5.9+)
 
-TypeScript is multi-paradigm with structural typing and gradual typing.
-Code should lean on the type system for safety without over-engineering.
-Favour simple, explicit code over clever abstractions.
-
 ## File & module layout
 
 - **ESM only.** Use `"type": "module"` in `package.json`. Avoid CJS unless
@@ -33,8 +29,7 @@ Favour simple, explicit code over clever abstractions.
 - `PascalCase` — types, interfaces, classes, React components, enums.
 - `camelCase` — variables, functions, methods, properties.
 - `UPPER_SNAKE_CASE` — module-level constants only (not config objects).
-- No `I`-prefix on interfaces. No `T`-prefix on type aliases. Let the
-  name describe the thing.
+- No `I`-prefix on interfaces. No `T`-prefix on type aliases.
 - Event handlers: `onFoo` for props, `handleFoo` for local implementations.
 - Booleans: prefix with `is`, `has`, `should`, `can`.
 
@@ -58,7 +53,7 @@ mixed imports.
 - Use `function` declarations when you need hoisting or clearer stack
   traces.
 - Return types are optional for short functions but **required on
-  exported functions** — this is the type system's primary contract.
+  exported functions**.
 - Avoid default exports. Named exports make refactors and IDE tooling
   easier.
 

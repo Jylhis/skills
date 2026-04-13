@@ -8,10 +8,6 @@ description: >
 
 # TypeScript packaging: pnpm, tsup, Vite
 
-**Package manager:** pnpm. It is faster than npm, correct by default
-(strict node_modules), and has first-class workspace support. Do not
-use npm or yarn classic in new projects.
-
 ## Single package setup
 
 ```bash
@@ -41,7 +37,7 @@ pnpm tsc --init
 ```
 
 Always set `"type": "module"`, `"engines.node"`, and restrict `"files"`
-to what you publish — don't ship `src/`, `tests/`, or `coverage/`.
+to what you publish.
 
 ## Workspaces (monorepo)
 
@@ -71,9 +67,6 @@ Use `workspace:*` for internal package references:
 
 ## Building libraries with tsup
 
-tsup wraps esbuild for zero-config library bundling. Use for published
-npm packages.
-
 ```bash
 pnpm add -D tsup
 ```
@@ -101,19 +94,11 @@ export default defineConfig({
 }
 ```
 
-`dts: true` uses the project's own `tsc` to generate types (slower than
-`dts-buddy` but always correct).
-
 ## Building apps with Vite
-
-For web apps, SPAs, and libraries shipping a UI bundle:
 
 ```bash
 pnpm create vite my-app --template react-ts
 ```
-
-Vite handles dev server, HMR, build optimization. Do not hand-roll
-Webpack configs in new projects.
 
 ## Publishing
 
@@ -136,21 +121,17 @@ pnpm changeset publish
 
 - Commit `pnpm-lock.yaml`.
 - Never edit it manually.
-- In CI use `pnpm install --frozen-lockfile` — errors if the lockfile
-  would change.
+- In CI use `pnpm install --frozen-lockfile`.
 
 ## Anti-patterns
 
 - Mixing `npm install` and `pnpm install` in the same repo.
-- Publishing without a `"files"` field (ships everything, including
-  tests and source maps).
-- Shipping ESM-only without setting `"type": "module"` — bundlers will
-  treat files as CJS and produce broken output.
+- Publishing without a `"files"` field.
+- Shipping ESM-only without setting `"type": "module"`.
 - Using `peerDependencies` without `peerDependenciesMeta.optional: true`
   on optional peers.
 - Forgetting to add internal workspace packages to the consuming
-  package's `dependencies` — they must be listed explicitly even with
-  `workspace:*`.
+  package's `dependencies`.
 
 ## Tool detection
 

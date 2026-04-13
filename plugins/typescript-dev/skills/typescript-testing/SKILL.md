@@ -8,15 +8,11 @@ description: >
 
 # TypeScript testing with Vitest
 
-Vitest is the recommended test runner: Vite-native, ESM-first, fast,
-Jest-compatible API. Do not use Jest in new projects.
-
 ## Project layout
 
-- Co-locate `*.test.ts` files next to source files, or keep them under
+- Co-locate `*.test.ts` next to source files, or keep them under
   `tests/` — pick one and be consistent.
-- Name: `foo.test.ts` (not `foo.spec.ts`). Vitest default discovery matches
-  `**/*.{test,spec}.?(c|m)[jt]s?(x)` but most jstack projects use `.test.ts`.
+- Name: `foo.test.ts` (not `foo.spec.ts`).
 - Integration tests: `tests/integration/` with a separate
   `vitest.config.integration.ts`.
 
@@ -28,7 +24,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    globals: false,          // explicit imports > magic globals
+    globals: false,
     environment: 'node',     // or 'happy-dom' / 'jsdom' for UI
     coverage: {
       provider: 'v8',
@@ -39,8 +35,7 @@ export default defineConfig({
 });
 ```
 
-Explicit imports (`import { describe, it, expect } from 'vitest'`) keep
-test files self-contained and play nicer with type checkers.
+Use explicit imports (`import { describe, it, expect } from 'vitest'`).
 
 ## Test structure
 
@@ -77,26 +72,23 @@ pnpm vitest                  # watch mode
 pnpm vitest run              # CI / one-shot
 pnpm vitest run src/foo.test.ts
 pnpm vitest run -t "adds items"     # filter by name
-pnpm vitest --coverage       # coverage report
-pnpm vitest --ui             # browser UI
+pnpm vitest --coverage
+pnpm vitest --ui
 ```
 
 ## Mocks
 
-- **`vi.fn()`** creates a spy. `expect(fn).toHaveBeenCalledWith(...)`.
-- **`vi.mock('./module.js')`** replaces a whole module. Define the
-  factory inline to avoid hoisting surprises.
-- **`vi.spyOn(obj, 'method')`** patches a method, cleanup with
+- **`vi.fn()`** — spy. `expect(fn).toHaveBeenCalledWith(...)`.
+- **`vi.mock('./module.js')`** — replaces a whole module.
+- **`vi.spyOn(obj, 'method')`** — patches a method, cleanup with
   `mockRestore()`.
-- **`vi.useFakeTimers()`** for time-sensitive code, paired with
-  `vi.advanceTimersByTime(ms)`.
+- **`vi.useFakeTimers()`** — paired with `vi.advanceTimersByTime(ms)`.
 
-Prefer dependency injection over module mocks. Mocking imports couples
-tests to the module system; injecting a fake keeps tests as pure units.
+Prefer dependency injection over module mocks.
 
 ## Assertions
 
-Use the targeted matcher, not `toEqual` for everything:
+Use the targeted matcher:
 
 - `toBe` — referential equality (`===`)
 - `toEqual` — structural equality
@@ -104,8 +96,6 @@ Use the targeted matcher, not `toEqual` for everything:
 - `toMatchObject` — partial match
 - `toMatchInlineSnapshot()` — inline snapshot for complex values
 - `toThrow(Error, 'message substring')` — error assertions
-
-Don't use `.toEqual(true)` — write what you mean: `toBe(true)`.
 
 ## Async
 
@@ -119,23 +109,20 @@ it('rejects on 404', async () => {
 });
 ```
 
-Always `await` or return the promise. Unawaited async assertions
-silently pass.
+Always `await` the assertion. Unawaited async assertions silently pass.
 
 ## Snapshots
 
-- Use **inline snapshots** (`toMatchInlineSnapshot`) for small outputs —
-  they live next to the assertion and update in place with
-  `vitest -u`.
-- Use **file snapshots** only for large fixtures you can review in PRs.
-- Delete snapshots the moment they become noise.
+- **Inline snapshots** (`toMatchInlineSnapshot`) for small outputs.
+- **File snapshots** only for large fixtures reviewable in PRs.
+- Delete snapshots when they become noise.
 
 ## Anti-patterns
 
 - Global `beforeEach` that resets module state across unrelated tests.
-- `expect(result).toBeTruthy()` — always specify the exact expected value.
-- Tests that assert on implementation details (internal method calls)
-  instead of observable behavior.
+- `expect(result).toBeTruthy()` — specify the exact expected value.
+- Tests that assert on implementation details instead of observable
+  behavior.
 - Shared mutable fixtures between tests.
 - `vi.mock` for the module you're actually testing.
 

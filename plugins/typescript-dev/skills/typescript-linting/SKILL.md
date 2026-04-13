@@ -9,8 +9,7 @@ description: >
 # TypeScript linting with ESLint 9 (flat config)
 
 ESLint 9 uses flat config (`eslint.config.js`) as the default. The legacy
-`.eslintrc.*` format is deprecated. All new projects should start with
-flat config.
+`.eslintrc.*` format is deprecated.
 
 ## Install
 
@@ -19,7 +18,7 @@ pnpm add -D eslint typescript-eslint @eslint/js
 ```
 
 For React projects add `eslint-plugin-react` and
-`eslint-plugin-react-hooks` (both support flat config in current releases).
+`eslint-plugin-react-hooks`.
 
 ## Minimal flat config
 
@@ -46,7 +45,7 @@ export default tseslint.config(
 ```
 
 `projectService: true` (ESLint-TS 8.0+) auto-resolves the nearest
-`tsconfig.json` — no more manually listing `project` arrays.
+`tsconfig.json`.
 
 ## Rule selection
 
@@ -59,17 +58,13 @@ export default tseslint.config(
 - `@typescript-eslint/no-explicit-any` (warn at minimum)
 
 **Consider:**
-- `@typescript-eslint/strict-boolean-expressions` — catches truthy bugs
-  on `""`, `0`, `null`.
+- `@typescript-eslint/strict-boolean-expressions`
 - `@typescript-eslint/prefer-nullish-coalescing`
 - `@typescript-eslint/prefer-optional-chain`
-- `@typescript-eslint/switch-exhaustiveness-check` — ensures
-  discriminated unions are fully handled.
+- `@typescript-eslint/switch-exhaustiveness-check`
 
-**Usually disable:**
+**Disable:**
 - `no-unused-vars` (base rule — use the TS version).
-- `@typescript-eslint/no-non-null-assertion` — noisy; the non-null
-  assertion has legitimate uses.
 
 ## Per-file overrides
 
@@ -81,8 +76,6 @@ export default tseslint.config(
   },
 },
 ```
-
-Tests can relax some rules. Generated files should be ignored entirely.
 
 ## Scripts
 
@@ -96,34 +89,28 @@ Tests can relax some rules. Generated files should be ignored entirely.
 }
 ```
 
-Treat `tsc --noEmit` as a separate check from lint — it catches type
-errors that ESLint's `recommendedTypeChecked` rules don't.
+Treat `tsc --noEmit` as a separate check from lint.
 
 ## CI integration
 
 ```bash
-pnpm lint          # fail on any warning via --max-warnings=0 in CI
+pnpm lint          # use --max-warnings=0 in CI
 pnpm typecheck
-pnpm test run      # vitest one-shot
+pnpm test run
 ```
-
-In CI, use `eslint . --max-warnings=0` to fail on warnings.
 
 ## Editor integration
 
-- **VS Code:** the ESLint extension auto-detects flat config.
+- **VS Code:** ESLint extension auto-detects flat config.
 - **Neovim:** `nvim-lspconfig` via `eslint-lsp` or
-  `typescript-tools.nvim`. LSP-based linting is faster than running
-  ESLint per-save.
+  `typescript-tools.nvim`.
 
 ## Anti-patterns
 
-- Mixing flat config and legacy `.eslintrc.*` — pick one.
+- Mixing flat config and legacy `.eslintrc.*`.
 - Turning off rules instead of fixing violations.
-- Extending community configs you don't understand (`eslint-config-foo`)
-  and then fighting the rules they enable.
-- Using Prettier rules in ESLint — Prettier handles formatting, ESLint
-  handles logic. Do not enable stylistic rules in ESLint.
+- Extending community configs you don't understand and fighting the rules.
+- Enabling Prettier stylistic rules in ESLint.
 
 ## Tool detection
 

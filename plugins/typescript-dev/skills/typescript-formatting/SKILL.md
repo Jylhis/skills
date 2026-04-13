@@ -8,15 +8,9 @@ description: >
 
 # TypeScript formatting with Prettier
 
-Prettier is an opinionated formatter — **do not mix it with ESLint
-stylistic rules**. Prettier handles whitespace, line breaks, and
-wrapping; ESLint handles logic and code quality. The two should not
-overlap.
-
-Biome is an emerging alternative (faster, Rust-based) but Prettier
-remains the dominant choice in 2026 and ships with every major editor's
-built-in integration. Use Biome only when you already understand its
-trade-offs.
+**Do not mix Prettier with ESLint stylistic rules.** Prettier handles
+whitespace, line breaks, and wrapping; ESLint handles logic and code
+quality.
 
 ## Install
 
@@ -38,13 +32,6 @@ Create `.prettierrc.json`:
 }
 ```
 
-Opinions in jstack projects:
-
-- `printWidth: 100` — 80 feels cramped on modern screens, 120 is too
-  wide for side-by-side diff viewers.
-- `singleQuote: true` — match JavaScript community convention.
-- `trailingComma: 'all'` — cleaner diffs on multi-line lists.
-
 ## `.prettierignore`
 
 ```
@@ -54,9 +41,6 @@ node_modules/
 pnpm-lock.yaml
 *.generated.ts
 ```
-
-`pnpm-lock.yaml` is frequently edited by pnpm itself — don't run
-Prettier over it.
 
 ## Scripts
 
@@ -69,18 +53,13 @@ Prettier over it.
 }
 ```
 
-Run `format:check` in CI — `--check` is non-zero if anything is
-unformatted.
+Run `format:check` in CI.
 
 ## Integration with ESLint
 
-**Do not** install `eslint-plugin-prettier` or `eslint-config-prettier`
-in new projects unless you have a specific reason. Prettier runs as a
-separate step. The old setup where Prettier ran through ESLint is
-slower and muddies the lint output.
-
-If you must disable stylistic ESLint rules that conflict with Prettier,
-add `eslint-config-prettier` as the **last** entry in your flat config:
+Prettier runs as a separate step. If you must disable stylistic ESLint
+rules that conflict, add `eslint-config-prettier` as the **last** entry
+in your flat config:
 
 ```js
 import prettier from 'eslint-config-prettier';
@@ -95,10 +74,8 @@ export default tseslint.config(
 
 - **VS Code:** Prettier extension, set as default formatter, enable
   format on save.
-- **Neovim:** `conform.nvim` with `prettier` formatter, or null-ls
-  (deprecated, prefer conform).
-- **Pre-commit:** `lefthook` or `husky` + `lint-staged` running
-  `prettier --write` on staged files.
+- **Neovim:** `conform.nvim` with `prettier` formatter.
+- **Pre-commit:** `lefthook` or `husky` + `lint-staged`.
 
 ## lint-staged config
 
@@ -115,8 +92,8 @@ export default tseslint.config(
 - Checking in `.editorconfig` values that conflict with `.prettierrc`.
 - Enabling Prettier rules inside ESLint (`plugin:prettier/recommended`).
 - Running Prettier on generated files or lockfiles.
-- Running Prettier via a pre-commit hook **and** format-on-save **and**
-  CI, each with different config — pick one source of truth.
+- Multiple Prettier invocation points (hook + format-on-save + CI) with
+  different config — pick one source of truth.
 
 ## Tool detection
 

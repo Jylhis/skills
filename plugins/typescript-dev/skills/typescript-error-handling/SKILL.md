@@ -9,13 +9,9 @@ description: >
 
 # TypeScript error handling
 
-TypeScript does not type exceptions. A function marked as returning
-`User` can still throw anything. To get error-aware code paths, either
-(a) use `try`/`catch` consistently at boundaries and trust the rest, or
-(b) encode errors in the return type with a `Result` discriminated union.
-
-Pick one approach per module and stick to it. Mixing is worse than
-either alone.
+TypeScript does not type exceptions. Either (a) use `try`/`catch`
+consistently at boundaries, or (b) encode errors in the return type
+with a `Result` discriminated union. Pick one approach per module.
 
 ## Error subclassing
 
@@ -30,13 +26,9 @@ export class NotFoundError extends Error {
 }
 ```
 
-- Always call `super(message)`.
-- Always set `this.name` — the default is `"Error"` and breaks stack
-  output.
+- Always call `super(message)` and set `this.name`.
 - Accept structured context (IDs, resource names) as constructor args,
   not a stringified message.
-- Extend `Error`, not a custom base class per layer — that adds noise
-  without value.
 
 ## Error hierarchies
 
@@ -61,8 +53,8 @@ messages.
 
 ## Result types (the alternative)
 
-For libraries and critical paths where you want the compiler to force
-callers to handle errors:
+For libraries and critical paths where the compiler should force callers
+to handle errors:
 
 ```ts
 export type Result<T, E = Error> =
@@ -83,9 +75,8 @@ export async function fetchUser(
 }
 ```
 
-Libraries like `neverthrow` and `ts-results` provide more ergonomic
-Result types with chaining. Use them when the Result pattern is
-pervasive; for an occasional use don't pull in a dependency.
+`neverthrow` and `ts-results` provide more ergonomic Result types with
+chaining. Use them when the Result pattern is pervasive.
 
 ## Catch clauses are untyped
 
@@ -100,13 +91,11 @@ try {
 }
 ```
 
-- Enable `useUnknownInCatchVariables` (it's on by default in `strict`).
+- Enable `useUnknownInCatchVariables` (on by default in `strict`).
 - Always narrow before accessing properties.
 - Re-throw unknown errors rather than swallowing them.
 
 ## Error.cause (native chaining)
-
-Node 22 and modern browsers support the `Error.cause` option:
 
 ```ts
 try {
@@ -116,22 +105,28 @@ try {
 }
 ```
 
-Do not hand-roll `err.originalError` or `err.inner` — use `cause`.
+Use `cause` — do not hand-roll `err.originalError` or `err.inner`.
 
 ## Async error flow
 
 - `async` functions return a Promise that rejects with the thrown value.
-- `await` propagates the rejection as a thrown error — `try`/`catch`
-  works normally.
+- `await` propagates the rejection as a thrown error.
 - **Unhandled promise rejections** terminate Node 20+. Use ESLint's
-  `no-floating-promises` rule; every promise must be awaited, returned,
-  or explicitly `.catch()`ed.
-- Top-level: install `process.on('unhandledRejection', handler)` and
+  `no-floating-promises` rule.
+- Install `process.on('unhandledRejection', handler)` and
   `uncaughtException` handlers in long-running services.
 
 ## Zod validation errors
 
-Zod throws `ZodError` with a structured `issues` array:
+Prefer `safeParse` to avoid the throw:
+
+```ts
+const result = UserSchema.safeParse(input);
+if (!result.success) return handle(result.error);
+const user = result.data;
+```
+
+If using `parse`, catch `z.ZodError` and re-throw anything else:
 
 ```ts
 try {
@@ -144,19 +139,11 @@ try {
 }
 ```
 
-Prefer `SafeParse` to avoid the throw entirely:
-
-```ts
-const result = UserSchema.safeParse(input);
-if (!result.success) return handle(result.error);
-const user = result.data;
-```
-
 ## Anti-patterns
 
 - Throwing strings or plain objects — always throw `Error` subclasses.
 - Catching and rethrowing without adding context.
-- `catch (err) { /* swallow */ }` — even with logging, prefer propagation.
+- `catch (err) { /* swallow */ }` — prefer propagation.
 - Converting errors to `null` return values — callers lose information.
 - `Promise.catch(() => null)` on the happy path.
 

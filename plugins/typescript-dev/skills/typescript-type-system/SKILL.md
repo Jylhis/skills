@@ -9,14 +9,12 @@ description: >
 
 # TypeScript type system
 
-Use the type system as a design tool, not a puzzle. Prefer readable
-types that express intent; reach for advanced features only when simpler
-code cannot express the constraint.
+Prefer readable types that express intent; reach for advanced features
+only when simpler code cannot express the constraint.
 
 ## Generics
 
-- **Constrain generic parameters** with `extends`. Unconstrained generics
-  often accept anything and provide no safety.
+- **Constrain generic parameters** with `extends`.
 - **Name generics descriptively** for non-trivial types: `TUser`,
   `TResponse`, not `T`, `U`, `V`.
 - **Default type parameters** make APIs easier to use:
@@ -33,13 +31,11 @@ code cannot express the constraint.
     | { ok: true; value: T }
     | { ok: false; error: E };
   ```
-- Use a literal `kind` or `type` field as the discriminator. Narrowing
-  via `switch` on the discriminator is the safest pattern.
+- Use a literal `kind` or `type` field as the discriminator.
 
 ## Narrowing
 
-- Type guards: `typeof`, `instanceof`, `in`, equality checks. The
-  compiler tracks narrowing through `if` and `switch`.
+- Type guards: `typeof`, `instanceof`, `in`, equality checks.
 - **Custom type predicates**:
   ```ts
   function isUser(value: unknown): value is User {
@@ -51,13 +47,11 @@ code cannot express the constraint.
     );
   }
   ```
-- For runtime validation of external data, use **Zod** — don't hand-write
-  predicates for network payloads.
+- For runtime validation of external data, use **Zod**.
 
 ## `satisfies` operator
 
-`satisfies` verifies a value matches a type without widening its inferred
-type. Use for config objects:
+Verifies a value matches a type without widening its inferred type:
 
 ```ts
 const config = {
@@ -70,32 +64,29 @@ const config = {
 
 ## Template literal types
 
-For typing string patterns:
-
 ```ts
 type Route = `/users/${number}` | `/posts/${string}`;
 type CSSVar = `--${string}`;
 ```
 
-Avoid deeply recursive template types — they are a common source of
-compile slowdowns.
+Avoid deeply recursive template types — common source of compile
+slowdowns.
 
 ## Conditional types
 
-Use sparingly. Most problems do not need them. When you do need them,
-keep the signature readable:
+Use sparingly. When needed, keep readable:
 
 ```ts
 type Awaited<T> = T extends Promise<infer U> ? U : T;
 ```
 
-Built-ins cover 90% of real use cases: `Partial`, `Required`, `Readonly`,
-`Pick`, `Omit`, `Record`, `Exclude`, `Extract`, `ReturnType`, `Parameters`,
-`Awaited`, `NoInfer`.
+Built-ins cover most use cases: `Partial`, `Required`, `Readonly`,
+`Pick`, `Omit`, `Record`, `Exclude`, `Extract`, `ReturnType`,
+`Parameters`, `Awaited`, `NoInfer`.
 
 ## Branded / nominal types
 
-TypeScript is structural. To get nominal behavior, use brands:
+TypeScript is structural. For nominal behavior, use brands:
 
 ```ts
 type UserId = string & { readonly __brand: 'UserId' };
@@ -111,18 +102,16 @@ Use for domain identifiers that must not be confused (`UserId` vs
 ## Readonly & immutability
 
 - `readonly` modifier on fields and array/tuple types.
-- `Readonly<T>` utility for shallow read-only objects.
-- `const` assertions (`as const`) freeze literal types.
-- For deep immutability use `DeepReadonly` from `type-fest` rather than
-  rolling your own.
+- `Readonly<T>` for shallow read-only objects.
+- `as const` freezes literal types.
+- For deep immutability use `DeepReadonly` from `type-fest`.
 
 ## Anti-patterns
 
 - `any` — use `unknown` and narrow, or use Zod.
-- `Function` type — use explicit signatures `(...args: unknown[]) => unknown`.
+- `Function` type — use `(...args: unknown[]) => unknown`.
 - `object` type — use `Record<string, unknown>` or a specific type.
-- Casting with `as` to silence errors — narrow properly or `unknown as T`
-  only when you have just validated the value.
+- `as` casts to silence errors — narrow properly.
 - Types used only to pass tests — if the type is hard to express, maybe
   the runtime is wrong.
 

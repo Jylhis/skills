@@ -8,14 +8,12 @@ description: >
 
 # TypeScript async patterns
 
-Node 22+ and modern runtimes have everything you need without external
-libraries. Prefer native primitives over third-party async helpers.
+Prefer native primitives (Node 22+) over third-party async helpers.
 
 ## Promises
 
 - **Never construct a new Promise when `async`/`await` will do.** The
-  `new Promise((resolve, reject) => ...)` pattern is only for wrapping
-  callback APIs.
+  `new Promise` pattern is only for wrapping callback APIs.
 - **Never nest** `.then(...)`. Use `async`/`await`.
 - **Always `await` or return** every promise. ESLint
   `no-floating-promises` enforces this.
@@ -37,13 +35,10 @@ await Promise.all(ids.map((id) => limit(() => processUser(id))));
 ```
 
 `Promise.all` fails fast on first rejection. `Promise.allSettled` runs
-all to completion and returns status per item — use for independent
-tasks where you want partial success.
+all to completion — use for independent tasks where you want partial
+success.
 
 ## Cancellation with AbortController
-
-`AbortController` is the native cancellation primitive. Every async
-API that supports cancellation takes a `signal`:
 
 ```ts
 const ac = new AbortController();
@@ -62,9 +57,8 @@ const res = await fetch(url, { signal: ac.signal });
 
 ## Structured concurrency
 
-Group related async work so that if the scope fails, everything in it
-is cancelled. JavaScript doesn't have this built in yet (proposal
-pending), but you can approximate:
+Group related async work so that if the scope fails, everything is
+cancelled:
 
 ```ts
 async function withTimeout<T>(
@@ -81,15 +75,12 @@ async function withTimeout<T>(
 }
 ```
 
-For complex coordination use `effection` or `@effection/core` — but
-evaluate whether you really need structured concurrency or just
-disciplined cancellation.
+For complex coordination use `effection` or `@effection/core`.
 
 ## Timeouts
 
-Do not use `setTimeout` + `Promise.race` for fetch timeouts. Use
-`AbortSignal.timeout`. For other async tasks where the target doesn't
-accept a signal:
+Use `AbortSignal.timeout` for fetch. For async tasks that don't accept
+a signal:
 
 ```ts
 function withDeadline<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -102,8 +93,8 @@ function withDeadline<T>(p: Promise<T>, ms: number): Promise<T> {
 }
 ```
 
-Note: this does not **cancel** the underlying work — it only rejects
-the wrapper. Prefer AbortController-aware APIs.
+This does not cancel the underlying work — it only rejects the wrapper.
+Prefer AbortController-aware APIs.
 
 ## Retries with backoff
 
@@ -125,8 +116,7 @@ async function retry<T>(
 }
 ```
 
-For anything more sophisticated use `p-retry` — it handles jitter,
-per-error retry predicates, and abort signals.
+For anything more sophisticated use `p-retry`.
 
 ## Async iteration
 
@@ -134,8 +124,7 @@ per-error retry predicates, and abort signals.
   (Node streams, async generators, `AsyncIterable`).
 - **Async generators (`async function*`)** — produce backpressured
   streams with simple code.
-- **Node `Readable.toWeb()` / `Readable.fromWeb()`** — bridge to web
-  streams.
+- **`Readable.toWeb()` / `Readable.fromWeb()`** — bridge to web streams.
 
 ```ts
 async function* chunks(stream: Readable): AsyncGenerator<Buffer> {
@@ -150,7 +139,6 @@ async function* chunks(stream: Readable): AsyncGenerator<Buffer> {
 - `Promise.race` with a setTimeout for cancellation (does not cancel
   the underlying task).
 - Wrapping `fetch` in a custom Promise constructor.
-- `new Promise((resolve) => resolve(...))` — just return the value.
 - Building retry/queue/throttle infra from scratch every project.
 
 ## Tool detection
