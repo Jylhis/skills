@@ -6,42 +6,32 @@ user-invocable: false
 
 # Emacs Debugging
 
-Systematic approach to diagnosing Emacs problems. Start by identifying the symptom category, then follow the appropriate decision tree.
-
 ## Symptom Decision Tree
 
-1. **Emacs won't start / errors on init** → Init Debugging
-2. **Error during use** → Runtime Error Debugging
-3. **Slow startup** → Startup Performance
-4. **Slow during use** → Runtime Performance
-5. **Emacs freezes** → Freeze Diagnosis
-6. **Native compilation errors** → Native Comp Debugging
-7. **Nix build failure** → Nix Build Debugging
+1. **Emacs won't start / errors on init** -> Init Debugging
+2. **Error during use** -> Runtime Error Debugging
+3. **Slow startup** -> Startup Performance
+4. **Slow during use** -> Runtime Performance
+5. **Emacs freezes** -> Freeze Diagnosis
+6. **Native compilation errors** -> Native Comp Debugging
+7. **Nix build failure** -> Nix Build Debugging
 
 ## 1. Init Debugging
 
 ### Isolate the error
 
 ```bash
-# Start with debug-on-error for a backtrace
-emacs --debug-init
-
-# Start with zero configuration to confirm it's your config
-emacs -Q
-
-# Load init file in batch mode for cleaner error output
-emacs --batch -l ~/.emacs.d/init.el
+emacs --debug-init       # backtrace on init error
+emacs -Q                 # zero config — confirm it's your config
+emacs --batch -l ~/.emacs.d/init.el  # batch mode for cleaner output
 ```
 
 ### Binary search the config
 
-If `--debug-init` doesn't pinpoint the issue, bisect:
-
 ```elisp
-;; Comment out halves of your init.el until the error disappears
-;; The last uncommented section contains the problem
+;; Comment out halves of init.el until the error disappears
 
-;; Alternatively, use use-package's :catch to isolate
+;; Or use use-package's :catch
 (use-package suspect-package
   :catch (lambda (keyword err)
            (message "Error in suspect-package %s: %s" keyword err)))
@@ -51,8 +41,8 @@ If `--debug-init` doesn't pinpoint the issue, bisect:
 
 | Error | Likely cause |
 |-------|-------------|
-| `Symbol's value as variable is void` | Missing `require` or typo in variable name |
-| `Symbol's function definition is void` | Package not loaded, or function renamed/removed |
+| `Symbol's value as variable is void` | Missing `require` or typo |
+| `Symbol's function definition is void` | Package not loaded or function removed |
 | `Wrong number of arguments` | API changed between Emacs versions |
 | `Cannot open load file` | Package not installed or not on `load-path` |
 | `Recursive load` | Circular `require` dependencies |
@@ -62,30 +52,23 @@ If `--debug-init` doesn't pinpoint the issue, bisect:
 ### Get a backtrace
 
 ```elisp
-;; Enable automatic backtrace on any error
 (setopt debug-on-error t)
-
-;; Break on a specific error signal
 (setopt debug-on-signal t)
-
-;; Break when a specific message appears
 (setopt debug-on-message "regexp-matching-the-error")
 ```
 
 ### Read the backtrace
 
-Backtraces read bottom-to-top. Look for the first frame that references your code (not Emacs internals):
+Backtraces read bottom-to-top. Look for the first frame referencing your code:
 
 ```
 Debugger entered--Lisp error: (wrong-type-argument stringp 42)
-  my-module--format-value(42)         ; ← your code, the bug is here
+  my-module--format-value(42)         ; <- your code, the bug is here
   my-module-display-results()
   command-execute(my-module-display-results)
 ```
 
 ### Edebug (step debugger)
-
-For complex logic, step through interactively:
 
 ```elisp
 ;; Instrument a function: place point inside it and run
@@ -97,15 +80,10 @@ M-x edebug-defun
 ;; i = step into function call
 ```
 
-To instrument all functions in a file:
-
-```elisp
-M-x edebug-all-defs  ;; toggle — then re-evaluate the file
-```
+To instrument all functions in a file: `M-x edebug-all-defs` then
+re-evaluate the file.
 
 ### Batch debugging
-
-For debugging in scripts or CI:
 
 ```bash
 emacs --batch \
@@ -116,30 +94,16 @@ emacs --batch \
 
 ## 3. Startup Performance
 
-### Measure total init time
+### Measure
 
 ```elisp
-;; After startup, run:
 M-x emacs-init-time
-```
-
-### Profile init
-
-```elisp
-;; Add to very beginning of early-init.el or init.el:
-(defvar my--init-start-time (current-time))
-
-;; At the end of init:
-(message "Init completed in %.2f seconds"
-         (float-time (time-subtract (current-time) my--init-start-time)))
 ```
 
 ### Per-package timing with use-package
 
 ```elisp
-;; Add before any use-package forms:
 (setopt use-package-compute-statistics t)
-
 ;; After startup:
 M-x use-package-report
 ```
@@ -147,7 +111,6 @@ M-x use-package-report
 ### Detailed require profiling
 
 ```elisp
-;; Wrap require to measure each one
 (defvar my--require-times nil)
 
 (define-advice require (:around (orig feature &rest args) measure-time)
@@ -155,9 +118,6 @@ M-x use-package-report
     (prog1 (apply orig feature args)
       (push (cons feature (float-time (time-subtract (current-time) start)))
             my--require-times))))
-
-;; After startup, inspect:
-;; (sort my--require-times (lambda (a b) (> (cdr a) (cdr b))))
 ```
 
 ### Common slowdowns
@@ -165,60 +125,44 @@ M-x use-package-report
 - **`:ensure t` with slow MELPA connection** — remove if using Nix
 - **Eager package loading** — add `:defer t` or use autoload triggers
 - **`(require 'org)` at top level** — Org is large; defer with `with-eval-after-load`
-- **Synchronous network calls** — DNS resolution, package refresh at startup
+- **Synchronous network calls** at startup
 
 ## 4. Runtime Performance
 
 ### Built-in profiler
 
 ```elisp
-;; Start profiling
 M-x profiler-start     ;; choose CPU, memory, or both
-
 ;; Do the slow thing
-
-;; View results
 M-x profiler-report
 M-x profiler-stop
 ```
 
-In the report, press `TAB` to expand call trees. Look for your functions with high self-time.
-
 ### ELP (Emacs Lisp Profiler)
-
-Profile specific functions:
 
 ```elisp
 (require 'elp)
 (elp-instrument-package "my-module")
-
 ;; Do the slow thing
-
-(elp-results)          ;; shows call count and time per function
-(elp-restore-all)      ;; remove instrumentation
+(elp-results)
+(elp-restore-all)
 ```
 
-### Benchmark specific code
+### Benchmark
 
 ```elisp
 (require 'benchmark)
 (benchmark-run 100
   (my-module-expensive-operation))
-;; → (elapsed-time gc-count gc-time)
+;; -> (elapsed-time gc-count gc-time)
 ```
 
-### GC pressure
+### GC tuning
 
 ```elisp
-;; See GC activity
 (setopt garbage-collection-messages t)
-
-;; Check GC stats
-(garbage-collect)  ;; returns detailed memory breakdown
-
-;; Tune GC threshold (carefully)
 (setopt gc-cons-threshold (* 16 1024 1024))  ;; 16 MB
-;; Reset after init if you raised it for startup:
+;; Reset after init:
 (add-hook 'emacs-startup-hook
           (lambda () (setopt gc-cons-threshold (* 2 1024 1024))))
 
@@ -228,17 +172,13 @@ M-x memory-report
 
 ## 5. Freeze Diagnosis
 
-When Emacs stops responding:
-
 ### macOS
 ```bash
-# Get a stack trace of the frozen process
 sample Emacs -e -f /tmp/emacs-sample.txt
 ```
 
 ### Linux
 ```bash
-# Attach to the process
 sudo perf record -p $(pgrep emacs) -g -- sleep 10
 sudo perf report
 
@@ -246,36 +186,28 @@ sudo perf report
 kill -USR2 $(pgrep emacs)
 ```
 
-### Common freeze causes
+### Common causes
 
-- **Busy loop in Elisp** — usually a `while` without advancing state
-- **Synchronous subprocess** — `call-process` or `shell-command` waiting on a hung process
-- **Regex catastrophic backtracking** — overly complex regex on large input
-- **Lock contention** — file locks, process locks
+- **Busy loop in Elisp** — `while` without advancing state
+- **Synchronous subprocess** waiting on a hung process
+- **Regex catastrophic backtracking**
 - **Network wait** — synchronous URL retrieval with no timeout
 
 ## 6. Native Compilation Debugging
 
-### ABI mismatch after Emacs upgrade
+### ABI mismatch after upgrade
 
 ```bash
-# Symptoms: wrong-type-argument, strange errors in previously working code
 # Fix: clear the eln-cache
 rm -rf ~/.emacs.d/eln-cache/
-# Emacs will recompile on next load
 ```
 
 ### Compilation errors
 
 ```elisp
-;; Check native-comp status
-(native-comp-available-p)  ;; → t if working
-
-;; See what failed
-M-x native-compile-async  ;; recompile with output
-
-;; Verbose logging
-(setopt native-comp-verbose 3)  ;; 0=silent, 3=very verbose
+(native-comp-available-p)  ;; -> t if working
+M-x native-compile-async   ;; recompile with output
+(setopt native-comp-verbose 3)
 ```
 
 ### Disable native comp for a problematic package
@@ -287,16 +219,9 @@ M-x native-compile-async  ;; recompile with output
 
 ## 7. Nix Build Debugging
 
-When building Emacs from source with Nix:
-
 ```bash
-# Show full build log with trace
 nix build .#emacs --show-trace -L
-
-# Keep the build directory for inspection
 nix build .#emacs --keep-failed
-
-# Enter a dev shell to run build phases manually
 nix develop .#emacs
 unpackPhase && cd $sourceRoot
 configurePhase
@@ -307,16 +232,15 @@ buildPhase
 
 | Issue | Fix |
 |-------|-----|
-| Missing native library | Add the library to `buildInputs` in the derivation |
-| Tree-sitter grammar not found | Check the grammar is in `treesit-extra-load-path` |
+| Missing native library | Add to `buildInputs` |
+| Tree-sitter grammar not found | Check `treesit-extra-load-path` |
 | Version mismatch after update | `nix flake update` and rebuild |
 | `eln-cache` stale after rebuild | Clear `~/.emacs.d/eln-cache/` |
 
-## General Debugging Tips
+## General Tips
 
 - **Reproduce minimally** — start with `emacs -Q`, load only what's needed
-- **Check `*Messages*`** — most errors and warnings appear here
-- **Check `*Warnings*`** — native-comp and other async warnings land here
-- **Use `toggle-debug-on-error`** — keybinding: `M-x toggle-debug-on-error`
-- **Read the backtrace bottom-to-top** — your code frame is what matters
-- **Check Emacs version** — `M-x emacs-version` to verify you're running what you think
+- **Check `*Messages*`** and **`*Warnings*`** buffers
+- **Use `toggle-debug-on-error`**
+- **Read the backtrace bottom-to-top**
+- **Check Emacs version** — `M-x emacs-version`

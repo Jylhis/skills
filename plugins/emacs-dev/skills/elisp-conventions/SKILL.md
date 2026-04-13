@@ -38,14 +38,12 @@ Every `.el` file follows this layout:
 ;;; my-module.el ends here
 ```
 
-**Mandatory rules:**
-- `lexical-binding: t` on line 1 — always, no exceptions
+**Mandatory:**
+- `lexical-binding: t` on line 1
 - `(provide 'my-module)` at the bottom, matching the filename
 - Footer comment `;;; my-module.el ends here`
 
 ## Modern APIs (Emacs 29+/30+)
-
-Use modern equivalents exclusively. The legacy forms still work but produce less readable, less maintainable code.
 
 ### Keybindings
 
@@ -141,7 +139,7 @@ These are built-in — do NOT add them as dependencies or use `require` unless n
 (defvar my-module--cache nil)
 ```
 
-Choose a consistent namespace prefix (typically matching the filename). All public and private symbols use that prefix.
+Choose a consistent namespace prefix matching the filename.
 
 ## defcustom
 
@@ -161,7 +159,7 @@ Always declare with `:type` and `:group`:
   :group 'my-module)
 ```
 
-Set defcustom values with `setopt`, not `setq` — `setopt` runs the `:set` function and validates `:type`.
+Set defcustom values with `setopt`, not `setq`.
 
 ## Hooks
 
@@ -194,13 +192,11 @@ Always use named functions, never lambdas:
   (setopt magit-save-repository-buffers 'dontask))
 ```
 
-**When using Nix-managed packages:** omit `:ensure t` — Nix handles installation and load-path. Adding `:ensure t` causes `package.el` to try downloading from MELPA, which conflicts with Nix.
+**When using Nix-managed packages:** omit `:ensure t` — Nix handles installation and load-path.
 
-**Defer loading by default:** use-package with `:bind`, `:hook`, `:commands`, or `:mode` auto-defers. Only add `:demand t` when you need the package loaded eagerly.
+**Defer loading by default:** use-package with `:bind`, `:hook`, `:commands`, or `:mode` auto-defers. Only add `:demand t` when you need eager loading.
 
 ## Autoloads and Loading
-
-Prefer autoloads over eager `require`:
 
 ```elisp
 ;; Good — declares that my-func exists; loads the file on first call

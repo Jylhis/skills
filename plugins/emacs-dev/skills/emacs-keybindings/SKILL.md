@@ -6,8 +6,6 @@ user-invocable: false
 
 # Emacs Keybinding Design
 
-Guide for designing conflict-free, ergonomic keybinding schemes.
-
 ## Modern Keybinding API
 
 Always use `keymap-set` and related functions (Emacs 29+):
@@ -36,14 +34,12 @@ Always use `keymap-set` and related functions (Emacs 29+):
 `keymap-set` uses `key-valid-p` syntax — no `kbd` wrapper needed:
 
 ```elisp
-;; Correct key-valid-p syntax
 "C-c a"           ;; Ctrl-c a
 "C-M-f"           ;; Ctrl-Meta-f
 "C-c C-c"         ;; Ctrl-c Ctrl-c
 "M-<return>"      ;; Meta-Return
 "C-<tab>"         ;; Ctrl-Tab
 "s-f"             ;; Super-f
-"H-a"             ;; Hyper-a
 "<f5>"            ;; F5 function key
 "C-c m a"         ;; Three-key sequence
 
@@ -52,16 +48,14 @@ Always use `keymap-set` and related functions (Emacs 29+):
 "C-["             ;; Ambiguous (ESC vs Ctrl-[)
 ```
 
-Validate with `(key-valid-p "C-c a")` → `t` or `nil`.
+Validate with `(key-valid-p "C-c a")`.
 
 ## Keymap Lookup Order
-
-Emacs resolves keys through 8 layers, checked top-to-bottom. Higher layers shadow lower ones:
 
 | Priority | Keymap | Scope |
 |----------|--------|-------|
 | 1 | `overriding-terminal-local-map` | Terminal-local override (rare) |
-| 2 | `overriding-local-map` | Buffer-local override (rare, used by isearch) |
+| 2 | `overriding-local-map` | Buffer-local override (rare) |
 | 3 | Text property / overlay keymaps | Per-character (buttons, links) |
 | 4 | `minor-mode-overriding-map-alist` | Buffer-local minor mode override |
 | 5 | `minor-mode-map-alist` | Minor mode keymaps (stacked) |
@@ -69,33 +63,19 @@ Emacs resolves keys through 8 layers, checked top-to-bottom. Higher layers shado
 | 7 | `global-map` | Baseline |
 | 8 | Bindings in `function-key-map` etc. | Translation (rare) |
 
-Understanding this explains why bindings "don't work" — a higher-priority keymap is intercepting the key.
-
 ## Reserved Key Ranges
-
-Respect these conventions to avoid conflicts:
 
 | Range | Reserved for | Safe to use? |
 |-------|-------------|-------------|
-| `C-c <letter>` | **Users** | Yes — this is your space |
-| `C-c C-<letter>` | Major modes | No — modes own this |
+| `C-c <letter>` | **Users** | Yes |
+| `C-c C-<letter>` | Major modes | No |
 | `C-c <punctuation>` | Minor modes | No |
 | `C-x` | Emacs global commands | No |
 | `C-h` | Help | No |
-| `F1` | Help | No |
-| `F2` | Two-column mode | Rarely used, OK to rebind |
-| `F3`-`F4` | Keyboard macros | OK if you don't use kmacros |
 | `F5`-`F9` | **Users** | Yes |
-| `F10` | Menu bar | No |
-| `F11`-`F12` | Available | Yes, but some DEs grab them |
-| `M-<letter>` | Emacs commands | Rebinding is common but can conflict |
-| `s-<key>` (Super) | Mostly free | Yes — great for custom bindings |
-
-**Best practice:** Pick a prefix under `C-c <letter>` (e.g., `C-c p` for project commands) and put all your custom bindings under it.
+| `s-<key>` (Super) | Mostly free | Yes |
 
 ## Conflict Detection
-
-### Check what a key currently does
 
 ```elisp
 ;; What does C-c a do in the current buffer?
@@ -104,20 +84,14 @@ Respect these conventions to avoid conflicts:
 ;; Which minor modes bind a key?
 (minor-mode-key-binding (kbd "C-c a"))
 
-;; Where is a command bound?
-(where-is-internal 'find-file)
-
-;; Interactive: press the key and see what happens
+;; Interactive
 C-h k C-c a          ;; describe-key
-
-;; Interactive: see all bindings for a prefix
 C-h C-c              ;; shows everything under C-c
 ```
 
 ### Systematic conflict scan
 
 ```elisp
-;; Check if a key is free in all active keymaps
 (defun my-key-free-p (key-string)
   "Return t if KEY-STRING is unbound in all active maps."
   (let ((key (kbd key-string)))
@@ -125,8 +99,6 @@ C-h C-c              ;; shows everything under C-c
          (not (minor-mode-key-binding key))
          (not (local-key-binding key))
          (not (global-key-binding key)))))
-
-(my-key-free-p "C-c j a")  ;; → t if free
 ```
 
 ## Prefix Key Patterns
@@ -142,7 +114,6 @@ C-h C-c              ;; shows everything under C-c
   "d" #'project-dired)
 
 (keymap-global-set "C-c p" my-project-map)
-;; Now: C-c p f → project-find-file, etc.
 ```
 
 ### Nested prefixes
@@ -156,23 +127,20 @@ C-h C-c              ;; shows everything under C-c
 
 (defvar-keymap my-main-map
   :doc "Main custom keymap."
-  "t" my-test-map                ;; C-c m t → test prefix
+  "t" my-test-map                ;; C-c m t -> test prefix
   "g" #'magit-status
   "r" #'my-repl)
 
 (keymap-global-set "C-c m" my-main-map)
-;; C-c m t t → run test at point
-;; C-c m g   → magit-status
+;; C-c m t t -> run test at point
 ```
 
 ## Repeat Mode Integration (Emacs 28+)
 
-Make sequences of related commands repeatable without holding the prefix:
-
 ```elisp
 (defvar-keymap my-window-repeat-map
   :doc "Repeatable window commands."
-  :repeat t                      ;; enables repeat-mode for this map
+  :repeat t
   "o" #'other-window
   "n" #'next-buffer
   "p" #'previous-buffer
@@ -182,11 +150,10 @@ Make sequences of related commands repeatable without holding the prefix:
   "3" #'split-window-right)
 ```
 
-After pressing the initial key sequence (e.g., `C-x o`), subsequent keys from the repeat map work without the prefix (`o`, `o`, `n`, ...).
+After pressing the initial key sequence, subsequent keys from the
+repeat map work without the prefix.
 
 ## which-key Integration
-
-`which-key` (built-in since Emacs 30) shows available keys after a prefix delay:
 
 ```elisp
 (use-package which-key
@@ -195,7 +162,6 @@ After pressing the initial key sequence (e.g., `C-x o`), subsequent keys from th
   :custom
   (which-key-idle-delay 0.5))
 
-;; Add descriptions to your prefix maps
 (which-key-add-keymap-based-replacements my-main-map
   "t" "test"
   "g" "git")
@@ -203,10 +169,8 @@ After pressing the initial key sequence (e.g., `C-x o`), subsequent keys from th
 
 ## Context-Sensitive Bindings
 
-### Mode-specific overrides
-
 ```elisp
-;; Override a global binding in specific modes
+;; Mode-specific override
 (keymap-set org-mode-map "C-c a" #'org-agenda)
 
 ;; Bind only in a derived mode
@@ -217,7 +181,6 @@ After pressing the initial key sequence (e.g., `C-x o`), subsequent keys from th
 ### Conditional bindings via menu-item
 
 ```elisp
-;; Bind a key conditionally — falls through if condition is nil
 (keymap-set global-map "C-c d"
   `(menu-item "" my-debug-command
     :filter ,(lambda (_cmd)
@@ -227,9 +190,9 @@ After pressing the initial key sequence (e.g., `C-x o`), subsequent keys from th
 
 ## Design Principles
 
-1. **Group related commands under a shared prefix** — easier to discover and remember
+1. **Group related commands under a shared prefix**
 2. **Use mnemonic keys** — `f` for find, `s` for save, `t` for test
-3. **Stay in `C-c <letter>`** — it's yours, guaranteed conflict-free
-4. **Document your bindings** — use `:doc` on `defvar-keymap`, add which-key labels
-5. **Test in relevant modes** — a binding that works in `fundamental-mode` might be shadowed in `org-mode`
-6. **Consider ergonomics** — frequent commands get short sequences; rare commands can be longer
+3. **Stay in `C-c <letter>`** — guaranteed conflict-free
+4. **Document bindings** — `:doc` on `defvar-keymap`, which-key labels
+5. **Test in relevant modes** — a binding may be shadowed in `org-mode`
+6. **Consider ergonomics** — frequent commands get short sequences

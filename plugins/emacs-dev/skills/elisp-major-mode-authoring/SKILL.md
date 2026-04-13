@@ -9,23 +9,14 @@ description: >
 
 # Writing an Emacs major mode
 
-A major mode is Emacs's unit of "this is a file of type X." Modern
-Elisp uses `define-derived-mode` to inherit structure from a parent
-mode, and `treesit-*` infrastructure when a tree-sitter grammar is
-available.
-
 ## Pick the parent mode
 
-- **`prog-mode`** — general parent for programming modes. Sets up
-  hooks, default fill behaviour, comment handling.
-- **`text-mode`** — parent for prose modes (Markdown, Org, LaTeX).
-- **`special-mode`** — parent for read-only view buffers (magit,
-  dired). Sets `buffer-read-only`, disables self-insert keys.
-- **A language's `ts-mode`** — when you're extending a tree-sitter mode
-  with domain-specific features.
+- **`prog-mode`** — programming modes.
+- **`text-mode`** — prose modes (Markdown, Org, LaTeX).
+- **`special-mode`** — read-only view buffers (magit, dired).
+- **A language's `ts-mode`** — when extending a tree-sitter mode.
 
-Never derive directly from `fundamental-mode`; always pick the
-semantic parent.
+Never derive directly from `fundamental-mode`.
 
 ## `define-derived-mode` skeleton
 
@@ -78,19 +69,14 @@ semantic parent.
 
 Key points:
 
-- **`lexical-binding: t`** in the file header — required for modern
-  Elisp; unlocks closures and many macros.
-- **`defgroup`** — every customizable mode needs its own group.
-- **`defvar-keymap`** (Emacs 29+) — cleaner than `defvar ... (let ((map (make-sparse-keymap))) ...))`.
-- **`;;;###autoload`** on the mode defun and the `auto-mode-alist`
-  entry — lets users load the mode lazily.
-- **`setq-local`** — mode hooks should set buffer-local values, not
-  globals.
+- **`lexical-binding: t`** — required.
+- **`defvar-keymap`** (Emacs 29+) — cleaner than the `make-sparse-keymap` pattern.
+- **`;;;###autoload`** on the mode defun and `auto-mode-alist` entry.
+- **`setq-local`** — mode body should set buffer-local values.
 
 ## Syntax tables
 
-Syntax tables define comment syntax, string syntax, word characters,
-and matching delimiters. Study the syntax classes:
+Syntax classes:
 
 - `<` / `>` — comment start / end.
 - `"` — string delimiter.
@@ -100,19 +86,15 @@ and matching delimiters. Study the syntax classes:
 - `(` / `)` — matching parens.
 
 Two-character comments (e.g. `//`) use comment style sequences — see
-`modify-syntax-entry` docstring and the Elisp manual's *Syntax Table
-Internals* chapter.
+`modify-syntax-entry` docstring.
 
 ## Font-lock
 
-Font-lock patterns are a list of `(MATCHER . FACEDEF)` or
-`(MATCHER HIGHLIGHT-SPEC ...)`. Prefer the faces from the `font-lock-*`
-family (`font-lock-keyword-face`, `font-lock-type-face`,
-`font-lock-function-name-face`, …) rather than custom faces. Users
-customise the `font-lock-*` faces in their theme; custom faces do not
-pick up theme changes.
+Patterns are `(MATCHER . FACEDEF)` or `(MATCHER HIGHLIGHT-SPEC ...)`.
+Prefer `font-lock-*` faces over custom faces — users customise them
+via themes.
 
-For performance-sensitive modes use multi-level highlighting:
+For multi-level highlighting:
 
 ```elisp
 (setq-local font-lock-defaults
@@ -123,20 +105,15 @@ For performance-sensitive modes use multi-level highlighting:
 
 ## Indentation
 
-Simple indent via `indent-line-function`. The function receives no
-arguments and should move point to the correct column based on the
-preceding lines. Use `save-excursion` so the caller's point doesn't
-move unexpectedly.
+Set `indent-line-function`. The function should move point to the
+correct column based on preceding lines.
 
-For grammar-based languages, SMIE (Simple Minded Indentation Engine)
-is the built-in framework. For tree-sitter languages, prefer
-`treesit-simple-indent-rules` over SMIE.
+For grammar-based languages, SMIE is the built-in framework. For
+tree-sitter languages, prefer `treesit-simple-indent-rules`.
 
 ## Tree-sitter (ts-mode) variants
 
-From Emacs 29 onward, many languages ship two modes: a classic
-`lang-mode` and a `lang-ts-mode` powered by tree-sitter. When you build
-on top of a language that has a `ts-mode`, derive from `ts-mode`:
+When a tree-sitter grammar is available, derive from the `ts-mode`:
 
 ```elisp
 (define-derived-mode foo-ts-mode typescript-ts-mode "Foo[TS]"
@@ -150,8 +127,7 @@ on top of a language that has a `ts-mode`, derive from `ts-mode`:
                  ))))
 ```
 
-Use `major-mode-remap-alist` (Emacs 29+) to tell Emacs to open `.ts`
-files with your mode instead of the built-in `typescript-ts-mode`:
+Use `major-mode-remap-alist` (Emacs 29+) to remap file associations:
 
 ```elisp
 (add-to-list 'major-mode-remap-alist '(typescript-ts-mode . foo-ts-mode))
@@ -159,16 +135,11 @@ files with your mode instead of the built-in `typescript-ts-mode`:
 
 ## Hook naming
 
-Each `define-derived-mode` automatically creates a `MODE-hook`. Users
-add to it via `add-hook`. Do not create parallel "before" / "after"
-hooks unless you have a specific reason.
-
-Run custom initialization inside the mode body; it runs after parent
-mode setup and before `MODE-hook`.
+`define-derived-mode` automatically creates `MODE-hook`. Custom
+initialization goes in the mode body (runs after parent setup, before
+`MODE-hook`).
 
 ## Testing
-
-Use ERT with `ert-with-temp-file` fixtures:
 
 ```elisp
 (ert-deftest foo-mode-indent-line-test ()
@@ -180,21 +151,16 @@ Use ERT with `ert-with-temp-file` fixtures:
       (should (equal (buffer-string) "let foo =\n  1")))))
 ```
 
-See `elisp-testing` skill for full ERT patterns.
-
 ## Anti-patterns
 
-- Defining keybindings in the top-level of the file without a keymap —
-  they end up global.
-- Using `setq` instead of `setq-local` inside the mode body — bleeds
-  into other buffers.
-- Creating a new `defface` for every syntactic category — users
-  can't theme them.
-- Forgetting `;;;###autoload` — users can't open a file of your type
-  without `(require 'foo-mode)` first.
+- Defining keybindings at top-level without a keymap — they end up
+  global.
+- Using `setq` instead of `setq-local` inside the mode body.
+- Creating a new `defface` for every syntactic category.
+- Forgetting `;;;###autoload`.
 - Deriving from `fundamental-mode`.
-- Writing a whole new mode when a tree-sitter `ts-mode` exists for the
-  language — derive from it instead.
+- Writing a new mode when a tree-sitter `ts-mode` exists — derive
+  from it instead.
 
 ## Tool detection
 

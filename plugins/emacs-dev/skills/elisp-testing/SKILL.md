@@ -6,8 +6,6 @@ user-invocable: false
 
 # Elisp Testing with ERT
 
-Patterns for writing reliable Emacs Lisp tests using ERT (Emacs Regression Testing).
-
 ## Test File Structure
 
 ```elisp
@@ -28,7 +26,7 @@ Patterns for writing reliable Emacs Lisp tests using ERT (Emacs Regression Testi
 ;;; my-module-test.el ends here
 ```
 
-Place test files in a `test/` directory, named `<module>-test.el`.
+Place test files in `test/`, named `<module>-test.el`.
 
 ## Running Tests
 
@@ -49,8 +47,6 @@ emacs --batch -L lisp -L test \
   --eval '(ert-run-tests-batch-and-exit "my-module")'
 ```
 
-Adjust `-L` paths to include both your source and test directories.
-
 ## Basic Assertions
 
 ```elisp
@@ -61,8 +57,6 @@ Adjust `-L` paths to include both your source and test directories.
   (should-error (my-module-add "a" 3) :type 'wrong-type-argument))
 ```
 
-### Assertion Reference
-
 | Form | Checks |
 |------|--------|
 | `(should EXPR)` | EXPR is non-nil |
@@ -70,11 +64,9 @@ Adjust `-L` paths to include both your source and test directories.
 | `(should-error EXPR)` | EXPR signals an error |
 | `(should-error EXPR :type 'TYPE)` | EXPR signals error of TYPE |
 
-ERT reports which subexpression failed, so prefer simple assertions over complex compound ones.
-
 ## State Isolation
 
-Tests must not leak state. Use `let`-binding to temporarily override variables and restore them automatically:
+Use `let`-binding to temporarily override variables:
 
 ```elisp
 (ert-deftest my-module-test-respects-config ()
@@ -85,8 +77,6 @@ Tests must not leak state. Use `let`-binding to temporarily override variables a
 ```
 
 ### Isolation Macro
-
-For repeated isolation patterns, define a helper macro:
 
 ```elisp
 (defmacro my-module-test-with-clean-state (&rest body)
@@ -137,8 +127,6 @@ For repeated isolation patterns, define a helper macro:
 
 ## Mocking with cl-letf
 
-Override functions temporarily during a test:
-
 ```elisp
 (require 'cl-lib)
 
@@ -154,8 +142,6 @@ Override functions temporarily during a test:
 ```
 
 ### Spy Pattern
-
-Track function calls:
 
 ```elisp
 (ert-deftest my-module-test-calls-hook ()
@@ -220,8 +206,6 @@ Track function calls:
 
 ## Testing Async / Timers
 
-For code using timers or sentinels, prefer synchronous alternatives in tests:
-
 ```elisp
 (ert-deftest my-module-test-debounced ()
   "Debounced function eventually executes."
@@ -234,8 +218,6 @@ For code using timers or sentinels, prefer synchronous alternatives in tests:
 
 ## Expected Failures
 
-Mark tests that document known bugs:
-
 ```elisp
 (ert-deftest my-module-test-known-issue ()
   :expected-result :failed
@@ -245,12 +227,10 @@ Mark tests that document known bugs:
 
 ## Test Naming
 
-Follow this convention: `<module>-test-<what-is-being-tested>`
+Convention: `<module>-test-<what-is-being-tested>`
 
 ```elisp
 (ert-deftest my-module-test-parse-empty-input () ...)
 (ert-deftest my-module-test-export-with-unicode () ...)
 (ert-deftest my-module-test-handles-missing-file () ...)
 ```
-
-Names should read as descriptions of what the test verifies, not implementation details.
