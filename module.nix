@@ -68,13 +68,13 @@ let
 
   localCatalog = builtins.foldl' (a: b: a // b) { } localCatalogs;
 
-  # Discover third-party skills from npins
+  # Discover third-party skills from flake inputs
   thirdPartySources = import ./sources.nix;
-  npins = import ./npins;
+  sources = import ./_sources.nix;
   thirdPartyCatalogs = lib.mapAttrsToList (
     pinName: opts:
     discoverSkills {
-      path = npins.${pinName} + "/${opts.skillsRoot or "."}";
+      path = sources.${pinName} + "/${opts.skillsRoot or "."}";
       namespace = opts.namespace;
       maxDepth = opts.maxDepth or 5;
     }
@@ -183,7 +183,7 @@ in
     };
 
     thirdParty = {
-      enable = lib.mkEnableOption "third-party skill sources via npins";
+      enable = lib.mkEnableOption "third-party skill sources";
       selectedSkills = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];

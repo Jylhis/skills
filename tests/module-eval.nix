@@ -15,7 +15,7 @@
 let
   jstackRepo = ../.;
 
-  pkgsPath = (import (jstackRepo + "/npins")).nixpkgs;
+  pkgsPath = (import (jstackRepo + "/_sources.nix")).nixpkgs;
   basePkgs = import pkgsPath { inherit system; };
   lib = basePkgs.lib;
 

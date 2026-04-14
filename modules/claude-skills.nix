@@ -6,7 +6,7 @@
 #
 # Usage in devenv.nix:
 #   claude.code.skills.promptfoo = {
-#     source = (import ./npins).promptfoo;
+#     source = (import ./_sources.nix).promptfoo;
 #     skillsRoot = ".claude/skills";
 #     namespace = "promptfoo";
 #   };
@@ -44,7 +44,7 @@ in
         options = {
           source = lib.mkOption {
             type = lib.types.path;
-            description = "Path to the pinned source (e.g. from npins).";
+            description = "Path to the pinned source (e.g. from flake inputs via _sources.nix).";
           };
           skillsRoot = lib.mkOption {
             type = lib.types.str;

@@ -1,7 +1,7 @@
 # Bundle builder — creates store derivations with skill collections and injected package binaries.
 #
 # Two modes:
-#   1. Third-party skills (from npins store paths): copies skill dirs, injects pkg binaries
+#   1. Third-party skills (from pinned store paths): copies skill dirs, injects pkg binaries
 #   2. Local plugin manifests: generates manifest files only (skills stay as live symlinks)
 { pkgs }:
 let

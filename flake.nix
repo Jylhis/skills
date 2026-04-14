@@ -3,12 +3,19 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    promptfoo = {
+      url = "github:promptfoo/promptfoo/0.121.3";
+      flake = false;
+    };
   };
 
   outputs =
     { self, nixpkgs, ... }:
     let
-      defaultOutputs = import ./default.nix { };
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
         "aarch64-linux"
@@ -17,14 +24,23 @@
       ];
     in
     {
-      overlays = defaultOutputs.overlays;
-      nixosModules = defaultOutputs.nixosModules;
-      darwinModules = defaultOutputs.darwinModules;
-      homeModules = defaultOutputs.homeModules;
-      # packages and lib omitted — triggers impure pkgs evaluation in pure flake mode
-      # Use `nix-build -A packages.default` instead
+      overlays.default = import ./overlay.nix;
+      nixosModules.default = import ./module.nix;
+      darwinModules.default = import ./module.nix;
+      homeModules.default = import ./module.nix;
 
-      checks = forAllSystems (system:
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system}.extend (import ./overlay.nix);
+        in
+        {
+          default = pkgs.jstack-runtime;
+        }
+      );
+
+      checks = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           moduleEvalResult = import ./tests/module-eval.nix { inherit system; };

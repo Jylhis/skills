@@ -2,7 +2,7 @@
 let
   settings = import ./settings.nix;
   runtimePkg = import ./runtime { };
-  pinnedSources = import ./npins;
+  sources = import ./_sources.nix;
 in
 {
   packages = with pkgs; [
@@ -11,7 +11,6 @@ in
     jq
     yq-go
     promptfoo
-    npins
     git
     fd
     ripgrep
@@ -52,7 +51,7 @@ in
   claude.code.enable = true;
   claude.code.skills = {
     promptfoo = {
-      source = pinnedSources.promptfoo;
+      source = sources.promptfoo;
       skillsRoot = ".claude/skills";
       namespace = "promptfoo";
     };
@@ -99,7 +98,6 @@ in
         "docs/**"
         "scripts/**"
         "runtime/**"
-        "npins/**"
         "evals/**"
         "hooks/**"
         "agents/**"
@@ -145,7 +143,7 @@ in
 
     # 1. Required CLI tools resolve on PATH.
     echo "-- test 1/15: required tools on PATH"
-    for bin in jq yq rg fd shellcheck markdownlint-cli2 treefmt git npins just; do
+    for bin in jq yq rg fd shellcheck markdownlint-cli2 treefmt git just; do
       command -v "$bin" >/dev/null || fail "missing $bin"
     done
     pass "required tools available"
@@ -157,7 +155,7 @@ in
 
     # 3. Project nix files exist and are non-empty.
     echo "-- test 3/15: project nix files present"
-    for f in devenv.nix default.nix runtime/default.nix npins/default.nix overlay.nix; do
+    for f in devenv.nix default.nix runtime/default.nix _sources.nix overlay.nix; do
       [ -s "$f" ] || fail "missing or empty $f"
     done
     pass "nix files present"
@@ -222,7 +220,7 @@ in
     # 11. Generated manifests match plugin.nix data.
     echo "-- test 11/15: manifest generation round-trip"
     nix_name=$(nix eval --impure --json --expr '
-      let pkgs = import ./npins {}; p = import ./plugins/nix-dev/plugin.nix { inherit pkgs; };
+      let sources = import ./_sources.nix; pkgs = import sources.nixpkgs {}; p = import ./plugins/nix-dev/plugin.nix { inherit pkgs; };
       in p.name
     ')
     [ "$nix_name" = '"nix-dev"' ] || fail "plugin.nix name mismatch: $nix_name"
@@ -251,14 +249,12 @@ in
       || fail "tests/module-eval.nix did not return OK:\n$module_eval_out"
     pass "module.nix valid across all targets"
 
-    # 15. nixpkgs revision parity across npins, devenv.lock, and flake.lock
+    # 15. nixpkgs revision parity across devenv.lock and flake.lock
     echo "-- test 15/15: nixpkgs revision parity"
-    npins_rev=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
     devenv_rev=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
     flake_rev=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
-    [ "$npins_rev" = "$devenv_rev" ] || fail "nixpkgs rev mismatch: npins=$npins_rev devenv=$devenv_rev"
-    [ "$npins_rev" = "$flake_rev" ] || fail "nixpkgs rev mismatch: npins=$npins_rev flake=$flake_rev"
-    pass "nixpkgs revision $npins_rev matches across npins, devenv, and flake"
+    [ "$devenv_rev" = "$flake_rev" ] || fail "nixpkgs rev mismatch: devenv=$devenv_rev flake=$flake_rev"
+    pass "nixpkgs revision $flake_rev matches across devenv and flake"
 
     echo "==> all 15 tests passed"
   '';

@@ -1,6 +1,11 @@
+# Non-flake entry point — resolves inputs from flake.lock.
+# Usage: nix-build -A packages.default
 {
-  pkgs ? import (import ./npins).nixpkgs { overlays = [ (import ./overlay.nix) ]; },
-  lib ? pkgs.lib,
+  system ? builtins.currentSystem,
+  pkgs ? import (import ./_sources.nix).nixpkgs {
+    inherit system;
+    overlays = [ (import ./overlay.nix) ];
+  },
 }:
 {
   packages.default = pkgs.jstack-runtime;

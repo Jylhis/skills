@@ -1,8 +1,8 @@
 # Convenience expression for listing all discovered skills.
 # Usage: nix eval --impure --json --expr 'import ./lib/list-catalog.nix' | jq .
 let
-  sources = import ../npins;
-  pkgs = import sources.nixpkgs { };
+  flakeSources = import ../_sources.nix;
+  pkgs = import flakeSources.nixpkgs { };
   discoverSkills = import ./discover.nix;
 
   # Discover local plugin skills
@@ -20,13 +20,12 @@ let
     }
   ) pluginNames;
 
-  # Discover third-party skills from npins sources
+  # Discover third-party skills from flake inputs
   thirdPartySources = import ../sources.nix;
-  npins = import ../npins;
   thirdPartyCatalogs = pkgs.lib.mapAttrsToList (
     pinName: opts:
     discoverSkills {
-      path = npins.${pinName} + "/${opts.skillsRoot or "."}";
+      path = flakeSources.${pinName} + "/${opts.skillsRoot or "."}";
       namespace = opts.namespace;
       maxDepth = opts.maxDepth or 5;
     }

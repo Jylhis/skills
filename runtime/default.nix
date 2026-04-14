@@ -1,5 +1,5 @@
 {
-  pkgs ? import (import ../npins).nixpkgs { },
+  pkgs ? import (import ../_sources.nix).nixpkgs { },
 }:
 let
   pluginsDir = ../plugins;

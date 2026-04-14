@@ -6,8 +6,8 @@ check:
     nix-instantiate --eval default.nix > /dev/null
     nix flake check --no-build
     devenv test
-    statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
-    deadnix --fail --exclude npins .devenv result .
+    statix check . --ignore '.devenv/*' 'result/*'
+    deadnix --fail --exclude .devenv result .
 
 # Format all nix files
 fmt:
@@ -17,34 +17,31 @@ fmt:
 build:
     nix-build -A packages.default
 
-# Update all pins in sync: npins -> devenv.lock -> flake.lock
+# Update all inputs in sync: flake.lock → devenv.lock
 update:
     #!/usr/bin/env bash
     set -euo pipefail
-    npins update
-    REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
-    echo "Syncing all locks to nixpkgs $REV"
-    sed -i '' "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml
+    nix flake update
+    REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+    echo "Syncing devenv.lock to nixpkgs $REV"
+    sed -i "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml
     devenv update
-    nix flake lock --override-input nixpkgs "github:NixOS/nixpkgs/$REV"
-    echo "Done. All locks pinned to $REV"
+    echo "Done. All locks pinned to nixpkgs $REV"
 
 # Verify all build methods produce identical store paths and revs are in sync
 verify:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Checking nixpkgs rev sync..."
-    NPINS_REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
     FLAKE_REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
     DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
-    if [ "$NPINS_REV" != "$FLAKE_REV" ] || [ "$NPINS_REV" != "$DEVENV_REV" ]; then
+    if [ "$FLAKE_REV" != "$DEVENV_REV" ]; then
         echo "FAIL: nixpkgs revs diverged"
-        echo "  npins:  $NPINS_REV"
         echo "  flake:  $FLAKE_REV"
         echo "  devenv: $DEVENV_REV"
         exit 1
     fi
-    echo "OK: all locks pinned to $NPINS_REV"
+    echo "OK: all locks pinned to $FLAKE_REV"
 
     echo "Checking build hash parity..."
     HASH_NIX_BUILD=$(nix-build -A packages.default --no-out-link)
@@ -72,7 +69,7 @@ generate-manifests:
       echo "Generating manifests for $name..."; \
       manifest=$( \
         nix eval --impure --json --expr " \
-          let pkgs = import ./npins {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
+          let sources = import ./_sources.nix; pkgs = import sources.nixpkgs {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
           in { inherit (p) name description; } \
             // (if p ? version then { inherit (p) version; } else {}) \
             // { author = p.author or {}; } \
@@ -82,14 +79,14 @@ generate-manifests:
       echo "$manifest" | jq -S . > "$dir/.claude-plugin/plugin.json"; \
       mcp=$( \
         nix eval --impure --json --expr " \
-          let pkgs = import ./npins {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
+          let sources = import ./_sources.nix; pkgs = import sources.nixpkgs {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
           in if p ? mcpServers && p.mcpServers != {} then { mcpServers = p.mcpServers; } else null \
         " \
       ); \
       [ "$mcp" != "null" ] && echo "$mcp" | jq -S . > "$dir/.mcp.json" || true; \
       lsp=$( \
         nix eval --impure --json --expr " \
-          let pkgs = import ./npins {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
+          let sources = import ./_sources.nix; pkgs = import sources.nixpkgs {}; p = import ./$dir/plugin.nix { inherit pkgs; }; \
           in if p ? lspServers && p.lspServers != {} then p.lspServers else null \
         " \
       ); \
@@ -101,10 +98,12 @@ generate-manifests:
 list-skills:
     nix eval --impure --json --expr 'import ./lib/list-catalog.nix' | jq .
 
-# Add a third-party skill source via npins
+# Add a third-party skill source (add as non-flake input in flake.nix, then lock)
 add-source owner repo:
-    npins add github {{owner}} {{repo}}
-    @echo "Pin added. Edit sources.nix to configure namespace and discovery."
+    @echo "Add the following to flake.nix inputs:"
+    @echo '  {{repo}} = { url = "github:{{owner}}/{{repo}}"; flake = false; };'
+    @echo "Then run: nix flake lock"
+    @echo "Finally, edit sources.nix to configure namespace and discovery."
 
 lint:
     devenv shell -- lint
