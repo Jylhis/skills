@@ -17,6 +17,5 @@ repeated_keys = true
 [nix_file_blacklist]
 # Add generated, vendored, or documentation-only files that should not
 # be linted. Examples:
-# "npins/default.nix"
 # "hardware-configuration.nix"
 ```

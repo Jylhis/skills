@@ -7,18 +7,17 @@ attrsets, not derivations).
 ```just
 # Build a specific system configuration
 build target:
-    nix build .#{{target}} --impure
+    nix build .#{{target}}
 
 # Build the local darwin/NixOS configuration
 build-local hostname=`hostname -s`:
-    nix build .#darwinConfigurations.{{hostname}}.system --impure
+    nix build .#darwinConfigurations.{{hostname}}.system
 
 # Run all linters and checks
 check:
     nixfmt --check .
-    statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
-    deadnix --fail --exclude npins .devenv result .
-    nix-instantiate --eval default.nix
+    statix check . --ignore '.devenv/*' 'result/*'
+    deadnix --fail --exclude .devenv result .
     nix flake check
 
 # Format all Nix files
@@ -27,8 +26,8 @@ fmt:
 
 # Run statix and deadnix
 lint:
-    statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
-    deadnix --fail --exclude npins .devenv result .
+    statix check . --ignore '.devenv/*' 'result/*'
+    deadnix --fail --exclude .devenv result .
 
 # Auto-fix linter findings
 lint-fix:
@@ -37,28 +36,25 @@ lint-fix:
 
 # Update all pins and sync lock files
 update:
-    npins update
+    nix flake update
     #!/usr/bin/env bash
     set -euo pipefail
-    REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
+    REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
     echo "Syncing nixpkgs to $REV"
     sed -i '' "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml
     devenv update
-    nix flake lock --override-input nixpkgs "github:NixOS/nixpkgs/$REV"
 
-# Verify all three lock files point to the same nixpkgs rev
+# Verify both lock files point to the same nixpkgs rev
 verify:
     #!/usr/bin/env bash
     set -euo pipefail
-    NPINS_REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
-    DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
     FLAKE_REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+    DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
 
-    echo "npins:  $NPINS_REV"
-    echo "devenv: $DEVENV_REV"
     echo "flake:  $FLAKE_REV"
+    echo "devenv: $DEVENV_REV"
 
-    if [ "$NPINS_REV" != "$DEVENV_REV" ] || [ "$DEVENV_REV" != "$FLAKE_REV" ]; then
+    if [ "$FLAKE_REV" != "$DEVENV_REV" ]; then
         echo "ERROR: nixpkgs revisions are out of sync"
         exit 1
     fi

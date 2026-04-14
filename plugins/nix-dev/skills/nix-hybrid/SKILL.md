@@ -1,17 +1,21 @@
 ---
 name: nix-hybrid
-description: "Use for hybrid non-flake + flake architecture patterns including thin flake wrapper, default.nix with flake re-export, package flake vs module flake classification, npins + devenv + flake lock synchronization, three lock file problem, nixpkgs pin sync, flake-only upstream dependencies, import site audit, making a flake repo work without experimental features, non-flake development with flake export, overlay.nix extraction, or per-system output constructors."
+description: "Use for hybrid non-flake + flake architecture patterns including flake-compat shim default.nix, package flake vs module flake classification, flake + devenv lock synchronization, two lock file problem, nixpkgs pin sync, making a flake repo work without experimental features, non-flake consumption via flake-compat, overlay.nix extraction, or per-system output constructors."
 user-invocable: false
 ---
 
 # Hybrid Non-Flake + Flake Architecture
 
-A pattern where all real Nix logic lives in plain Nix files
-(`default.nix`, `overlay.nix`, `devenv.nix`) while `flake.nix` is a
-thin re-export wrapper with zero logic. Development uses `devenv.sh`
-with no experimental features. Downstream consumers get a valid flake
-input. All three pinning mechanisms (`npins`, `devenv.lock`, `flake.lock`)
-resolve to the exact same nixpkgs commit for full `cache.nixos.org` hits.
+A pattern where package and module logic lives in plain Nix files
+(`overlay.nix`, module `.nix` files) while `flake.nix` orchestrates
+composition and `default.nix` is a thin flake-compat shim for non-flake
+consumers. Development uses `devenv.sh` with no experimental features.
+Downstream consumers get a valid flake input. Non-flake consumers
+(`nix-build`, legacy NixOS configs) access the same outputs via
+flake-compat.
+
+`flake.lock` is the single source of truth for all pinned inputs.
+`devenv.lock` must be synced to the same nixpkgs commit.
 
 ## Flake Type Classification
 
@@ -22,51 +26,18 @@ Before starting, classify the project:
 Primary outputs are `packages.<system>.<name>` — derivations you build
 and install.
 
-- `default.nix` takes `{ pkgs ? ... }:` as its interface
-- Justfile can verify store-path parity across build methods
-- npins provides pkgs directly
-
-```nix
-# default.nix — package flake
-{
-  pkgs ? import (import ./npins).nixpkgs {
-    overlays = [ (import ./overlay.nix) ];
-  },
-  lib ? pkgs.lib,
-}:
-{
-  inherit (pkgs) mypackage;
-  overlays.default = import ./overlay.nix;
-}
-```
+- `flake.nix` imports `overlay.nix` and applies it to nixpkgs
+- `default.nix` is a flake-compat shim
+- Store-path parity can be verified across `nix build` and `nix-build`
 
 ### Module Flake
 
 Primary outputs are NixOS/nix-darwin/home-manager modules — lazy
 attrsets with `imports` lists that reference upstream flake inputs.
 
-- `default.nix` takes `{ inputs }:` as a required parameter
-- Upstream deps (home-manager, stylix) come through flake inputs
+- Upstream deps (home-manager, stylix, nix-darwin) come through flake inputs
 - No meaningful "default package" to build
 - Store-path parity checks do not apply
-
-```nix
-# default.nix — module flake
-{ inputs }:
-{
-  overlays.default = import ./overlay.nix;
-  homeManagerModules.default = import ./modules;
-  darwinConfigurations = { /* ... */ };
-}
-```
-
-### Upstream Dependency Audit
-
-Check if any upstream dependencies are flake-only (no `default.nix`,
-only `flake.nix` — e.g., home-manager, stylix, nix-darwin). These
-cannot be imported from npins without flake-compat. Consequence: npins
-pins ONLY nixpkgs. All other upstream deps come through flake inputs,
-and `default.nix` accepts `{ inputs }:`.
 
 ## Creating overlay.nix
 
@@ -88,117 +59,168 @@ final: prev:
 This works because `final` is the fixpoint (shared) and `prev` is the
 pre-overlay pkgs.
 
-## Per-System Output Constructors
+## flake.nix — The Orchestrator
 
-`default.nix` cannot use `forAllSystems` (that requires
-`nixpkgs.lib.genAttrs` from the flake). Export constructor functions and
-let `flake.nix` apply the system dispatch:
+`flake.nix` imports shared logic files (`overlay.nix`, module files) and
+wires them with flake inputs. It contains composition logic but no
+package definitions or module options.
 
-```nix
-# default.nix — export constructors
-{
-  legacyPackages = system: import nixpkgs {
-    inherit system;
-    overlays = [ (import ./overlay.nix) ];
-  };
-  mkChecks = { system }: { /* ... */ };
-
-  overlays.default = import ./overlay.nix;
-  homeManagerModules.default = import ./modules;
-}
-```
-
-## Thin flake.nix Wrapper
-
-Zero logic. Forward non-system-specific outputs directly. Use
-`forAllSystems` to apply per-system constructors from `default.nix`:
+### Package Flake
 
 ```nix
-# flake.nix — thin wrapper
+# flake.nix — package flake
 {
   description = "My project";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # upstream deps for module flakes:
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, ... } @ inputs:
+  outputs =
+    { self, nixpkgs, ... }:
     let
-      proj = import ./default.nix { inherit inputs; };
-      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
-    in {
-      # Non-system outputs — forwarded directly
-      overlays = proj.overlays;
-      homeManagerModules = proj.homeManagerModules;
+      pkgsFor =
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [ self.overlays.default ];
+        };
+    in
+    {
+      overlays.default = import ./overlay.nix;
 
-      # System-specific outputs
-      legacyPackages = forAllSystems proj.legacyPackages;
+      packages = forAllSystems (system: {
+        default = (pkgsFor system).mypackage;
+      });
     };
 }
 ```
 
-Do not wire devenv into `flake.nix` — devenv.sh is the dev shell.
+### Module Flake
+
+```nix
+# flake.nix — module flake
+{
+  description = "My system configuration";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs =
+    { self, nixpkgs, ... } @ inputs:
+    {
+      overlays.default = import ./overlay.nix;
+      homeManagerModules.default = import ./modules;
+      darwinConfigurations = { /* ... */ };
+    };
+}
+```
+
+All upstream dependencies come through flake inputs — there is no
+separate pinning mechanism for dependencies.
+
+## default.nix — flake-compat Shim
+
+`default.nix` is a thin wrapper that uses flake-compat to expose flake
+outputs to non-flake consumers. It reads `flake.lock` to fetch
+flake-compat at the pinned revision:
+
+```nix
+# default.nix
+(import
+  (
+    let
+      lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+    in
+    fetchTarball {
+      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = lock.nodes.flake-compat.locked.narHash;
+    }
+  )
+  { src = ./.; }
+).defaultNix
+```
+
+This returns the full flake outputs attrset. Non-flake consumers use:
+
+```bash
+# Package flake — build default package
+nix-build default.nix -A packages.x86_64-linux.default
+
+# Or with builtins.currentSystem for convenience
+nix-build -E '(import ./default.nix).packages.${builtins.currentSystem}.default'
+```
+
+For a `shell.nix` (optional — devenv is the primary dev shell):
+
+```nix
+# shell.nix
+(import
+  (
+    let
+      lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+    in
+    fetchTarball {
+      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = lock.nodes.flake-compat.locked.narHash;
+    }
+  )
+  { src = ./.; }
+).shellNix
+```
 
 ### Pure Evaluation: What's Safe to Expose
 
 - **`overlays.default`** — arity check only, body not evaluated. Safe.
 - **`darwinConfigurations` / `nixosConfigurations`** — shallow check. Safe.
 - **`homeManagerModules`** — non-standard output, warns but doesn't fail.
-- **`packages.<system>.*`** — FULLY evaluated. Fails if `default.nix`
-  uses impure npins transitively. Do NOT expose unless packages are
-  built purely.
-
-## Import Site Audit
-
-When converting a file from `let...in expr` to `{ pkgs ? ... }: let...in expr`,
-the return type changes from a value to a function. **Every caller** must
-be updated:
-
-```bash
-# Find all import sites
-grep -r 'import ./default.nix' .
-grep -r 'import ./overlay.nix' .
-```
-
-Update each:
-- `import ./default.nix` → `import ./default.nix {}` or
-  `import ./default.nix { inherit inputs; }`
-- Missing a caller breaks evaluation silently — it returns `<LAMBDA>`
-  instead of the expected value
+- **`packages.<system>.*`** — FULLY evaluated. Safe when all inputs come
+  through flake.lock (no impure references).
 
 ## Nixpkgs Pin Synchronization
 
-Three lock files must agree on the same nixpkgs commit:
+Two lock files must agree on the same nixpkgs commit:
 
 | Lock file | Contains | Updated by |
 |-----------|----------|-----------|
-| `npins/sources.json` | `.pins.nixpkgs.revision` | `npins update` |
+| `flake.lock` | `.nodes.nixpkgs.locked.rev` | `nix flake update` |
 | `devenv.lock` | `.nodes.nixpkgs.locked.rev` | `devenv update` |
-| `flake.lock` | `.nodes.nixpkgs.locked.rev` | `nix flake lock` |
 
 ### Sync Recipe
 
-npins is the single source of truth:
+`flake.lock` is the single source of truth:
 
 ```bash
-# 1. Update npins
-npins update
+# 1. Update flake inputs
+nix flake update
 
 # 2. Extract the new revision
-REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
+REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
 
 # 3. Write exact rev into devenv.yaml
 sed -i '' "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml
 
 # 4. Regenerate devenv.lock
 devenv update
-
-# 5. Sync flake.lock
-nix flake lock --override-input nixpkgs "github:NixOS/nixpkgs/$REV"
 ```
 
 Use `sed -i ''` on macOS (BSD sed). On Linux, use `sed -i`.
@@ -206,22 +228,21 @@ Use `sed -i ''` on macOS (BSD sed). On Linux, use `sed -i`.
 ### Verification
 
 ```bash
-# Extract revs from all three lock files
-NPINS_REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
-DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
+# Extract revs from both lock files
 FLAKE_REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
 
-# All three must match
-[ "$NPINS_REV" = "$DEVENV_REV" ] && [ "$DEVENV_REV" = "$FLAKE_REV" ] \
-  && echo "Synced: $NPINS_REV" \
-  || echo "DESYNC: npins=$NPINS_REV devenv=$DEVENV_REV flake=$FLAKE_REV"
+# Both must match
+[ "$FLAKE_REV" = "$DEVENV_REV" ] \
+  && echo "Synced: $FLAKE_REV" \
+  || echo "DESYNC: flake=$FLAKE_REV devenv=$DEVENV_REV"
 ```
 
 For package flakes, also verify store-path parity:
 
 ```bash
-nix-build default.nix  # via npins
-nix build --impure     # via flake
+nix-build -E '(import ./default.nix).packages.${builtins.currentSystem}.default'
+nix build .#default
 # Compare resulting store paths
 ```
 
@@ -240,26 +261,30 @@ Otherwise: `error: Path 'flake.nix' in the repository is not tracked by Git.`
 
 This is a single atomic migration — do it in one linear pass:
 
-1. **Prerequisites** — classify flake type, audit upstream deps, check
-   npins pin type (must be GitHub, not Channel), verify tool availability
+1. **Prerequisites** — classify flake type, verify tool availability
 2. **Format** — if no existing formatter, run `nixfmt .` and commit
    separately as `style: nixfmt`
 3. **Create overlay.nix** — extract package definitions
-4. **Create default.nix** — appropriate interface for flake type
-5. **Set up devenv** — `devenv.nix` + `devenv.yaml` with exact nixpkgs commit
-6. **Create/rewrite flake.nix** — thin wrapper only
-7. **Sync pins** — run the sync recipe above
-8. **Git stage** — `git add` all new files before verification
-9. **Verify** — `just check`, `just build`, `just fmt`, `nix flake show`,
-   `devenv shell`, `just verify`
+4. **Create/rewrite flake.nix** — orchestrator that imports overlay.nix
+   and modules; add `flake-compat` input
+5. **Create default.nix** — flake-compat shim
+6. **Set up devenv** — `devenv.nix` + `devenv.yaml` with exact nixpkgs commit
+7. **Remove npins** — delete `npins/` directory if present
+8. **Sync pins** — run the sync recipe above
+9. **Git stage** — `git add` all new files before verification
+10. **Verify** — `just check`, `just build`, `just fmt`, `nix flake show`,
+    `devenv shell`, `just verify`
 
 ## Hard Constraints
 
-- Do not use flake-compat
-- Keep `flake.lock` committed for flake consumers
-- Never read `flake.lock` from `default.nix` — it reads npins (package
-  flakes) or receives inputs from `flake.nix` (module flakes)
+- Keep `flake.lock` committed for flake consumers and flake-compat
+- `default.nix` is a flake-compat shim only — no logic, no imports
+  beyond flake-compat
+- `overlay.nix` and module files contain the real logic — `flake.nix`
+  only composes them
 - devenv.sh is the dev shell — do not duplicate it as a flake `devShell`
+- `flake-compat` must be declared as a non-flake input:
+  `flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };`
 
 ## nix-darwin Variant
 
@@ -267,24 +292,42 @@ For macOS systems using nix-darwin, the hybrid pattern works the same
 way with `darwin-rebuild` instead of `nixos-rebuild`:
 
 ```nix
-# default.nix — module flake with nix-darwin
-{ inputs }:
+# flake.nix — module flake with nix-darwin
 {
-  overlays.default = import ./overlay.nix;
-  darwinConfigurations.myhost = inputs.nix-darwin.lib.darwinSystem {
-    system = "aarch64-darwin";
-    modules = [
-      ./hosts/myhost/configuration.nix
-      inputs.home-manager.darwinModules.home-manager
-    ];
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
+
+  outputs =
+    { self, nixpkgs, nix-darwin, home-manager, ... }:
+    {
+      overlays.default = import ./overlay.nix;
+      darwinConfigurations.myhost = nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        modules = [
+          ./hosts/myhost/configuration.nix
+          home-manager.darwinModules.home-manager
+        ];
+      };
+    };
 }
 ```
 
 Rebuild: `darwin-rebuild switch --flake .#myhost`
 
-nix-darwin is a flake-only upstream — it must come through flake inputs
-(not npins). See the nix-darwin skill for configuration details.
+See the nix-darwin skill for configuration details.
 
 ## flake-parts Integration Path
 
@@ -296,46 +339,64 @@ manual `forAllSystems` wrapper with flake-parts:
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-    systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
-    flake = let proj = import ./default.nix { inherit inputs; }; in {
-      overlays = proj.overlays;
-      homeManagerModules = proj.homeManagerModules or {};
-    };
-    perSystem = { pkgs, system, ... }: {
-      legacyPackages = import (import ./npins).nixpkgs {
-        inherit system;
-        overlays = [ (import ./overlay.nix) ];
+  outputs =
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      flake = {
+        overlays.default = import ./overlay.nix;
+        homeManagerModules = inputs.self.homeManagerModules or { };
       };
+      perSystem =
+        { pkgs, system, ... }:
+        {
+          packages.default = pkgs.mypackage;
+        };
     };
-  };
 }
 ```
 
-The key constraint remains: `default.nix` and `overlay.nix` contain the
-real logic, flake.nix (even with flake-parts) is just a wrapper. See the
-flakes skill's `references/flake-parts.md` for the full flake-parts
+The key constraint remains: `overlay.nix` and module files contain the
+real logic, `flake.nix` (even with flake-parts) only composes them. See
+the flakes skill's `references/flake-parts.md` for the full flake-parts
 pattern reference.
 
 ## Source Filtering
 
-Use `lib.fileset` in the thin wrapper to avoid copying the entire
+Use `lib.fileset` in the overlay to avoid copying the entire
 project directory to the store:
 
 ```nix
 # In overlay.nix or package.nix
-let fs = prev.lib.fileset; in
+let
+  fs = prev.lib.fileset;
+in
 {
-  myapp = prev.callPackage ({ stdenv }: stdenv.mkDerivation {
-    pname = "myapp";
-    src = fs.toSource {
-      root = ./.;
-      fileset = fs.unions [ ./src ./Cargo.toml ./Cargo.lock ];
-    };
-  }) {};
+  myapp = prev.callPackage (
+    { stdenv }:
+    stdenv.mkDerivation {
+      pname = "myapp";
+      src = fs.toSource {
+        root = ./.;
+        fileset = fs.unions [
+          ./src
+          ./Cargo.toml
+          ./Cargo.lock
+        ];
+      };
+    }
+  ) { };
 }
 ```
 
@@ -345,8 +406,8 @@ The lint pipeline from the nix-linting skill works with hybrid projects:
 
 ```bash
 nixfmt --check .
-statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
-deadnix --fail --exclude npins .devenv result .
+statix check . --ignore '.devenv/*' 'result/*'
+deadnix --fail --exclude .devenv result .
 nix flake check     # validates flake outputs
 ```
 
@@ -355,7 +416,6 @@ nix-linting skill.
 
 ## Related Skills
 
-- **npins** — dependency pinning, the source of truth for nixpkgs revision
 - **devenv** — developer environment, services, processes
 - **flakes** — flake structure, inputs, outputs, pure evaluation
 - **nix-linting** — statix, deadnix, nixfmt, CI pipeline

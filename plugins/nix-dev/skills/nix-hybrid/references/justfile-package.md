@@ -6,20 +6,19 @@ Includes store-path parity verification across build methods.
 ```just
 default_target := "default"
 
-# Build the default package via npins (non-flake)
+# Build the default package via flake
 build target=default_target:
-    nix-build default.nix -A {{target}}
+    nix build .#{{target}}
 
-# Build via flake (requires --impure for npins)
-build-flake target=default_target:
-    nix build .#{{target}} --impure
+# Build via flake-compat (non-flake, no experimental features)
+build-legacy target=default_target:
+    nix-build -E "(import ./default.nix).packages.${builtins.currentSystem}.{{target}}"
 
 # Run all linters and checks
 check:
     nixfmt --check .
-    statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
-    deadnix --fail --exclude npins .devenv result .
-    nix-instantiate --eval default.nix
+    statix check . --ignore '.devenv/*' 'result/*'
+    deadnix --fail --exclude .devenv result .
     nix flake check
 
 # Format all Nix files
@@ -28,8 +27,8 @@ fmt:
 
 # Run statix and deadnix
 lint:
-    statix check . --ignore 'npins/*' '.devenv/*' 'result/*'
-    deadnix --fail --exclude npins .devenv result .
+    statix check . --ignore '.devenv/*' 'result/*'
+    deadnix --fail --exclude .devenv result .
 
 # Auto-fix linter findings
 lint-fix:
@@ -38,30 +37,27 @@ lint-fix:
 
 # Update all pins and sync lock files
 update:
-    npins update
+    nix flake update
     #!/usr/bin/env bash
     set -euo pipefail
-    REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
+    REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
     echo "Syncing nixpkgs to $REV"
     # macOS/BSD sed — use sed -i for GNU/Linux
     sed -i '' "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml
     devenv update
-    nix flake lock --override-input nixpkgs "github:NixOS/nixpkgs/$REV"
 
-# Verify all three lock files point to the same nixpkgs rev
+# Verify both lock files point to the same nixpkgs rev
 # and that store paths match across build methods
 verify:
     #!/usr/bin/env bash
     set -euo pipefail
-    NPINS_REV=$(jq -r '.pins.nixpkgs.revision' npins/sources.json)
-    DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
     FLAKE_REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+    DEVENV_REV=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
 
-    echo "npins:  $NPINS_REV"
-    echo "devenv: $DEVENV_REV"
     echo "flake:  $FLAKE_REV"
+    echo "devenv: $DEVENV_REV"
 
-    if [ "$NPINS_REV" != "$DEVENV_REV" ] || [ "$DEVENV_REV" != "$FLAKE_REV" ]; then
+    if [ "$FLAKE_REV" != "$DEVENV_REV" ]; then
         echo "ERROR: nixpkgs revisions are out of sync"
         exit 1
     fi
@@ -69,13 +65,13 @@ verify:
 
     # Store-path parity check
     echo "Checking store-path parity..."
-    NPINS_PATH=$(nix-build default.nix --no-out-link 2>/dev/null)
-    FLAKE_PATH=$(nix build --impure --no-link --print-out-paths 2>/dev/null)
+    LEGACY_PATH=$(nix-build -E '(import ./default.nix).packages.${builtins.currentSystem}.default' --no-out-link 2>/dev/null)
+    FLAKE_PATH=$(nix build --no-link --print-out-paths 2>/dev/null)
 
-    echo "npins build: $NPINS_PATH"
-    echo "flake build: $FLAKE_PATH"
+    echo "legacy build: $LEGACY_PATH"
+    echo "flake build:  $FLAKE_PATH"
 
-    if [ "$NPINS_PATH" != "$FLAKE_PATH" ]; then
+    if [ "$LEGACY_PATH" != "$FLAKE_PATH" ]; then
         echo "WARNING: store paths differ"
         exit 1
     fi
@@ -87,7 +83,7 @@ verify:
 ```just
 # Build with progress display (requires nom / nix-output-monitor)
 build-nom:
-    nom build --impure
+    nom build
 
 # Browse closure interactively (requires nix-tree)
 closure:
