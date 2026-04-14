@@ -140,3 +140,7 @@ eval-compare *args:
 # Run adversarial/redteam tests
 eval-redteam *args:
     bash scripts/eval.bash --redteam {{args}}
+
+
+research:
+    cat research/PROMPT.md | claude --effort max --name jstack-research --print --allowedTools "Read Write Edit Bash Glob Grep Agent WebFetch WebSearch mcp__devenv__search_options mcp__claude_ai_Context7__resolve-library-id mcp__claude_ai_Context7__query-docs"
