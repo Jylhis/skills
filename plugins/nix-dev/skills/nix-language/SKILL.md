@@ -119,30 +119,7 @@ When you interpolate a derivation into a string (`"${pkg}"`), Nix records it as 
 
 Bare paths (`./src`, `../lib`) are resolved relative to the file containing them and copied to the Nix store on evaluation. This means `src = ./.;` copies the entire directory — and the store path name derives from the parent directory name, causing impure rebuilds if you rename the directory.
 
-**Reproducible source paths:**
-
-```nix
-src = builtins.path { path = ./.; name = "my-project"; };
-```
-
-**Modern source filtering with `lib.fileset`:**
-
-```nix
-let
-  fs = lib.fileset;
-in {
-  src = fs.toSource {
-    root = ./.;
-    fileset = fs.unions [
-      ./src
-      ./Cargo.toml
-      ./Cargo.lock
-    ];
-  };
-}
-```
-
-This replaces the older `cleanSource` / `cleanSourceWith` patterns. Only files in the fileset enter the store.
+**Reproducible source paths:** wrap `./.` with `builtins.path { path = ./.; name = "my-project"; }` to give it a stable store-path name, or use `lib.fileset.toSource` to include only the files you actually need. `lib.fileset` replaces the older `cleanSource` / `cleanSourceWith` patterns — see the **nixpkgs** skill for recipes.
 
 ## Derivations
 
@@ -203,26 +180,17 @@ result = lib.fix composed;
 
 ## The `callPackage` Pattern
 
-`callPackage` is the core composition mechanism in nixpkgs. It auto-fills function arguments from the package set:
+The canonical nixpkgs composition pattern: a package file is a function of its dependencies; `callPackage` auto-fills those arguments from the package set using `builtins.functionArgs`, and the `{}` second argument carries manual overrides.
 
 ```nix
 # package.nix
 { lib, stdenv, fetchFromGitHub, openssl }:
-stdenv.mkDerivation { /* uses openssl */ }
+stdenv.mkDerivation { /* ... */ }
 
-# In an overlay or top-level
 myPkg = callPackage ./package.nix {};
-# callPackage inspects the function's argument names and supplies
-# lib, stdenv, fetchFromGitHub, openssl from pkgs automatically.
-# The second arg {} provides manual overrides.
 ```
 
-**Why `callPackage` matters:**
-- **Overridable:** `myPkg.override { openssl = openssl_1_1; }` swaps one dependency
-- **Cross-compilation:** `callPackage` resolves `nativeBuildInputs` from `buildPackages` automatically through "splicing"
-- **Upstreamable:** Packages in `callPackage` form are directly submittable to nixpkgs
-
-Always write packages as functions in separate files and use `callPackage` to instantiate them.
+This is what enables `.override`, cross-compilation splicing, and upstreamability. See the **nixpkgs** skill for the full treatment of `callPackage`, `override`, and `overrideAttrs`.
 
 ## Important Builtins
 

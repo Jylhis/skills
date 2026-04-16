@@ -23,7 +23,7 @@ user-invocable: false
 {
   home.username = "markus";
   home.homeDirectory = "/home/markus";
-  home.stateVersion = "24.05";  # Don't change after initial setup
+  home.stateVersion = "25.05";  # Pin to the release in use at first activation; don't change afterward
 
   home.packages = with pkgs; [
     ripgrep

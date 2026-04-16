@@ -93,12 +93,7 @@ home.packages = [
 error: cannot build during evaluation (import from derivation)
 ```
 
-IFD happens when evaluation requires building something first (`import someDrv`, `readFile "${someDrv}/..."`). The evaluator blocks all other evaluation while the build runs. Fix by:
-- Pre-generating the Nix file and committing it
-- Using `builtins.fetchurl` instead of derivation-based fetchers during eval
-- Allowing IFD with `--allow-import-from-derivation` (not recommended for CI)
-
-See the nix-performance skill for IFD alternatives and consolidation strategies.
+`import someDrv` or `readFile "${someDrv}/..."` forces a build during evaluation, which CI typically disallows. Quick fixes: pre-generate and commit the file, swap to `builtins.fetchurl`, or allow with `--allow-import-from-derivation`. See the **nix-performance** skill for IFD consolidation strategies and the dynamic-derivations alternative.
 
 ### Unfree Package
 
@@ -199,57 +194,9 @@ nix eval --expr 'builtins.attrNames (import <nixpkgs> {})'
 nix eval --json .#packages.x86_64-linux           # JSON output
 ```
 
-### nix why-depends
+### Closure analysis
 
-Find why one package depends on another:
-
-```bash
-nix why-depends nixpkgs#myapp nixpkgs#gcc
-# Shows the reference chain through the closure
-```
-
-### nix path-info
-
-Inspect store paths and closures:
-
-```bash
-nix path-info -rsSh nixpkgs#hello   # Show closure: all paths, sizes, total
-nix path-info --json nixpkgs#hello   # Detailed JSON output
-nix path-info -r nixpkgs#hello       # List all closure paths
-```
-
-### nix-tree (interactive closure browser)
-
-Browse the dependency tree interactively in the terminal:
-
-```bash
-nix-tree nixpkgs#hello              # Browse closure
-nix-tree --derivation nixpkgs#hello # Browse build-time deps
-```
-
-Navigate with arrow keys. Shows size contribution of each dependency. Use this to find unexpected large dependencies.
-
-### nix-diff (derivation comparator)
-
-Compare two derivations to see exactly what changed:
-
-```bash
-nix-diff /nix/store/...-foo.drv /nix/store/...-bar.drv
-```
-
-Useful for understanding why a rebuild was triggered — shows which inputs, build commands, or environment variables differ.
-
-### nom (nix-output-monitor)
-
-Wraps nix commands with a progress display showing build graphs and statistics:
-
-```bash
-nom build .#myPackage              # Replaces nix build
-nom shell nixpkgs#hello            # Replaces nix shell
-nom develop                        # Replaces nix develop
-```
-
-Shows which derivations are building, downloading, or waiting. Much more informative than default nix output.
+For diagnosing unexpected rebuilds, bloat, or unwanted runtime deps, the tools to reach for are `nix why-depends`, `nix path-info -rsSh`, `nix-tree`, `nix-diff`, and `nom` (for readable build progress). See the **nix-performance** skill for detailed usage and closure-size strategies — this skill focuses on the error-first debugging flow.
 
 ## Build Debugging
 
@@ -283,24 +230,6 @@ Nix uses three store path naming strategies:
 | **Content-addressed** | Actual output content | No (sandboxed) | Deduplication (experimental) |
 
 Input-addressed paths change when any input changes, even if the output is identical. Content-addressed derivations (ca-derivations) solve this but remain experimental.
-
-## Garbage Collection
-
-```bash
-nix-collect-garbage         # Remove unreferenced store paths
-nix-collect-garbage -d      # Also delete old profiles/generations
-nix store gc                # New CLI equivalent
-nix store optimise          # Deduplicate store (hardlinks identical files)
-
-# Check store integrity
-nix store verify --all
-
-# Show what would be deleted
-nix-collect-garbage --print-dead
-
-# Show GC roots
-nix-store --gc --print-roots
-```
 
 ## Performance Diagnosis
 

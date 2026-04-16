@@ -71,18 +71,7 @@ repeated_keys = true
 statix treats all findings (warnings and errors) equally — any finding
 causes exit code 1. There is no severity filtering or warning-only mode.
 
-| Code | Name                   | Severity |
-| ---- | ---------------------- | -------- |
-| W01  | manual_inherit         | warning  |
-| W02  | legacy_let             | warning  |
-| W03  | empty_pattern          | warning  |
-| W04  | redundant_pattern_bind | warning  |
-| W05  | unquoted_uri           | warning  |
-| W06  | deprecated_to_path     | error    |
-| W07  | empty_let_in           | warning  |
-| W08  | deprecated_is_null     | warning  |
-| W09  | useless_parens         | warning  |
-| W10  | empty_inherit          | warning  |
+Common lint names: `manual_inherit`, `legacy_let`, `empty_pattern`, `redundant_pattern_bind`, `unquoted_uri`, `deprecated_to_path`, `empty_let_in`, `deprecated_is_null`, `useless_parens`, `empty_inherit`, `repeated_keys`. Use `statix list` to see the current set, and `statix explain <name>` for a single lint's docs.
 
 ## deadnix
 
@@ -129,7 +118,7 @@ deadnix --exclude npins --exclude .devenv .
 
 ## nixfmt
 
-The canonical Nix formatter. Use `nixfmt-rfc-style` (the RFC 166 implementation).
+The canonical Nix formatter implementing RFC 166. As of nixpkgs 25.05, `pkgs.nixfmt` IS this formatter — `pkgs.nixfmt-rfc-style` is now a deprecated alias kept for backwards compatibility, and the old formatter lives on as `pkgs.nixfmt-classic`. Use `pkgs.nixfmt` in new code.
 
 ```bash
 # Format all Nix files in place
@@ -145,7 +134,7 @@ nixfmt flake.nix default.nix
 In nixpkgs and flake-parts projects, `nix fmt` delegates to the formatter defined in `flake.nix`:
 
 ```nix
-formatter.x86_64-linux = pkgs.nixfmt-rfc-style;
+formatter.x86_64-linux = pkgs.nixfmt;
 ```
 
 ## nom (nix-output-monitor)
@@ -245,43 +234,9 @@ valid function. It is sufficient as a CI syntax check.
 
 ## nix flake check
 
-### Evaluation Behavior
+Use as the flake-level lint pass — it evaluates all outputs (at depths that vary per output type) and runs every derivation under `checks.<system>.*`.
 
-`nix flake check` evaluates different outputs to different depths:
-
-| Output                  | Evaluation                     | Notes                          |
-| ----------------------- | ------------------------------ | ------------------------------ |
-| `packages.<system>.*`   | Full evaluation                | Fails if impure                |
-| `checks.<system>.*`     | Full evaluation + build        | Runs tests                     |
-| `overlays.default`      | Arity check only               | Body not evaluated             |
-| `darwinConfigurations`  | Shallow (attrset structure)    | Safe with impure deps          |
-| `nixosConfigurations`   | Shallow (attrset structure)    | Safe with impure deps          |
-| `homeManagerModules`    | Non-standard output            | Warns but does NOT fail        |
-
-### Gotchas
-
-**Non-standard output warnings:** Outputs like `homeManagerModules` are
-not in the flake schema. `nix flake check` warns about them but does NOT
-fail. The warnings are expected and harmless — do not suppress them.
-
-**`--no-build` false failures:** `nix flake check --no-build` can fail
-if a dependency's `.drv` file was garbage collected. Prefer running
-without `--no-build` — it will fetch from binary cache if available.
-
-**Formatter system mismatch:** If the flake's `systems` list doesn't
-include the current dev platform (e.g., a linux-only flake on macOS),
-`nix fmt` fails with:
-
-```
-error: flake does not provide attribute 'formatter.x86_64-darwin'
-```
-
-Fix by either adding all dev platforms to the systems list, or using
-`nixfmt .` directly instead of `nix fmt`.
-
-**IFD in any output:** Import from derivation triggers builds during
-evaluation. Large nixosConfigurations with IFD can make `nix flake check`
-very slow.
+For the per-output evaluation depth table and pure-eval caveats (non-standard output warnings, `--no-build` false failures, formatter system mismatch, IFD slowness), see the **flakes** skill.
 
 ## devenv pre-commit hooks
 

@@ -75,7 +75,7 @@ package definitions or module options.
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:edolstra/flake-compat";
+      url = "github:nix-community/flake-compat";
       flake = false;
     };
   };
@@ -116,7 +116,7 @@ package definitions or module options.
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:edolstra/flake-compat";
+      url = "github:nix-community/flake-compat";
       flake = false;
     };
     home-manager = {
@@ -142,7 +142,9 @@ separate pinning mechanism for dependencies.
 
 `default.nix` is a thin wrapper that uses flake-compat to expose flake
 outputs to non-flake consumers. It reads `flake.lock` to fetch
-flake-compat at the pinned revision:
+flake-compat at the pinned revision.
+
+Use `github:nix-community/flake-compat` — the historical `edolstra/flake-compat` is unmaintained. Both exposed the same API; update the input URL and re-lock to migrate.
 
 ```nix
 # default.nix
@@ -152,7 +154,7 @@ flake-compat at the pinned revision:
       lock = builtins.fromJSON (builtins.readFile ./flake.lock);
     in
     fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      url = "https://github.com/nix-community/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
       sha256 = lock.nodes.flake-compat.locked.narHash;
     }
   )
@@ -180,7 +182,7 @@ For a `shell.nix` (optional — devenv is the primary dev shell):
       lock = builtins.fromJSON (builtins.readFile ./flake.lock);
     in
     fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      url = "https://github.com/nix-community/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
       sha256 = lock.nodes.flake-compat.locked.narHash;
     }
   )
@@ -190,11 +192,7 @@ For a `shell.nix` (optional — devenv is the primary dev shell):
 
 ### Pure Evaluation: What's Safe to Expose
 
-- **`overlays.default`** — arity check only, body not evaluated. Safe.
-- **`darwinConfigurations` / `nixosConfigurations`** — shallow check. Safe.
-- **`homeManagerModules`** — non-standard output, warns but doesn't fail.
-- **`packages.<system>.*`** — FULLY evaluated. Safe when all inputs come
-  through flake.lock (no impure references).
+`packages.<system>.*` is fully evaluated by `nix flake check` — only expose derivations whose inputs all come through `flake.lock`. `overlays`, `darwinConfigurations`, `nixosConfigurations`, and `homeManagerModules` are checked shallowly and tolerate impure transitive references. For the full depth table, see the **flakes** skill.
 
 ## Nixpkgs Pin Synchronization
 
@@ -284,7 +282,7 @@ This is a single atomic migration — do it in one linear pass:
   only composes them
 - devenv.sh is the dev shell — do not duplicate it as a flake `devShell`
 - `flake-compat` must be declared as a non-flake input:
-  `flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };`
+  `flake-compat = { url = "github:nix-community/flake-compat"; flake = false; };`
 
 ## nix-darwin Variant
 
@@ -297,7 +295,7 @@ way with `darwin-rebuild` instead of `nixos-rebuild`:
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:edolstra/flake-compat";
+      url = "github:nix-community/flake-compat";
       flake = false;
     };
     nix-darwin = {
@@ -340,7 +338,7 @@ manual `forAllSystems` wrapper with flake-parts:
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:edolstra/flake-compat";
+      url = "github:nix-community/flake-compat";
       flake = false;
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -374,31 +372,7 @@ pattern reference.
 
 ## Source Filtering
 
-Use `lib.fileset` in the overlay to avoid copying the entire
-project directory to the store:
-
-```nix
-# In overlay.nix or package.nix
-let
-  fs = prev.lib.fileset;
-in
-{
-  myapp = prev.callPackage (
-    { stdenv }:
-    stdenv.mkDerivation {
-      pname = "myapp";
-      src = fs.toSource {
-        root = ./.;
-        fileset = fs.unions [
-          ./src
-          ./Cargo.toml
-          ./Cargo.lock
-        ];
-      };
-    }
-  ) { };
-}
-```
+Use `lib.fileset.toSource` inside the overlay (rather than `src = ./.;`) so only the files the build needs enter the store — hybrid projects usually keep lockfiles, CI configs, and assets at the repo root that would otherwise trigger rebuilds on any edit. See the **nixpkgs** skill for the fileset recipe.
 
 ## CI Integration
 

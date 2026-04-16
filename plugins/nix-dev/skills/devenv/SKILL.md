@@ -6,6 +6,17 @@ user-invocable: false
 
 # devenv
 
+## devenv 2.0 Migration Notes
+
+If the project pins devenv 1.x, be aware of breaking changes in 2.0 before upgrading:
+
+- A built-in Rust process manager replaces process-compose for `devenv up`. Most process definitions carry over, but `process-compose`-specific attrs (ordering, readiness probes) may need adjustment.
+- The `pre-commit` integration was renamed to `prek`. The option name moved from `pre-commit.hooks.*` to `git-hooks.hooks.*`. The legacy `git-hooks` alias for the option path was removed in 2.0.
+- `devenv build` now emits JSON; shell scripts that parsed old text output need updating.
+- Task exports landed in `$DEVENV_TASK_EXPORTS_FILE` (instead of being eval'd into the shell directly).
+
+See https://devenv.sh/guides/migrating-to-2.0/ for the full list.
+
 ## File Structure
 
 ```

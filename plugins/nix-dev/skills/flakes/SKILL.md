@@ -136,50 +136,16 @@ The `-f` / `--file` flag makes the new CLI operate on a plain Nix file instead o
 
 ## Flake-Compat
 
-Use `flake-compat` to provide `default.nix` and `shell.nix` wrappers so that users without flakes enabled can still build and develop.
-
-Add `flake-compat` as an input in `flake.nix`:
+Use `flake-compat` to provide `default.nix` and `shell.nix` wrappers so users without flakes enabled can still build and develop. The canonical repo is `github:nix-community/flake-compat` (the older `edolstra/flake-compat` is unmaintained).
 
 ```nix
 inputs.flake-compat = {
-  url = "github:edolstra/flake-compat";
+  url = "github:nix-community/flake-compat";
   flake = false;
 };
 ```
 
-### default.nix
-
-```nix
-# default.nix
-(import (
-  let
-    lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-    nodeSrc = lock.nodes.flake-compat.locked;
-  in
-    fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${nodeSrc.rev}.tar.gz";
-      sha256 = nodeSrc.narHash;
-    }
-) { src = ./.; })
-.defaultNix
-```
-
-### shell.nix
-
-```nix
-# shell.nix
-(import (
-  let
-    lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-    nodeSrc = lock.nodes.flake-compat.locked;
-  in
-    fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${nodeSrc.rev}.tar.gz";
-      sha256 = nodeSrc.narHash;
-    }
-) { src = ./.; })
-.shellNix
-```
+For the `default.nix` / `shell.nix` shim templates, and the full hybrid flake + non-flake architecture, see the **nix-hybrid** skill.
 
 ## Registry Management
 
@@ -259,7 +225,7 @@ outputs = { self, nixpkgs }:
     });
     devShells = forEachSystem ({ pkgs }: {
       default = pkgs.mkShell {
-        packages = [ pkgs.nixfmt-rfc-style ];
+        packages = [ pkgs.nixfmt ];
       };
     });
   };

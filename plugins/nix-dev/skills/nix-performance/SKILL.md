@@ -134,17 +134,7 @@ stdenv.mkDerivation {
 };
 ```
 
-Use `lib.fileset` to include only needed source files, avoiding embedding docs and tests in the derivation:
-```nix
-src = lib.fileset.toSource {
-  root = ./.;
-  fileset = lib.fileset.unions [
-    ./src
-    ./Cargo.toml
-    ./Cargo.lock
-  ];
-};
-```
+Use `lib.fileset.toSource` to include only the files the build actually needs, rather than embedding docs/tests/lockfiles-for-other-tools in the derivation. See the **nixpkgs** skill for the recipe.
 
 ## Docker/OCI Image Optimization
 

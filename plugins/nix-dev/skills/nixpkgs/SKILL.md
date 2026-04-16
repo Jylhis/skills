@@ -234,12 +234,26 @@ import nixpkgs {
 
 ### Composing Upstream Overlays
 
+To layer custom additions on top of an upstream overlay, merge the applied results:
+
 ```nix
 final: prev:
 (upstream.overlays.default final prev) // {
   my-extra = final.callPackage ./my-extra.nix { };
 }
 ```
+
+To compose several overlay *functions* into one (without applying them yet), use `lib.composeManyExtensions` — it threads `final`/`prev` through each overlay correctly, which `//` cannot do on the functions themselves:
+
+```nix
+overlays.default = lib.composeManyExtensions [
+  upstream.overlays.default
+  (import ./overlay.nix)
+  (final: prev: { my-extra = final.callPackage ./my-extra.nix { }; })
+];
+```
+
+Reach for the applied `//` form when you have the resolved attrsets in hand; use `composeManyExtensions` when the result itself needs to remain a single overlay function (e.g., a flake output).
 
 ## Meta-Attributes
 

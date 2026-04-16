@@ -74,8 +74,11 @@ A typical flake.nix with nix-darwin and home-manager:
   # Allow Touch ID for sudo
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  # Set primary user (required for some features)
-  users.primaryUser = "myuser";
+  # Set primary user (required for some features that need a user-scoped context).
+  # Note: `system.primaryUser` is a transitional shim — upstream plans to remove
+  # it as individual options gain proper per-user scoping. Expect this to be
+  # reorganized; follow the nix-darwin release notes when upgrading.
+  system.primaryUser = "myuser";
 }
 ```
 
