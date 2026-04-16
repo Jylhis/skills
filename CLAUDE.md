@@ -44,10 +44,11 @@ See https://devenv.sh/ad-hoc-developer-environments/
 
 ### Input Resolution
 
-`flake.nix` is the source of truth for pinned inputs (nixpkgs, promptfoo, flake-compat). Non-flake consumers use `_sources.nix`, which reads `flake.lock` and resolves inputs via `builtins.fetchTarball`. Both paths produce identical store paths.
+`flake.nix` is the source of truth for pinned inputs (nixpkgs, promptfoo, flake-compat). Non-flake consumers re-enter the flake through `flake-compat`: `default.nix` is a thin shim that returns `flake.defaultNix`, and `_sources.nix` re-exports the input attrset for in-tree helpers that need raw source paths. Both paths produce identical store paths.
 
 - `flake.nix` → deployment (NixOS/nix-darwin/HM module consumption, `nix build`, `nix flake check`)
-- `default.nix` → non-flake entry point (`nix-build -A packages.default`), uses `_sources.nix`
+- `default.nix` → non-flake entry point (`nix-build -A packages.default`) — a `flake-compat` shim
+- `_sources.nix` → `{ nixpkgs, promptfoo }` sourced from the same `flake-compat` evaluation; used by in-tree helpers (`runtime/`, `tests/`, `lib/list-catalog.nix`)
 - `devenv.yaml` → devenv inputs (nixpkgs pinned to same rev as flake.lock, synced via `just update`)
 
 ### Module System (module.nix)
@@ -59,7 +60,7 @@ Single module serving three contexts — detected at eval time:
 
 Context detection: `isHomeManager = options ? home.homeDirectory`, `isDarwin = pkgs.stdenv.hostPlatform.isDarwin`.
 
-The module discovers skills from local plugins (`plugins/*/skills/`) and third-party sources (`sources.nix` + `_sources.nix`) via `lib/discover.nix`. Pure eval: module resolves everything from relative paths, never from `cfg.repoPath` at eval time.
+The module discovers skills from local plugins (`plugins/*/skills/`) and third-party sources (`sources.nix` keys mapped to flake inputs via `_sources.nix` / `flake-compat`) via `lib/discover.nix`. Pure eval: module resolves everything from relative paths, never from `cfg.repoPath` at eval time.
 
 ### Runtime Package
 

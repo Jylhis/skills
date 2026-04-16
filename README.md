@@ -22,7 +22,7 @@ All things are generally categorised under following categories:
 ├── settings.nix               # canonical settings source (generates settings.json)
 ├── settings.json              # generated — do not edit directly
 ├── CLAUDE.md                  # source of truth for ~/.claude/CLAUDE.md
-├── sources.nix                # third-party skill source configuration (npins)
+├── sources.nix                # third-party skill source configuration (flake inputs)
 ├── skills/                    # personal skills (dir-per-skill, SKILL.md inside)
 ├── agents/                    # personal subagent .md files
 ├── commands/                  # personal slash command .md files
@@ -47,7 +47,9 @@ All things are generally categorised under following categories:
 │   ├── promptfooconfig.yaml   # eval harness config
 │   └── cases/                 # per-plugin test cases
 ├── docs/                      # Mintlify documentation site
-├── npins/                     # pinned dependencies (nixpkgs + third-party sources)
+├── flake.nix                  # source of truth for pinned inputs (nixpkgs, promptfoo, flake-compat)
+├── flake.lock                 # pinned input revisions (read by flake + flake-compat)
+├── _sources.nix               # flake-compat shim that exposes flake inputs to non-flake consumers
 └── scripts/
     ├── install.bash           # link the repo into agent config dirs, build runtime
     └── eval.bash              # run promptfoo (--fast, --plugin)
@@ -73,14 +75,27 @@ Each plugin is defined by a `plugin.nix` file (source of truth). Manifests
 
 ## Third-party sources
 
-Pin external skill repos via npins and configure them in `sources.nix`:
+Pin external skill repos as non-flake inputs in `flake.nix`, then
+configure them in `sources.nix`:
+
+```nix
+# flake.nix
+{
+  inputs = {
+    anthropic-skills = {
+      url = "github:anthropics/skills";
+      flake = false;
+    };
+  };
+}
+```
 
 ```bash
-npins add github anthropics skills     # pin the repo
+nix flake lock   # record the pinned revision in flake.lock
 ```
 
 ```nix
-# sources.nix
+# sources.nix — key must match the flake input name
 {
   anthropic-skills = {
     namespace = "anthropic";
@@ -89,5 +104,8 @@ npins add github anthropics skills     # pin the repo
   };
 }
 ```
+
+Non-flake consumers read the same pins via `_sources.nix`, a thin
+`flake-compat` shim over `flake.lock`.
 
 List all discovered skills: `just list-skills`

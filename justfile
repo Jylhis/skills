@@ -21,16 +21,25 @@ fmt:
 build:
     nix-build -A packages.default
 
-# Update all inputs in sync: flake.lock → devenv.lock
+# Update all inputs in sync: flake.lock → devenv.yaml → devenv.lock
 update:
     #!/usr/bin/env bash
     set -euo pipefail
+    before=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock 2>/dev/null || echo none)
     nix flake update
-    REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
-    echo "Syncing devenv.lock to nixpkgs $REV"
-    sed -i "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml
+    after=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+    echo "nixpkgs: $before -> $after"
+    # Portable (BSD/GNU) in-place edit without -i'' quoting quirks.
+    tmp=$(mktemp)
+    sed "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$after|" devenv.yaml > "$tmp"
+    mv "$tmp" devenv.yaml
+    grep -q "url: github:NixOS/nixpkgs/$after" devenv.yaml \
+      || { echo "FAIL: devenv.yaml sync failed"; exit 1; }
     devenv update
-    echo "Done. All locks pinned to nixpkgs $REV"
+    devenv_rev=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
+    [ "$devenv_rev" = "$after" ] \
+      || { echo "FAIL: devenv.lock rev $devenv_rev != flake.lock $after"; exit 1; }
+    echo "OK: all locks pinned to $after"
 
 # Verify all build methods produce identical store paths and revs are in sync
 verify:

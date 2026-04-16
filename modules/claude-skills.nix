@@ -5,6 +5,7 @@
 # .claude/skills/ on shell entry.
 #
 # Usage in devenv.nix:
+#   # _sources.nix re-exports flake inputs via flake-compat.
 #   claude.code.skills.promptfoo = {
 #     source = (import ./_sources.nix).promptfoo;
 #     skillsRoot = ".claude/skills";
@@ -44,7 +45,7 @@ in
         options = {
           source = lib.mkOption {
             type = lib.types.path;
-            description = "Path to the pinned source (e.g. from flake inputs via _sources.nix).";
+            description = "Path to the pinned source (a flake input re-exported through _sources.nix / flake-compat).";
           };
           skillsRoot = lib.mkOption {
             type = lib.types.str;

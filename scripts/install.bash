@@ -202,7 +202,9 @@ build_manifests() {
     # Generate .claude-plugin/plugin.json
     local manifest_json
     manifest_json=$(nix eval --impure --json --expr "
-      let pkgs = import $REPO_ROOT/npins {}; p = import $plugin_nix { inherit pkgs; };
+      let sources = import $REPO_ROOT/_sources.nix;
+          pkgs = import sources.nixpkgs {};
+          p = import $plugin_nix { inherit pkgs; };
       in { inherit (p) name description; }
         // (if p ? version then { inherit (p) version; } else {})
         // { author = p.author or {}; }
@@ -215,7 +217,9 @@ build_manifests() {
     # Generate .mcp.json if mcpServers defined
     local mcp_json
     mcp_json=$(nix eval --impure --json --expr "
-      let pkgs = import $REPO_ROOT/npins {}; p = import $plugin_nix { inherit pkgs; };
+      let sources = import $REPO_ROOT/_sources.nix;
+          pkgs = import sources.nixpkgs {};
+          p = import $plugin_nix { inherit pkgs; };
       in if p ? mcpServers && p.mcpServers != {} then { mcpServers = p.mcpServers; } else null
     ")
     if [[ "$mcp_json" != "null" && $DRY_RUN -eq 0 ]]; then
@@ -225,7 +229,9 @@ build_manifests() {
     # Generate .lsp.json if lspServers defined
     local lsp_json
     lsp_json=$(nix eval --impure --json --expr "
-      let pkgs = import $REPO_ROOT/npins {}; p = import $plugin_nix { inherit pkgs; };
+      let sources = import $REPO_ROOT/_sources.nix;
+          pkgs = import sources.nixpkgs {};
+          p = import $plugin_nix { inherit pkgs; };
       in if p ? lspServers && p.lspServers != {} then p.lspServers else null
     ")
     if [[ "$lsp_json" != "null" && $DRY_RUN -eq 0 ]]; then

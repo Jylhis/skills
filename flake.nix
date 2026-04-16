@@ -57,8 +57,8 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          moduleEvalV1 = import ./tests/module-eval.nix { inherit system; };
-          moduleEvalV2 = import ./tests/module-eval-v2.nix { inherit system; };
+          moduleEvalV1 = import ./tests/module-eval.nix { inherit system pkgs; };
+          moduleEvalV2 = import ./tests/module-eval-v2.nix { inherit system pkgs; };
         in
         {
           module-eval = pkgs.runCommand "jstack-module-eval" { } ''

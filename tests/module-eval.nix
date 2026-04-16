@@ -12,13 +12,16 @@
 
 {
   system ? builtins.currentSystem,
+  # Flake-check calls this module in pure-eval mode and passes `pkgs`
+  # explicitly (flake.nix). Standalone impure invocations fall back to
+  # bootstrapping nixpkgs from `_sources.nix` (flake-compat).
+  pkgs ? import (import ../_sources.nix).nixpkgs { inherit system; },
 }:
 
 let
   jstackRepo = ../.;
 
-  pkgsPath = (import (jstackRepo + "/_sources.nix")).nixpkgs;
-  basePkgs = import pkgsPath { inherit system; };
+  basePkgs = pkgs;
   lib = basePkgs.lib;
 
   jstack = import (jstackRepo + "/module.nix");

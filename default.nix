@@ -1,17 +1,25 @@
-# Non-flake entry point — resolves inputs from flake.lock.
-# Usage: nix-build -A packages.default
+# Non-flake entry point — evaluates flake.nix via flake-compat so that
+# `nix-build` and older non-flake tooling see the same outputs produced
+# by `nix build` / `nix flake check`.
 {
   system ? builtins.currentSystem,
-  pkgs ? import (import ./_sources.nix).nixpkgs {
-    inherit system;
-    overlays = [ (import ./overlay.nix) ];
-  },
 }:
+let
+  lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+  fc = lock.nodes.flake-compat.locked;
+  flake-compat = builtins.fetchTarball {
+    url = "https://github.com/${fc.owner}/${fc.repo}/archive/${fc.rev}.tar.gz";
+    sha256 = fc.narHash;
+  };
+  flake = (import flake-compat { src = ./.; }).defaultNix;
+in
 {
-  packages.default = pkgs.jstack-runtime;
-  overlays.default = import ./overlay.nix;
-  nixosModules.default = import ./module.nix;
-  darwinModules.default = import ./module.nix;
-  homeModules.default = import ./module.nix;
-  lib = import ./lib { inherit pkgs; };
+  packages.default = flake.packages.${system}.default;
+  inherit (flake)
+    overlays
+    nixosModules
+    darwinModules
+    homeModules
+    lib
+    ;
 }
