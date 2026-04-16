@@ -29,6 +29,18 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 
+# plugin runtime state
+plugins/cache/
+plugins/installed_plugins.json
+plugins/known_marketplaces.json
+plugins/marketplaces/
+
+# devenv enterShell self-symlinks for skill discovery
+# (extensionless symlinks matching parent dir, e.g. skills/flakes/flakes)
+skills/*/*
+!skills/**/*.*
+!skills/**/*/
+
 # generated/local artifacts
 all-skills.txt
 all-skills-deduplicated.txt
