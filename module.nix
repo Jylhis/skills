@@ -226,7 +226,6 @@ in
         # ── Claude Code target ──
         (lib.mkIf cfg.targets.claude.enable {
           programs.claude-code.settings = import ./settings.nix;
-          programs.claude-code.memory.source = mkHmLink "CLAUDE.md";
           programs.claude-code.plugins = pluginBundles;
 
           home.file = {
@@ -235,6 +234,7 @@ in
             ".claude/commands".source = mkHmLink "commands";
             ".claude/hooks".source = mkHmLink "hooks";
             ".claude/plugins".source = mkHmLink "plugins";
+            ".claude/CLAUDE.md".source = mkHmLink "CLAUDE.md";
           };
         })
 

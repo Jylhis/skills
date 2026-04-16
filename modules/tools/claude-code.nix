@@ -163,7 +163,7 @@ in
         }
 
         (lib.mkIf (instructionFile != null) {
-          programs.claude-code.memory.source = instructionFile;
+          home.file.".claude/CLAUDE.md".source = instructionFile;
         })
 
         (lib.mkIf (skills != null) {

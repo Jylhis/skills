@@ -75,7 +75,6 @@ let
       home.file = loose;
       # HM claude-code module stubs
       programs.claude-code.settings = looseAny;
-      programs.claude-code.memory = loose;
       programs.claude-code.plugins = looseList;
       lib = lib.mkOption {
         type = lib.types.unspecified;

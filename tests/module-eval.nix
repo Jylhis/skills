@@ -80,7 +80,6 @@ let
       home.sessionVariables = loose;
       home.file = loose;
       programs.claude-code.settings = looseAny;
-      programs.claude-code.memory = loose;
       programs.claude-code.plugins = looseList;
       lib = lib.mkOption {
         type = lib.types.unspecified;
