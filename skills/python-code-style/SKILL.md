@@ -28,6 +28,7 @@ argue with it.
 ## Modern Python features (3.10+)
 
 - **Structural pattern matching** (`match`/`case`):
+
   ```python
   match response:
       case {"ok": True, "data": data}:
@@ -37,16 +38,20 @@ argue with it.
       case _:
           raise TypeError("unexpected response shape")
   ```
+
   Use for multi-branch logic on complex shapes. Avoid for simple
   equality — use `if`/`elif`.
 - **f-strings over `.format()` or `%`**: `f"{user.name!r} at {now:%H:%M}"`.
   Python 3.12 allows arbitrary expressions including nested quotes.
 - **Walrus operator** (`:=`) for "check and use":
+
   ```python
   while chunk := stream.read(4096):
       process(chunk)
   ```
+
 - **`pathlib.Path` over `os.path`**:
+
   ```python
   from pathlib import Path
   config = Path("~/.config/app").expanduser()
@@ -84,6 +89,7 @@ argue with it.
 ## Functions
 
 - **Default arguments must not be mutable:**
+
   ```python
   # WRONG
   def append_to(item, target=[]):
@@ -97,6 +103,7 @@ argue with it.
       target.append(item)
       return target
   ```
+
 - **Keyword-only arguments** (`*, key1, key2`) force callers to be
   explicit for boolean flags and optional config.
 - **Return early** — avoid deeply nested `if`/`else`.
@@ -129,6 +136,6 @@ done
 
 ## References
 
-- PEP 8: https://peps.python.org/pep-0008/
-- Ruff rules: https://docs.astral.sh/ruff/rules/
-- Python 3.12 what's new: https://docs.python.org/3/whatsnew/3.12.html
+- PEP 8: <https://peps.python.org/pep-0008/>
+- Ruff rules: <https://docs.astral.sh/ruff/rules/>
+- Python 3.12 what's new: <https://docs.python.org/3/whatsnew/3.12.html>

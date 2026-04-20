@@ -165,7 +165,7 @@ done
 
 ## References
 
-- dataclasses: https://docs.python.org/3/library/dataclasses.html
-- Pydantic v2: https://docs.pydantic.dev/latest/
-- Pydantic migration guide: https://docs.pydantic.dev/latest/migration/
-- pydantic-settings: https://docs.pydantic.dev/latest/concepts/pydantic_settings/
+- dataclasses: <https://docs.python.org/3/library/dataclasses.html>
+- Pydantic v2: <https://docs.pydantic.dev/latest/>
+- Pydantic migration guide: <https://docs.pydantic.dev/latest/migration/>
+- pydantic-settings: <https://docs.pydantic.dev/latest/concepts/pydantic_settings/>

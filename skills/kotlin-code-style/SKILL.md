@@ -14,7 +14,7 @@ description: >
   agree). Add a pre-commit hook.
 - **Indent:** 4 spaces.
 - **Line length:** 120 (IntelliJ default).
-- **Official style guide:** https://kotlinlang.org/docs/coding-conventions.html
+- **Official style guide:** <https://kotlinlang.org/docs/coding-conventions.html>
 - **Target JVM:** 21 LTS unless you need 17 for compatibility.
 
 ## Naming
@@ -136,6 +136,7 @@ in a row, pull out intermediate variables instead.
   class.
 - **`object` declarations** for singletons.
 - **Companion objects** for factory methods and type-scoped constants:
+
   ```kotlin
   class User private constructor(val id: String) {
       companion object {
@@ -192,7 +193,7 @@ done
 
 ## References
 
-- Kotlin coding conventions: https://kotlinlang.org/docs/coding-conventions.html
-- Kotlin 2.0 release notes: https://kotlinlang.org/docs/whatsnew20.html
-- Scope functions: https://kotlinlang.org/docs/scope-functions.html
-- ktlint: https://pinterest.github.io/ktlint/
+- Kotlin coding conventions: <https://kotlinlang.org/docs/coding-conventions.html>
+- Kotlin 2.0 release notes: <https://kotlinlang.org/docs/whatsnew20.html>
+- Scope functions: <https://kotlinlang.org/docs/scope-functions.html>
+- ktlint: <https://pinterest.github.io/ktlint/>

@@ -38,11 +38,12 @@ nixos-rebuild switch --show-trace
 
 ### Infinite Recursion
 
-```
+```text
 error: infinite recursion encountered
 ```
 
 **Causes:**
+
 - Using `rec { }` where an attribute references itself circularly
 - Overlay using `final` where `prev` is needed (or vice versa)
 - NixOS module that sets an option it also reads without `mkIf`
@@ -51,7 +52,7 @@ error: infinite recursion encountered
 
 ### Hash Mismatch
 
-```
+```text
 error: hash mismatch in fixed-output derivation
   specified: sha256-AAAA...
   got:       sha256-BBBB...
@@ -61,11 +62,12 @@ error: hash mismatch in fixed-output derivation
 
 ### Attribute Not Found
 
-```
+```text
 error: attribute 'foo' missing
 ```
 
 **Debug:**
+
 ```bash
 nix eval nixpkgs#foo --apply 'x: builtins.typeOf x'
 nix eval nixpkgs#lib --apply builtins.attrNames
@@ -75,11 +77,12 @@ Common cause: typo, package renamed/removed, wrong nixpkgs version. Use `mcp-nix
 
 ### Collision Between Packages
 
-```
+```text
 error: collision between '/nix/store/...-foo/bin/bar' and '/nix/store/...-baz/bin/bar'
 ```
 
 **Fix:**
+
 ```nix
 home.packages = [
   (lib.hiPrio pkgs.foo)  # This one wins
@@ -89,11 +92,12 @@ home.packages = [
 
 ### IFD (Import From Derivation)
 
-```
+```text
 error: cannot build during evaluation (import from derivation)
 ```
 
 IFD happens when evaluation requires building something first (`import someDrv`, `readFile "${someDrv}/..."`). The evaluator blocks all other evaluation while the build runs. Fix by:
+
 - Pre-generating the Nix file and committing it
 - Using `builtins.fetchurl` instead of derivation-based fetchers during eval
 - Allowing IFD with `--allow-import-from-derivation` (not recommended for CI)
@@ -102,7 +106,7 @@ See the nix-performance skill for IFD alternatives and consolidation strategies.
 
 ### Unfree Package
 
-```
+```text
 error: Package 'foo' has an unfree license ('unfree')
 ```
 
@@ -120,7 +124,7 @@ NIXPKGS_ALLOW_UNFREE=1 nix build --impure
 
 ### File Not Tracked by Git
 
-```
+```text
 error: getting status of '/path/to/file': No such file or directory
 ```
 
@@ -128,7 +132,7 @@ Flakes only see files tracked by git. Fix: `git add <file>` (staging is enough, 
 
 ### Pure Evaluation Restriction
 
-```
+```text
 error: access to absolute path '/...' is forbidden in pure eval mode
 ```
 
@@ -136,12 +140,13 @@ Flake evaluation is pure by default — no access to paths outside the flake, no
 
 ### Experimental Feature Disabled
 
-```
+```text
 error: experimental Nix feature 'flakes' is disabled
 ```
 
 Fix: add to `~/.config/nix/nix.conf`:
-```
+
+```ini
 experimental-features = nix-command flakes
 ```
 

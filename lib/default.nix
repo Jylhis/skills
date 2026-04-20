@@ -1,7 +1,7 @@
 # jstack library — skill discovery, manifest generation, and bundle building.
 { pkgs }:
 let
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
 
   # v1 (legacy)
   targets = import ./targets.nix;

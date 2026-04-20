@@ -63,6 +63,7 @@ mixed imports.
 - Use `ReadonlyArray<T>` / `readonly T[]` for function parameters you
   don't mutate.
 - Use `satisfies` to validate a literal against a type without widening:
+
   ```ts
   const routes = {
     home: '/',
@@ -98,6 +99,6 @@ done
 
 ## References
 
-- TypeScript handbook: https://www.typescriptlang.org/docs/handbook/intro.html
-- tsconfig reference: https://www.typescriptlang.org/tsconfig
-- typescript-eslint style guide: https://typescript-eslint.io/rules/
+- TypeScript handbook: <https://www.typescriptlang.org/docs/handbook/intro.html>
+- tsconfig reference: <https://www.typescriptlang.org/tsconfig>
+- typescript-eslint style guide: <https://typescript-eslint.io/rules/>

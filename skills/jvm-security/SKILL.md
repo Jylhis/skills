@@ -191,8 +191,8 @@ done
 
 ## References
 
-- OWASP top 10: https://owasp.org/www-project-top-ten/
-- OWASP Java cheat sheet: https://cheatsheetseries.owasp.org/cheatsheets/Java_Security_Cheat_Sheet.html
-- OWASP Dependency Check: https://owasp.org/www-project-dependency-check/
-- Tink: https://developers.google.com/tink
-- Spring Security: https://spring.io/projects/spring-security
+- OWASP top 10: <https://owasp.org/www-project-top-ten/>
+- OWASP Java cheat sheet: <https://cheatsheetseries.owasp.org/cheatsheets/Java_Security_Cheat_Sheet.html>
+- OWASP Dependency Check: <https://owasp.org/www-project-dependency-check/>
+- Tink: <https://developers.google.com/tink>
+- Spring Security: <https://spring.io/projects/spring-security>

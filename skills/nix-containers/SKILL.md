@@ -5,6 +5,7 @@ user-invocable: false
 ---
 
 ### Overview
+
 Nix builds container images without Docker — images are reproducible derivations. No Dockerfile needed. Images are minimal by default: only the exact runtime closure is included.
 
 ### "Container" Disambiguation
@@ -19,7 +20,9 @@ The Nix ecosystem uses "container" for two unrelated things — don't conflate t
 RFC 108 rewrites the NixOS `containers.<name>` subsystem on top of `systemd-nspawn` + `systemd-networkd`, fixing networking-during-boot bugs. That's orthogonal to `dockerTools` OCI image builders described below — the latter produce images consumed by external OCI runtimes, not local NixOS containers.
 
 ### dockerTools.buildImage
+
 Basic image builder. Produces a Docker-loadable tarball:
+
 ```nix
 pkgs.dockerTools.buildImage {
   name = "my-app";
@@ -38,7 +41,9 @@ pkgs.dockerTools.buildImage {
 ```
 
 ### dockerTools.buildLayeredImage
+
 Produces a layered image. Nix store paths are split into layers — stable deps become lower layers (cached), frequently-changing code becomes upper layers:
+
 ```nix
 pkgs.dockerTools.buildLayeredImage {
   name = "my-app";
@@ -48,10 +53,13 @@ pkgs.dockerTools.buildLayeredImage {
   maxLayers = 120;  # Docker max is 128
 }
 ```
+
 The `layers` parameter lets you explicitly control which store paths go into which layers.
 
 ### dockerTools.streamLayeredImage
+
 Like buildLayeredImage but doesn't materialize the full image in the store. Streams directly to docker load or a registry:
+
 ```nix
 pkgs.dockerTools.streamLayeredImage {
   name = "my-app";
@@ -60,11 +68,14 @@ pkgs.dockerTools.streamLayeredImage {
   config.Cmd = [ "${pkgs.myapp}/bin/myapp" ];
 }
 ```
+
 Usage: `$(nix build .#dockerImage --print-out-paths) | docker load`
 Saves disk space and is faster for large images.
 
 ### nix2container (alternative)
+
 Archive-less image builder using Skopeo. Faster incremental pushes:
+
 ```nix
 let
   nix2container = inputs.nix2container.packages.${system}.nix2container;
@@ -79,7 +90,9 @@ in nix2container.buildImage {
 ```
 
 ### devenv container
+
 devenv can build OCI images from the developer environment:
+
 ```nix
 # devenv.nix
 { pkgs, ... }: {
@@ -90,9 +103,11 @@ devenv can build OCI images from the developer environment:
   };
 }
 ```
+
 Build: `devenv container app`
 
 ### Layer Optimization
+
 - Separate stable deps (runtime, cacert, timezone) into lower layers
 - Put application code in the top layer
 - Use `layers` parameter to explicitly assign store paths to layers
@@ -100,16 +115,21 @@ Build: `devenv container app`
 - Use `pkgsStatic` for statically linked binaries (single-file closures)
 
 ### Closure Analysis for Containers
+
 Before building an image, analyze what's going into it:
+
 ```bash
 nix path-info -rsSh .#myapp       # Total closure size
 nix why-depends .#myapp nixpkgs#gcc  # Why is gcc in the closure?
 nix-tree .#myapp                   # Interactive browser
 ```
+
 See the nix-performance skill for detailed closure optimization.
 
 ### initializeNixDatabase
+
 For CI images that need to run Nix commands:
+
 ```nix
 pkgs.dockerTools.buildLayeredImage {
   name = "nix-ci";
@@ -124,6 +144,7 @@ pkgs.dockerTools.buildLayeredImage {
 ```
 
 ### Running Containers on NixOS
+
 ```nix
 virtualisation.oci-containers = {
   backend = "podman";  # or "docker"
@@ -137,5 +158,6 @@ virtualisation.oci-containers = {
 ```
 
 ### Related Skills
+
 - nix-performance — closure analysis and optimization
 - devenv — devenv container subcommand

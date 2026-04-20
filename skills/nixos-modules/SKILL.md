@@ -125,6 +125,7 @@ options.services.foo.settings = lib.mkOption {
 ## evalModules Internals
 
 The module system is powered by `lib.evalModules`, which:
+
 1. Collects all modules (from `modules` list and all `imports`)
 2. Evaluates all `options` declarations to build the option tree
 3. Evaluates all `config` definitions and merges them per option type
@@ -351,7 +352,7 @@ Benefits: forces you to declare all state, keeps system clean, any undeclared st
 
 ## File Layout
 
-```
+```text
 /etc/nixos/
 ├── configuration.nix     # Main entry point
 ├── hardware-configuration.nix  # Auto-generated

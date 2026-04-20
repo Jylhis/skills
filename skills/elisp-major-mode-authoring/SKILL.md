@@ -172,7 +172,7 @@ done
 
 ## References
 
-- Elisp manual - Major Modes: https://www.gnu.org/software/emacs/manual/html_node/elisp/Modes.html
-- `define-derived-mode`: https://www.gnu.org/software/emacs/manual/html_node/elisp/Derived-Modes.html
-- Tree-sitter in Emacs: https://www.gnu.org/software/emacs/manual/html_node/elisp/Parsing-Program-Source.html
-- SMIE: https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html
+- Elisp manual - Major Modes: <https://www.gnu.org/software/emacs/manual/html_node/elisp/Modes.html>
+- `define-derived-mode`: <https://www.gnu.org/software/emacs/manual/html_node/elisp/Derived-Modes.html>
+- Tree-sitter in Emacs: <https://www.gnu.org/software/emacs/manual/html_node/elisp/Parsing-Program-Source.html>
+- SMIE: <https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html>

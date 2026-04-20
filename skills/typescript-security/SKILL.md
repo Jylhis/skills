@@ -43,6 +43,7 @@ spawn('git', ['log', `--author=${author}`]);
   the only footgun — sanitize with `DOMPurify`.
 - **URL attributes** (`href`, `src`) need scheme checks. Reject
   `javascript:` URIs:
+
   ```ts
   if (/^\s*javascript:/i.test(url)) throw new Error('bad scheme');
   ```
@@ -124,7 +125,7 @@ done
 
 ## References
 
-- OWASP Top 10: https://owasp.org/www-project-top-ten/
-- Node.js security best practices: https://nodejs.org/en/learn/getting-started/security-best-practices
-- `jose` JWT library: https://github.com/panva/jose
-- `DOMPurify`: https://github.com/cure53/DOMPurify
+- OWASP Top 10: <https://owasp.org/www-project-top-ten/>
+- Node.js security best practices: <https://nodejs.org/en/learn/getting-started/security-best-practices>
+- `jose` JWT library: <https://github.com/panva/jose>
+- `DOMPurify`: <https://github.com/cure53/DOMPurify>

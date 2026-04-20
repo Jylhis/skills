@@ -228,9 +228,9 @@ done
 
 ## References
 
-- JUnit 5 user guide: https://junit.org/junit5/docs/current/user-guide/
-- AssertJ: https://assertj.github.io/doc/
-- kotest: https://kotest.io
-- mockk: https://mockk.io
-- Testcontainers: https://java.testcontainers.org
-- awaitility: https://github.com/awaitility/awaitility
+- JUnit 5 user guide: <https://junit.org/junit5/docs/current/user-guide/>
+- AssertJ: <https://assertj.github.io/doc/>
+- kotest: <https://kotest.io>
+- mockk: <https://mockk.io>
+- Testcontainers: <https://java.testcontainers.org>
+- awaitility: <https://github.com/awaitility/awaitility>

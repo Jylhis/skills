@@ -45,6 +45,7 @@ glab mr merge 123 --when-pipeline-succeeds --remove-source-branch
 ```
 
 **Discussion management (v1.90.0+, EXPERIMENTAL):**
+
 ```bash
 glab mr note list 123                          # List threads
 glab mr note resolve <discussion-id> 123       # Resolve thread
@@ -149,12 +150,14 @@ For full details and GraphQL alternatives, see [references/work-items.md](refere
 Epic comments require GraphQL -- the REST `/notes` endpoint returns 404.
 
 **Quickest path -- use the wrapper scripts:**
+
 ```bash
 scripts/epic-notes.sh <group-path> <epic-iid>       # Read all comments
 scripts/create-epic-note.sh <group-id> <epic-iid> "body"  # Post a comment
 ```
 
 **Manual GraphQL (when you need more control):**
+
 ```bash
 # iid must be a quoted string: "16428" not 16428 (integer -> type error)
 glab api graphql -f query='
@@ -176,11 +179,13 @@ glab api graphql -f query='
 ```
 
 **Epic close/reopen** -- REST works fine, no GraphQL needed:
+
 ```bash
 glab api --method PUT "groups/<group_id>/epics/<iid>" -f state_event=close
 ```
 
 **Nested groups** -- REST requires `%2F`; GraphQL uses plain `/`:
+
 ```bash
 glab api "groups/gitlab-org%2Ffoundations/epics"                    # REST
 glab api graphql -f query='{ group(fullPath: "gitlab-org/foundations") { ... } }'  # GraphQL

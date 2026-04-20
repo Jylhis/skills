@@ -109,6 +109,6 @@ done
 
 ## References
 
-- Ruff formatter: https://docs.astral.sh/ruff/formatter/
-- Black compatibility: https://docs.astral.sh/ruff/formatter/black/
-- docstring-code-format: https://docs.astral.sh/ruff/settings/#format_docstring-code-format
+- Ruff formatter: <https://docs.astral.sh/ruff/formatter/>
+- Black compatibility: <https://docs.astral.sh/ruff/formatter/black/>
+- docstring-code-format: <https://docs.astral.sh/ruff/settings/#format_docstring-code-format>

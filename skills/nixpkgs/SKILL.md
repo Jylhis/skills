@@ -42,6 +42,7 @@ hello = callPackage ./package.nix {};
 ```
 
 **Why `callPackage` matters:**
+
 - **Overridable:** `hello.override { openssl = openssl_1_1; }` swaps one dependency
 - **Cross-compilation:** `callPackage` resolves `nativeBuildInputs` from `buildPackages` through "splicing" — the same `package.nix` works for native and cross builds
 - **Upstreamable:** Packages in `callPackage` form are directly submittable to nixpkgs
@@ -52,7 +53,7 @@ Always write packages as functions in separate files and use `callPackage` to in
 
 New leaf packages in Nixpkgs go in `pkgs/by-name/<two-letter-shard>/<pname>/package.nix` with a plain `callPackage` signature. They are auto-wired into `all-packages.nix` by sharded discovery — do not edit `all-packages.nix` for new additions, and do not place new packages in ad-hoc category directories.
 
-```
+```text
 pkgs/by-name/
 ├── he/
 │   └── hello/
@@ -374,6 +375,7 @@ See `references/cross-compilation.md` for cross-compilation patterns (building f
 
 - **Wrapping binaries**: `wrapProgram $out/bin/foo --prefix PATH : ${lib.makeBinPath [ git ]}`
 - **writeShellApplication**: Creates a script with runtime deps on PATH and shellcheck validation:
+
   ```nix
   pkgs.writeShellApplication {
     name = "my-script";
@@ -381,6 +383,7 @@ See `references/cross-compilation.md` for cross-compilation patterns (building f
     text = ''curl -s "$1" | jq .'';
   }
   ```
+
 - **Shell completions**: install to `$out/share/bash-completion/completions/`, `$out/share/zsh/site-functions/`, `$out/share/fish/vendor_completions.d/`
 - **Desktop entries**: use `makeDesktopItem`
 - **Stripping**: controlled by `dontStrip = true;`

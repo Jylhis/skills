@@ -19,7 +19,7 @@ let
   jstackRepo = ../.;
 
   basePkgs = pkgs;
-  lib = basePkgs.lib;
+  inherit (basePkgs) lib;
 
   jstackModule = import (jstackRepo + "/modules");
 
@@ -121,7 +121,7 @@ let
         assertionsStub
         jstackModule
         { config._module.args.jstackBundledSources = bundledSources; }
-        ({
+        {
           config = lib.mkMerge [
             {
               programs.jstack = {
@@ -141,7 +141,7 @@ let
             }
             extraConfig
           ];
-        })
+        }
       ];
       specialArgs = {
         pkgs = pkgs';

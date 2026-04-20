@@ -16,6 +16,22 @@
         "type": "github"
       }
     },
+    "ai-research-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776112893,
+        "narHash": "sha256-rp4tSuKPU39QHfQOwMpZzGl/cRI+G0XcN46Ur94gR4M=",
+        "owner": "Orchestra-Research",
+        "repo": "AI-Research-SKILLs",
+        "rev": "9aff7505b1c182f6df383a8db52676e5f23853db",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Orchestra-Research",
+        "repo": "AI-Research-SKILLs",
+        "type": "github"
+      }
+    },
     "cc-skills-golang": {
       "flake": false,
       "locked": {
@@ -196,6 +212,7 @@
     "root": {
       "inputs": {
         "addyosmani-agent-skills": "addyosmani-agent-skills",
+        "ai-research-skills": "ai-research-skills",
         "cc-skills-golang": "cc-skills-golang",
         "claude-plugins-official": "claude-plugins-official",
         "cloudflare-skills": "cloudflare-skills",
@@ -208,6 +225,7 @@
         "openai-skills": "openai-skills",
         "promptfoo": "promptfoo",
         "rust-skills": "rust-skills",
+        "taste-skill": "taste-skill",
         "trailofbits-skills": "trailofbits-skills",
         "trailofbits-skills-curated": "trailofbits-skills-curated"
       }
@@ -225,6 +243,22 @@
       "original": {
         "owner": "actionbook",
         "repo": "rust-skills",
+        "type": "github"
+      }
+    },
+    "taste-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776633331,
+        "narHash": "sha256-SknGp4L4x/8YLZA1jXB66XL7jYTpodndmA7ftqUD7fY=",
+        "owner": "Leonxlnx",
+        "repo": "taste-skill",
+        "rev": "6ad71be1c07510aad1b6e09d0d2c8ed531c04ca3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Leonxlnx",
+        "repo": "taste-skill",
         "type": "github"
       }
     },

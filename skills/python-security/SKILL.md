@@ -121,11 +121,13 @@ def read_file(name: str) -> str:
 - Never commit secrets. `.env` in dev, secrets manager in production.
 - Never log secrets. Filter `password`, `token`, `authorization`, `cookie`.
 - Use `secrets` module for cryptographic random, not `random`:
+
   ```python
   import secrets
   token = secrets.token_urlsafe(32)
   api_key = secrets.token_hex(16)
   ```
+
 - `hmac.compare_digest` for constant-time token comparison — never `==`.
 
 ## Password hashing
@@ -171,7 +173,7 @@ done
 
 ## References
 
-- OWASP Python cheat sheet: https://cheatsheetseries.owasp.org/cheatsheets/Python_Security_Cheat_Sheet.html
-- `subprocess` security: https://docs.python.org/3/library/subprocess.html#security-considerations
-- `secrets` module: https://docs.python.org/3/library/secrets.html
-- PyCQA `bandit`: https://bandit.readthedocs.io
+- OWASP Python cheat sheet: <https://cheatsheetseries.owasp.org/cheatsheets/Python_Security_Cheat_Sheet.html>
+- `subprocess` security: <https://docs.python.org/3/library/subprocess.html#security-considerations>
+- `secrets` module: <https://docs.python.org/3/library/secrets.html>
+- PyCQA `bandit`: <https://bandit.readthedocs.io>

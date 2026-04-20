@@ -51,6 +51,7 @@ Do not use the legacy `TypeVar` / `Generic` syntax in new code.
 - `Sequence`, `Mapping`, `Iterable`, `Iterator` — import from
   `collections.abc`, not `typing`.
 - Prefer abstract types in parameters, concrete in return values:
+
   ```python
   def process(items: Iterable[int]) -> list[int]:
       return sorted(items)
@@ -60,6 +61,7 @@ Do not use the legacy `TypeVar` / `Generic` syntax in new code.
 
 - **Use `|`**: `int | str`, `str | None`.
 - **`Literal`** constrains to specific values:
+
   ```python
   def fetch(method: Literal["GET", "POST"]) -> bytes: ...
   ```
@@ -173,7 +175,7 @@ done
 
 ## References
 
-- Python typing docs: https://docs.python.org/3/library/typing.html
-- PEP 695 (type parameter syntax): https://peps.python.org/pep-0695/
-- PEP 742 (TypeIs): https://peps.python.org/pep-0742/
-- pyright config: https://microsoft.github.io/pyright/#/configuration
+- Python typing docs: <https://docs.python.org/3/library/typing.html>
+- PEP 695 (type parameter syntax): <https://peps.python.org/pep-0695/>
+- PEP 742 (TypeIs): <https://peps.python.org/pep-0742/>
+- pyright config: <https://microsoft.github.io/pyright/#/configuration>

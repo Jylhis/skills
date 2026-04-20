@@ -15,11 +15,11 @@ If the project pins devenv 1.x, be aware of breaking changes in 2.0 before upgra
 - `devenv build` now emits JSON; shell scripts that parsed old text output need updating.
 - Task exports landed in `$DEVENV_TASK_EXPORTS_FILE` (instead of being eval'd into the shell directly).
 
-See https://devenv.sh/guides/migrating-to-2.0/ for the full list.
+See <https://devenv.sh/guides/migrating-to-2.0/> for the full list.
 
 ## File Structure
 
-```
+```text
 project/
   devenv.nix          # Main environment configuration
   devenv.yaml         # Input sources (nixpkgs pin, imports)
@@ -221,7 +221,7 @@ devenv tasks define custom build/test pipelines with dependency ordering:
 
 Run a task and all its dependencies:
 
-```
+```bash
 devenv tasks run myapp:ci
 ```
 
@@ -235,6 +235,7 @@ devenv exposes MCP tools for discovering options and packages:
 - `mcp__devenv__search_packages` - Search nixpkgs packages by name or description. Use this to find the correct package name before adding it to `packages` in devenv.nix.
 
 Use these MCP tools when you need to:
+
 - Find what options a language or service supports
 - Discover the correct package name in nixpkgs
 - Explore available configuration for a specific devenv module
@@ -270,7 +271,7 @@ devenv can build OCI container images directly from the environment:
 
 Build a container:
 
-```
+```bash
 devenv container app         # builds the "app" container
 devenv container worker      # builds the "worker" container
 ```
@@ -294,6 +295,7 @@ Use overlays within devenv.nix to customize or add packages:
 ```
 
 Overlays let you:
+
 - Override existing package versions or build flags
 - Add custom packages built from local source
 - Apply patches to upstream packages
@@ -434,6 +436,7 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg --version
 ```
 
 Use ad-hoc environments when:
+
 - You need a quick tool that is not in the project environment
 - Testing a language or package before adding it to devenv.nix
 - Running a one-off command in an isolated environment
@@ -473,7 +476,7 @@ cachix:
 
 Configure the Cachix auth token:
 
-```
+```bash
 cachix authtoken <token>
 ```
 

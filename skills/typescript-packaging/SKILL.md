@@ -143,8 +143,8 @@ done
 
 ## References
 
-- pnpm docs: https://pnpm.io
-- Workspaces: https://pnpm.io/workspaces
-- tsup: https://tsup.egoist.dev
-- Vite: https://vitejs.dev
-- changesets: https://github.com/changesets/changesets
+- pnpm docs: <https://pnpm.io>
+- Workspaces: <https://pnpm.io/workspaces>
+- tsup: <https://tsup.egoist.dev>
+- Vite: <https://vitejs.dev>
+- changesets: <https://github.com/changesets/changesets>

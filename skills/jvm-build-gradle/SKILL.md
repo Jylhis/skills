@@ -14,7 +14,7 @@ and **Java 21 LTS**.
 
 ## Single-project layout
 
-```
+```text
 my-project/
 ├── settings.gradle.kts
 ├── build.gradle.kts
@@ -144,7 +144,7 @@ rootProject.name = "my-mono"
 include("core", "api", "cli")
 ```
 
-```
+```text
 my-mono/
 ├── settings.gradle.kts
 ├── build.gradle.kts              # shared config via convention plugin
@@ -226,8 +226,8 @@ done
 
 ## References
 
-- Gradle user manual: https://docs.gradle.org/current/userguide/userguide.html
-- Kotlin DSL primer: https://docs.gradle.org/current/userguide/kotlin_dsl.html
-- Version catalogs: https://docs.gradle.org/current/userguide/platforms.html
-- Build scans: https://scans.gradle.com
-- Gradle inception wrapper: https://docs.gradle.org/current/userguide/gradle_wrapper.html
+- Gradle user manual: <https://docs.gradle.org/current/userguide/userguide.html>
+- Kotlin DSL primer: <https://docs.gradle.org/current/userguide/kotlin_dsl.html>
+- Version catalogs: <https://docs.gradle.org/current/userguide/platforms.html>
+- Build scans: <https://scans.gradle.com>
+- Gradle inception wrapper: <https://docs.gradle.org/current/userguide/gradle_wrapper.html>

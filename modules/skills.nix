@@ -27,16 +27,16 @@ let
     if sourceCfg.paths != { } then
       lib.mapAttrs (_: relPath: {
         src = sourceCfg.src + "/${relPath}";
-        packages = sourceCfg.packages;
-        transform = sourceCfg.transform;
+        inherit (sourceCfg) packages;
+        inherit (sourceCfg) transform;
         tools = null;
       }) sourceCfg.paths
     else
       let
         catalog = discoverSkills {
           path = sourceCfg.src + "/${sourceCfg.subdir}";
-          namespace = sourceCfg.namespace;
-          maxDepth = sourceCfg.maxDepth;
+          inherit (sourceCfg) namespace;
+          inherit (sourceCfg) maxDepth;
         };
 
         filtered =
@@ -51,8 +51,8 @@ let
         _id: skill:
         lib.nameValuePair skill.name {
           src = skill.path;
-          packages = sourceCfg.packages;
-          transform = sourceCfg.transform;
+          inherit (sourceCfg) packages;
+          inherit (sourceCfg) transform;
           tools = null;
         }
       ) filtered

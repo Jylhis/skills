@@ -56,14 +56,14 @@ let
   mergedSettings = {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
   }
-  // lib.optionalAttrs (toolCfg.model != null) { model = toolCfg.model; }
+  // lib.optionalAttrs (toolCfg.model != null) { inherit (toolCfg) model; }
   // lib.optionalAttrs (toolCfg.permissions.allow != [ ] || toolCfg.permissions.deny != [ ]) {
     permissions =
       { }
-      // lib.optionalAttrs (toolCfg.permissions.allow != [ ]) { allow = toolCfg.permissions.allow; }
-      // lib.optionalAttrs (toolCfg.permissions.deny != [ ]) { deny = toolCfg.permissions.deny; };
+      // lib.optionalAttrs (toolCfg.permissions.allow != [ ]) { inherit (toolCfg.permissions) allow; }
+      // lib.optionalAttrs (toolCfg.permissions.deny != [ ]) { inherit (toolCfg.permissions) deny; };
   }
-  // lib.optionalAttrs (toolCfg.hooks != { }) { hooks = toolCfg.hooks; }
+  // lib.optionalAttrs (toolCfg.hooks != { }) { inherit (toolCfg) hooks; }
   // toolCfg.settings;
 
   # Instruction file content

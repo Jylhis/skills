@@ -157,7 +157,7 @@ done
 
 ## References
 
-- Error subclassing: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
-- Error.cause: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
-- neverthrow: https://github.com/supermacro/neverthrow
-- Zod errors: https://zod.dev/?id=error-handling
+- Error subclassing: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error>
+- Error.cause: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause>
+- neverthrow: <https://github.com/supermacro/neverthrow>
+- Zod errors: <https://zod.dev/?id=error-handling>

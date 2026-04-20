@@ -179,6 +179,6 @@ done
 
 ## References
 
-- Exception hierarchy: https://docs.python.org/3/library/exceptions.html
-- PEP 654 (ExceptionGroup): https://peps.python.org/pep-0654/
-- contextlib: https://docs.python.org/3/library/contextlib.html
+- Exception hierarchy: <https://docs.python.org/3/library/exceptions.html>
+- PEP 654 (ExceptionGroup): <https://peps.python.org/pep-0654/>
+- contextlib: <https://docs.python.org/3/library/contextlib.html>

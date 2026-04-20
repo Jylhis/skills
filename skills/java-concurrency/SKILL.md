@@ -177,7 +177,7 @@ done
 
 ## References
 
-- JEP 444 (Virtual threads): https://openjdk.org/jeps/444
-- JEP 480 (Structured Concurrency, preview): https://openjdk.org/jeps/480
-- `java.util.concurrent`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/package-summary.html
+- JEP 444 (Virtual threads): <https://openjdk.org/jeps/444>
+- JEP 480 (Structured Concurrency, preview): <https://openjdk.org/jeps/480>
+- `java.util.concurrent`: <https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/package-summary.html>
 - Java Concurrency in Practice (book): still the definitive reference

@@ -149,9 +149,9 @@ done
 
 ## References
 
-- Google Java Style: https://google.github.io/styleguide/javaguide.html
-- Java 21 features: https://openjdk.org/projects/jdk/21/
-- JEP 395 (records): https://openjdk.org/jeps/395
-- JEP 409 (sealed): https://openjdk.org/jeps/409
-- JEP 441 (pattern matching for switch): https://openjdk.org/jeps/441
-- JSpecify: https://jspecify.dev
+- Google Java Style: <https://google.github.io/styleguide/javaguide.html>
+- Java 21 features: <https://openjdk.org/projects/jdk/21/>
+- JEP 395 (records): <https://openjdk.org/jeps/395>
+- JEP 409 (sealed): <https://openjdk.org/jeps/409>
+- JEP 441 (pattern matching for switch): <https://openjdk.org/jeps/441>
+- JSpecify: <https://jspecify.dev>

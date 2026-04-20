@@ -50,9 +50,11 @@ const res = await fetch(url, { signal: ac.signal });
 - Pass `signal` through your API surface: `function work(input: T, opts: { signal?: AbortSignal })`.
 - Check `signal.aborted` before expensive work.
 - Use `AbortSignal.timeout(ms)` (Node 17.3+) as a one-liner for timeouts:
+
   ```ts
   const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
   ```
+
 - Combine signals with `AbortSignal.any([sig1, sig2])` (Node 20+).
 
 ## Structured concurrency
@@ -151,7 +153,7 @@ done
 
 ## References
 
-- AbortController: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
-- `AbortSignal.timeout`: https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static
-- Structured concurrency proposal: https://github.com/tc39/proposal-async-context
-- `p-limit`, `p-retry`: https://github.com/sindresorhus/p-limit
+- AbortController: <https://developer.mozilla.org/en-US/docs/Web/API/AbortController>
+- `AbortSignal.timeout`: <https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static>
+- Structured concurrency proposal: <https://github.com/tc39/proposal-async-context>
+- `p-limit`, `p-retry`: <https://github.com/sindresorhus/p-limit>

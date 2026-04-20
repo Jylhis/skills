@@ -8,7 +8,7 @@ user-invocable: false
 
 nix-darwin brings NixOS-style declarative configuration to macOS. It uses the same module system as NixOS: options, types, mkIf, mkMerge, mkDefault. It manages system settings, packages, services, and integrates with Home Manager for per-user configuration.
 
-Repository: https://github.com/LnL7/nix-darwin
+Repository: <https://github.com/LnL7/nix-darwin>
 
 ## Flake-Based Setup
 

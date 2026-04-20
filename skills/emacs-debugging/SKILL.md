@@ -61,7 +61,7 @@ emacs --batch -l ~/.emacs.d/init.el  # batch mode for cleaner output
 
 Backtraces read bottom-to-top. Look for the first frame referencing your code:
 
-```
+```text
 Debugger entered--Lisp error: (wrong-type-argument stringp 42)
   my-module--format-value(42)         ; <- your code, the bug is here
   my-module-display-results()
@@ -173,11 +173,13 @@ M-x memory-report
 ## 5. Freeze Diagnosis
 
 ### macOS
+
 ```bash
 sample Emacs -e -f /tmp/emacs-sample.txt
 ```
 
 ### Linux
+
 ```bash
 sudo perf record -p $(pgrep emacs) -g -- sleep 10
 sudo perf report

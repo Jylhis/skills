@@ -80,7 +80,7 @@ Before reading code examples, determine which language the user is working in:
 
 ### Decision Tree
 
-```
+```text
 What does your application need?
 
 1. Single LLM call (classification, summarization, extraction, Q&A)

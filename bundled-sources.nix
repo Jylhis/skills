@@ -235,4 +235,22 @@ in
       paths.shader-dev = "skills/shader-dev";
     };
   };
+
+  # ── Leonxlnx/taste-skill — UI design taste skills ─────────────────
+  taste-skill = {
+    src = inputs.taste-skill;
+    skills = {
+      namespace = "taste";
+      subdir = "skills";
+    };
+  };
+
+  # ── Orchestra-Research/AI-Research-SKILLs — ML research skills ────
+  ai-research-skills = {
+    src = inputs.ai-research-skills;
+    skills = {
+      namespace = "ai-research";
+      subdir = ".";
+    };
+  };
 }

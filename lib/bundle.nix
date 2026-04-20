@@ -5,7 +5,7 @@
 #   2. Local plugin manifests: generates manifest files only (skills stay as live symlinks)
 { pkgs }:
 let
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
 in
 {
   # Build a skill bundle from a catalog of discovered skills.

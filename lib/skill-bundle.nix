@@ -111,7 +111,7 @@ let
         name: skill:
         mkSkillScript {
           inherit name toolName;
-          src = skill.src;
+          inherit (skill) src;
           packages = skill.packages or [ ];
           transform = skill.transform or null;
         }

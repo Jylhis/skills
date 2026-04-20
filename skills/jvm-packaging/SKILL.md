@@ -202,8 +202,8 @@ done
 
 ## References
 
-- Maven Central portal: https://central.sonatype.com
-- `com.gradleup.nmcp`: https://github.com/GradleUp/nmcp
-- JReleaser: https://jreleaser.org
-- POM reference: https://maven.apache.org/pom.html
-- Semantic versioning: https://semver.org
+- Maven Central portal: <https://central.sonatype.com>
+- `com.gradleup.nmcp`: <https://github.com/GradleUp/nmcp>
+- JReleaser: <https://jreleaser.org>
+- POM reference: <https://maven.apache.org/pom.html>
+- Semantic versioning: <https://semver.org>

@@ -21,7 +21,7 @@ let
     if sourceCfg.paths != { } then
       lib.mapAttrs (_: relPath: {
         src = sourceCfg.src + "/${relPath}";
-        tools = sourceCfg.tools;
+        inherit (sourceCfg) tools;
       }) sourceCfg.paths
     else
       let
@@ -51,7 +51,7 @@ let
       in
       lib.mapAttrs (_: relPath: {
         src = sourceCfg.src + "/${relPath}";
-        tools = sourceCfg.tools;
+        inherit (sourceCfg) tools;
       }) filtered;
 
   sourceOptions =

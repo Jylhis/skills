@@ -17,7 +17,7 @@ let
 
   # ── Context detection ────────────────────────────────────────────────
   isHomeManager = options ? home.homeDirectory;
-  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  inherit (pkgs.stdenv.hostPlatform) isDarwin;
   isSystem = !isHomeManager;
   isNixOS = isSystem && !isDarwin;
   isNixDarwin = isSystem && isDarwin;

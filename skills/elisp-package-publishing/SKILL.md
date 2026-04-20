@@ -93,7 +93,7 @@ Fix every error before submitting.
 
 Fork `melpa/melpa` and add `recipes/foo`:
 
-```
+```elisp
 (foo
  :fetcher github
  :repo "jylhis/foo.el"
@@ -105,7 +105,7 @@ Fork `melpa/melpa` and add `recipes/foo`:
 
 ## NonGNU ELPA submission
 
-Follow https://git.savannah.gnu.org/cgit/emacs/nongnu.git/tree/README.
+Follow <https://git.savannah.gnu.org/cgit/emacs/nongnu.git/tree/README>.
 Submit via mailing list patch or issue. Include a clear license
 statement in every file.
 
@@ -181,8 +181,8 @@ done
 
 ## References
 
-- Elisp manual - Packaging: https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html
-- MELPA recipes: https://github.com/melpa/melpa#recipe-format
-- NonGNU ELPA: https://elpa.nongnu.org
-- package-lint: https://github.com/purcell/package-lint
-- Setup-emacs GitHub Action: https://github.com/purcell/setup-emacs
+- Elisp manual - Packaging: <https://www.gnu.org/software/emacs/manual/html_node/elisp/Packaging.html>
+- MELPA recipes: <https://github.com/melpa/melpa#recipe-format>
+- NonGNU ELPA: <https://elpa.nongnu.org>
+- package-lint: <https://github.com/purcell/package-lint>
+- Setup-emacs GitHub Action: <https://github.com/purcell/setup-emacs>

@@ -47,6 +47,7 @@ variables, free variable references, obsolete function/variable
 warnings, malformed `defcustom` `:type` specs.
 
 **Interpret the output:**
+
 - `reference to free variable` — missing `require`, missing `defvar`, or typo
 - `function 'X' is not known to be defined` — missing `require` or `autoload`
 - `Unused lexical variable` — remove or prefix with `_`
@@ -54,21 +55,25 @@ warnings, malformed `defcustom` `:type` specs.
 ## Phase 3: Semantic Review
 
 ### API Usage
+
 - Modern APIs used consistently (see elisp-conventions skill)
 - Proper `cl-lib` usage rather than custom equivalents
 - Buffer-local variables set with `setq-local`
 
 ### Error Handling
+
 - Interactive commands use `user-error` (not `error`) for user-facing messages
 - `condition-case` for expected failure modes
 - `unwind-protect` around resource acquisition
 
 ### Performance
+
 - Avoid `with-current-buffer` in tight loops
 - Use `save-excursion` / `save-restriction` correctly
 - Prefer `pcase` over deeply nested `cond` for structural matching
 
 ### Documentation
+
 - All public functions have docstrings
 - First line is a complete sentence, arguments in UPCASE
 - `defcustom` variables have meaningful docstrings
@@ -93,7 +98,7 @@ emacs --batch \
 
 ## Review Report Format
 
-```
+```markdown
 ## Critical Issues (must fix)
 - [file:line] description
 

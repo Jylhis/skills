@@ -99,6 +99,7 @@ async def process_users(source: AsyncIterable[User]) -> None:
 
 - `async for` iterates `AsyncIterator` / `AsyncIterable`.
 - `async def` with `yield` creates an async generator:
+
   ```python
   async def stream_lines(path: Path) -> AsyncGenerator[str, None]:
       async with aiofiles.open(path) as f:
@@ -161,7 +162,7 @@ done
 
 ## References
 
-- asyncio docs: https://docs.python.org/3/library/asyncio.html
-- TaskGroup: https://docs.python.org/3/library/asyncio-task.html#asyncio.TaskGroup
-- `asyncio.timeout`: https://docs.python.org/3/library/asyncio-task.html#asyncio.timeout
-- anyio (portability layer): https://anyio.readthedocs.io
+- asyncio docs: <https://docs.python.org/3/library/asyncio.html>
+- TaskGroup: <https://docs.python.org/3/library/asyncio-task.html#asyncio.TaskGroup>
+- `asyncio.timeout`: <https://docs.python.org/3/library/asyncio-task.html#asyncio.timeout>
+- anyio (portability layer): <https://anyio.readthedocs.io>

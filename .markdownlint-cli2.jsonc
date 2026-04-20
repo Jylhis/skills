@@ -1,0 +1,17 @@
+{
+  "config": {
+    "MD013": false,
+    "MD060": false,
+    "MD041": false,
+    "MD024": { "siblings_only": true }
+  },
+  "globs": [
+    "skills/**/SKILL.md",
+    "agents/*.md",
+    "commands/*.md"
+  ],
+  "ignores": [
+    ".devenv/**",
+    "result/**"
+  ]
+}

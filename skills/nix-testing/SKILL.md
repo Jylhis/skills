@@ -7,6 +7,7 @@ user-invocable: false
 # Nix Testing
 
 ## Overview
+
 NixOS provides a VM-based integration testing framework. Tests run in isolated QEMU virtual machines with full NixOS systems. Tests are reproducible, hermetic, and can orchestrate multiple VMs.
 
 ## Where Tests Live (RFC 119)
@@ -22,6 +23,7 @@ Nixpkgs conventions split package tests by speed:
 The NixOS VM test framework documented below produces the VM tests you reference from `passthru.tests` via `nixosTests.<name>`. See the nixpkgs skill for the `passthru.tests` attrset shape.
 
 ## Basic Test Structure
+
 ```nix
 # checks/my-test.nix
 { pkgs, ... }:
@@ -44,6 +46,7 @@ pkgs.nixosTest {
 ```
 
 ## Multi-VM Tests
+
 ```nix
 pkgs.nixosTest {
   name = "client-server-test";
@@ -68,9 +71,11 @@ pkgs.nixosTest {
   '';
 }
 ```
+
 Machines can address each other by node name. Network is set up automatically.
 
 ## Python Test Driver API
+
 Test scripts are Python. Available methods on each machine:
 
 | Method | Purpose |
@@ -92,6 +97,7 @@ Test scripts are Python. Available methods on each machine:
 | `reboot()` | Reboot the VM |
 
 ## Integration with Flake Checks
+
 ```nix
 # flake.nix
 {
@@ -104,32 +110,41 @@ Test scripts are Python. Available methods on each machine:
   };
 }
 ```
+
 Run: `nix flake check` or `nix build .#checks.x86_64-linux.mytest`
 
 ## Interactive Test Driver
+
 Debug failing tests interactively:
+
 ```bash
 nix build .#checks.x86_64-linux.mytest.driverInteractive
 ./result/bin/nixos-test-driver
 ```
+
 This drops you into a Python REPL with machine objects. You can run commands, inspect state, take screenshots.
 
 ## namaka (Snapshot Testing)
+
 For testing Nix expressions (not VMs):
+
 ```nix
 namaka.lib.load {
   src = ./tests;
   inputs = { inherit (inputs) nixpkgs; };
 };
 ```
+
 Captures evaluation results as snapshots. On subsequent runs, compares against snapshots. `namaka review` to accept changes.
 
 ## CI Considerations
+
 - NixOS VM tests require KVM support. GitHub Actions runners support this with `runs-on: ubuntu-latest` (nested virtualization is enabled).
 - For cross-architecture testing (e.g., aarch64 tests on x86_64), use binfmt emulation.
 - Tests can be slow — consider running only affected tests in PRs.
 - Set `virtualisation.memorySize` and `virtualisation.cores` in test nodes to control resource usage.
 
 ## Related Skills
+
 - nixos-modules — writing modules that tests validate
 - nix-linting — CI pipeline integration

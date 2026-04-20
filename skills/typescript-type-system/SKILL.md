@@ -18,6 +18,7 @@ only when simpler code cannot express the constraint.
 - **Name generics descriptively** for non-trivial types: `TUser`,
   `TResponse`, not `T`, `U`, `V`.
 - **Default type parameters** make APIs easier to use:
+
   ```ts
   function fetchJson<TResponse = unknown>(url: string): Promise<TResponse>;
   ```
@@ -26,17 +27,20 @@ only when simpler code cannot express the constraint.
 
 - **Discriminated unions** are the canonical way to model "one of several
   shapes":
+
   ```ts
   type Result<T, E = Error> =
     | { ok: true; value: T }
     | { ok: false; error: E };
   ```
+
 - Use a literal `kind` or `type` field as the discriminator.
 
 ## Narrowing
 
 - Type guards: `typeof`, `instanceof`, `in`, equality checks.
 - **Custom type predicates**:
+
   ```ts
   function isUser(value: unknown): value is User {
     return (
@@ -47,6 +51,7 @@ only when simpler code cannot express the constraint.
     );
   }
   ```
+
 - For runtime validation of external data, use **Zod**.
 
 ## `satisfies` operator
@@ -125,7 +130,7 @@ done
 
 ## References
 
-- Handbook - Generics: https://www.typescriptlang.org/docs/handbook/2/generics.html
-- Handbook - Narrowing: https://www.typescriptlang.org/docs/handbook/2/narrowing.html
-- Zod: https://zod.dev
-- type-fest: https://github.com/sindresorhus/type-fest
+- Handbook - Generics: <https://www.typescriptlang.org/docs/handbook/2/generics.html>
+- Handbook - Narrowing: <https://www.typescriptlang.org/docs/handbook/2/narrowing.html>
+- Zod: <https://zod.dev>
+- type-fest: <https://github.com/sindresorhus/type-fest>

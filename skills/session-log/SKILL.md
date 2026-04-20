@@ -60,11 +60,13 @@ The file may already have entries from earlier sessions this week. Read it first
 ### 3. Review the full conversation and determine dates
 
 Scan the entire conversation history. Identify:
+
 - **Topics** — distinct subjects discussed (group related back-and-forth into one topic)
 - **Decisions** — what was decided or concluded
 - **Outputs** — any reusable artifacts (summaries, plans, draft messages, frameworks, scorecards)
 
 **Date attribution:** A conversation may span multiple days. Determine the correct date for each topic using these signals (in priority order):
+
 1. **System reminders** about date changes ("The date has changed. Today's date is now...")
 2. **File names** with dates (e.g., `2026-02-26 client email.md` was created/discussed on that date)
 3. **Context from session summaries** — if the session was continued from a compacted conversation, the summary may mention which work happened when
@@ -75,6 +77,7 @@ Group topics by their actual date, not just "today."
 ### 4. Write the log entry
 
 For each date that has topics:
+
 - If that date's heading (`## YYYY-MM-DD`) already exists in the file, append new topics under it
 - If the date heading is not yet in the file, add it in the correct reverse-chronological position
 - If the file doesn't exist, create it
@@ -82,11 +85,13 @@ For each date that has topics:
 **Cross-week dates:** If a topic belongs to a date in a different ISO week than the target file, note this to the user and ask whether to add it to the current file or the correct week's file.
 
 **Condensation rules:**
+
 - Multiple related exchanges → one topic bullet
 - Back-and-forth refinement → only the final conclusion matters
 - If user edited/corrected something → use the corrected version, ignore earlier drafts
 
 **Append rules:**
+
 - If today's `## YYYY-MM-DD` heading already has bullets, add new ones at the end — never delete or rewrite existing bullets
 - If a topic from this session overlaps with an existing bullet, add the new details as additional nested bullets under a new topic bullet — don't merge into existing text
 

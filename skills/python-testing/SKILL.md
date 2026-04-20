@@ -19,7 +19,7 @@ uv add --dev pytest pytest-asyncio pytest-cov
 
 ## Project layout
 
-```
+```text
 my_package/
 ├── src/
 │   └── my_package/
@@ -188,7 +188,7 @@ done
 
 ## References
 
-- pytest docs: https://docs.pytest.org
-- pytest fixtures: https://docs.pytest.org/en/stable/explanation/fixtures.html
-- pytest-asyncio: https://pytest-asyncio.readthedocs.io
-- Coverage.py: https://coverage.readthedocs.io
+- pytest docs: <https://docs.pytest.org>
+- pytest fixtures: <https://docs.pytest.org/en/stable/explanation/fixtures.html>
+- pytest-asyncio: <https://pytest-asyncio.readthedocs.io>
+- Coverage.py: <https://coverage.readthedocs.io>

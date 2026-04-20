@@ -10,7 +10,7 @@ let
     url = "https://github.com/${fc.owner}/${fc.repo}/archive/${fc.rev}.tar.gz";
     sha256 = fc.narHash;
   };
-  inputs = (import flake-compat { src = ./.; }).defaultNix.inputs;
+  inherit ((import flake-compat { src = ./.; }).defaultNix) inputs;
 in
 {
   inherit (inputs)
@@ -28,5 +28,7 @@ in
     trailofbits-skills-curated
     addyosmani-agent-skills
     minimax-skills
+    taste-skill
+    ai-research-skills
     ;
 }

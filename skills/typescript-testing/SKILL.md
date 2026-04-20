@@ -136,6 +136,6 @@ done
 
 ## References
 
-- Vitest docs: https://vitest.dev
-- Vitest API: https://vitest.dev/api/
-- Vitest config: https://vitest.dev/config/
+- Vitest docs: <https://vitest.dev>
+- Vitest API: <https://vitest.dev/api/>
+- Vitest config: <https://vitest.dev/config/>

@@ -34,7 +34,7 @@ Create `.prettierrc.json`:
 
 ## `.prettierignore`
 
-```
+```gitignore
 dist/
 coverage/
 node_modules/
@@ -105,7 +105,7 @@ done
 
 ## References
 
-- Prettier docs: https://prettier.io/docs/en/
-- Options: https://prettier.io/docs/en/options
-- Ignoring code: https://prettier.io/docs/en/ignore
-- Biome (alternative): https://biomejs.dev
+- Prettier docs: <https://prettier.io/docs/en/>
+- Options: <https://prettier.io/docs/en/options>
+- Ignoring code: <https://prettier.io/docs/en/ignore>
+- Biome (alternative): <https://biomejs.dev>

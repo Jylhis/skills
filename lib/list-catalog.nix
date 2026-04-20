@@ -3,7 +3,7 @@
 let
   flakeSources = import ../_sources.nix;
   pkgs = import flakeSources.nixpkgs { };
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
   discoverSkills = import ./discover.nix;
 
   # Discover skills from flat skills/ directory

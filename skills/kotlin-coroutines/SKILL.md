@@ -113,6 +113,7 @@ suspend fun process(items: List<Item>) {
 - Call `yield()` inside long loops.
 - `ensureActive()` throws `CancellationException` if cancelled.
 - Catch `CancellationException` **only to clean up**, then re-throw:
+
   ```kotlin
   try {
       doWork()
@@ -168,6 +169,7 @@ supervisorScope {
   `.await()`, but with `supervisorScope` it doesn't propagate to
   siblings.
 - **`CoroutineExceptionHandler`** for uncaught top-level errors:
+
   ```kotlin
   val handler = CoroutineExceptionHandler { _, ex ->
       log.error("uncaught", ex)
@@ -215,7 +217,7 @@ done
 
 ## References
 
-- kotlinx.coroutines guide: https://kotlinlang.org/docs/coroutines-guide.html
-- Structured concurrency: https://elizarov.medium.com/structured-concurrency-722d765aa952
-- Coroutine context and dispatchers: https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html
-- Flow: https://kotlinlang.org/docs/flow.html
+- kotlinx.coroutines guide: <https://kotlinlang.org/docs/coroutines-guide.html>
+- Structured concurrency: <https://elizarov.medium.com/structured-concurrency-722d765aa952>
+- Coroutine context and dispatchers: <https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html>
+- Flow: <https://kotlinlang.org/docs/flow.html>

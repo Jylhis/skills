@@ -41,6 +41,7 @@ async iterables. Prefer:
 2. **Web Streams** — when interop with `fetch`, workers, or browser
    code matters.
 3. **`node:stream/promises` `pipeline`** — for classic streams:
+
    ```ts
    import { pipeline } from 'node:stream/promises';
    import { createReadStream, createWriteStream } from 'node:fs';
@@ -129,9 +130,11 @@ fan-out.
 
 - Use `process.env.FOO` directly for simple cases.
 - For larger apps, validate with Zod at startup:
+
   ```ts
   const env = EnvSchema.parse(process.env);
   ```
+
 - Use `node --env-file=.env` (Node 20.6+) instead of `dotenv`.
 
 ## Top-level await
@@ -164,7 +167,7 @@ done
 
 ## References
 
-- Node.js API docs: https://nodejs.org/docs/latest-v22.x/api/
-- `node:stream/promises`: https://nodejs.org/api/stream.html#streams-promises-api
-- pino: https://getpino.io
-- execa: https://github.com/sindresorhus/execa
+- Node.js API docs: <https://nodejs.org/docs/latest-v22.x/api/>
+- `node:stream/promises`: <https://nodejs.org/api/stream.html#streams-promises-api>
+- pino: <https://getpino.io>
+- execa: <https://github.com/sindresorhus/execa>

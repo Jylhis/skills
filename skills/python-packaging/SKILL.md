@@ -15,7 +15,7 @@ projects.
 ## Install
 
 uv is declared in `plugin.nix` -- available via devenv. For other
-environments: https://docs.astral.sh/uv/getting-started/installation/
+environments: <https://docs.astral.sh/uv/getting-started/installation/>
 
 ## Create a new project
 
@@ -170,7 +170,7 @@ done
 
 ## References
 
-- uv docs: https://docs.astral.sh/uv/
-- `pyproject.toml` guide: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
-- PEP 735 (dependency groups): https://peps.python.org/pep-0735/
-- hatchling: https://hatch.pypa.io/latest/
+- uv docs: <https://docs.astral.sh/uv/>
+- `pyproject.toml` guide: <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>
+- PEP 735 (dependency groups): <https://peps.python.org/pep-0735/>
+- hatchling: <https://hatch.pypa.io/latest/>

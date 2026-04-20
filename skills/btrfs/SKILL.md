@@ -18,7 +18,7 @@ The NixOS community has converged on a **flat subvolume layout** at
 the btrfs top level (`subvolid=5`). Separate subvolumes for each
 distinct backup/snapshot policy:
 
-```
+```text
 @root      mounted at /
 @home      mounted at /home
 @nix       mounted at /nix
@@ -163,6 +163,7 @@ until the snapshots are also deleted. The GC decrements Nix's own
 refcount but the snapshot still pins the extents.
 
 Best practices:
+
 - Rotate old Btrfs snapshots **before or after** running
   `nix-collect-garbage -d`.
 - **Do not include `/nix`** in timeline-based snapshot policies

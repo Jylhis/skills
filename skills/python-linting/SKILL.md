@@ -9,6 +9,7 @@ description: >
 # Python linting with ruff
 
 Ruff: 10-100x faster than flake8, replaces flake8 + isort + pydocstyle
+
 + pylint + most plugins. Do not use pylint, flake8, or pyflakes in new
 projects.
 
@@ -69,9 +70,9 @@ formatter), `T20` (print — scripts use print legitimately), `TRY`
 value = eval(user_input)  # noqa: S307  reason: REPL tool, trusted input
 ```
 
-- Always specify the rule: `# noqa: E501`, not bare `# noqa`.
-- Always include a reason.
-- Bare `# noqa` is caught by `RUF100`.
++ Always specify the rule: `# noqa: E501`, not bare `# noqa`.
++ Always include a reason.
++ Bare `# noqa` is caught by `RUF100`.
 
 ## Running
 
@@ -107,11 +108,11 @@ pyright catches types.
 
 ## Anti-patterns
 
-- Using ruff **and** black **and** isort — ruff replaces them both.
-- Mixing pylint with ruff — 80% duplication.
-- Disabling whole rule groups because of one violation — use per-file
++ Using ruff **and** black **and** isort — ruff replaces them both.
++ Mixing pylint with ruff — 80% duplication.
++ Disabling whole rule groups because of one violation — use per-file
   ignores.
-- `# noqa` on every other line — disable the rule in config instead.
++ `# noqa` on every other line — disable the rule in config instead.
 
 ## Tool detection
 
@@ -123,6 +124,6 @@ done
 
 ## References
 
-- Ruff docs: https://docs.astral.sh/ruff/
-- Rules: https://docs.astral.sh/ruff/rules/
-- Configuration: https://docs.astral.sh/ruff/configuration/
++ Ruff docs: <https://docs.astral.sh/ruff/>
++ Rules: <https://docs.astral.sh/ruff/rules/>
++ Configuration: <https://docs.astral.sh/ruff/configuration/>

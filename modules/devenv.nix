@@ -57,7 +57,7 @@ let
     let
       skillEntries = lib.mapAttrsToList (name: skill: {
         inherit name;
-        src = skill.src;
+        inherit (skill) src;
       }) (cfg.skills or { });
     in
     lib.concatMapStringsSep "\n" (
@@ -198,7 +198,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    packages = cfg.packages;
+    inherit (cfg) packages;
 
     # Delegate Claude Code to devenv's built-in integration
     claude.code = lib.mkIf cfg.tools.claude-code.enable {

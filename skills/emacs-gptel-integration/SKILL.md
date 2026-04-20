@@ -124,9 +124,9 @@ done
 
 ## References
 
-- gptel: https://github.com/karthink/gptel
-- mcp.el: https://github.com/lizqwerscott/mcp.el (and similar)
-- mcp-server-lib.el: https://github.com/laurynas-biveinis/mcp-server-lib.el
-- elisp-dev-mcp: https://github.com/laurynas-biveinis/elisp-dev-mcp
-- emacs-mcp-server (rhblind): https://github.com/rhblind/emacs-mcp-server
-- Anthropic auth-source setup: https://www.gnu.org/software/emacs/manual/html_node/auth/index.html
+- gptel: <https://github.com/karthink/gptel>
+- mcp.el: <https://github.com/lizqwerscott/mcp.el> (and similar)
+- mcp-server-lib.el: <https://github.com/laurynas-biveinis/mcp-server-lib.el>
+- elisp-dev-mcp: <https://github.com/laurynas-biveinis/elisp-dev-mcp>
+- emacs-mcp-server (rhblind): <https://github.com/rhblind/emacs-mcp-server>
+- Anthropic auth-source setup: <https://www.gnu.org/software/emacs/manual/html_node/auth/index.html>

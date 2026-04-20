@@ -9,6 +9,7 @@ user-invocable: false
 Local documentation is authoritative and version-matched to the software actually installed. Prefer it over web search for CLI usage, flags, configuration options, and system behavior. Web search results often describe different versions, different platforms, or deprecated features.
 
 Unix documentation hierarchy (check in this order):
+
 1. Man pages -- the primary reference for most commands and config files
 2. Info pages -- book-length GNU references (bash, coreutils, make)
 3. `--help` / `help` -- quick inline summaries
@@ -72,6 +73,7 @@ man -w <name>           # Show file path without opening -- reveals which packag
 ```
 
 If `man -k` returns "nothing appropriate", the whatis database needs rebuilding:
+
 - Linux: `sudo mandb`
 - BSD/macOS: `sudo /usr/libexec/makewhatis`
 
@@ -107,6 +109,7 @@ GNU Info provides structured, hyperlinked documentation. Some GNU tools have min
 ### When to Use Info
 
 Use info instead of man when:
+
 - The man page says "The full documentation is maintained as a Texinfo manual"
 - You need comprehensive coverage of bash, coreutils, make, grep, sed, awk, gzip, or texinfo
 
@@ -174,7 +177,7 @@ Packages often ship supplementary docs beyond man pages.
 
 ### Standard Locations
 
-```
+```text
 /usr/share/doc/<package>/           # Package-specific docs
 /usr/share/doc/<package>/examples/  # Config samples, scripts
 /usr/share/doc/<package>/README*    # Package README
@@ -200,39 +203,46 @@ For Nix-managed systems, see `references/nix-managed.md`.
 
 When you don't know where documentation lives for a tool or topic:
 
-**Step 1: Check if a man page exists**
+### Step 1: Check if a man page exists
+
 ```bash
 man -w <name> 2>/dev/null && echo "found" || echo "no man page"
 ```
 
-**Step 2: Search by keyword**
+### Step 2: Search by keyword
+
 ```bash
 man -k <keyword>            # Search descriptions
 ```
 
-**Step 3: Locate the binary and check siblings**
+### Step 3: Locate the binary and check siblings
+
 ```bash
 which <tool>                # Find the binary
 # Then check ../share/man/ and ../share/doc/ relative to the binary
 ```
 
-**Step 4: Try inline help**
+### Step 4: Try inline help
+
 ```bash
 <tool> --help 2>&1 | head -20
 ```
 
-**Step 5: Check if it's a builtin**
+### Step 5: Check if it's a builtin
+
 ```bash
 type <cmd>
 # If builtin: help <cmd> (bash) or man zshbuiltins (zsh)
 ```
 
-**Step 6: Check bundled docs**
+### Step 6: Check bundled docs
+
 ```bash
 ls /usr/share/doc/ | grep -i <name>
 ```
 
-**Step 7: Platform-specific sources**
+### Step 7: Platform-specific sources
+
 - Nix-managed systems: read `references/nix-managed.md`
 - macOS: read `references/macos.md`
 

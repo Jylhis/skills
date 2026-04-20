@@ -59,6 +59,14 @@
       url = "github:MiniMax-AI/skills";
       flake = false;
     };
+    taste-skill = {
+      url = "github:Leonxlnx/taste-skill";
+      flake = false;
+    };
+    ai-research-skills = {
+      url = "github:Orchestra-Research/AI-Research-SKILLs";
+      flake = false;
+    };
   };
 
   outputs =

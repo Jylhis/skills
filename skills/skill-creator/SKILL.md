@@ -72,7 +72,7 @@ Skills must not contain malware, exploit code, or anything that would surprise t
 
 ## Anatomy of a skill
 
-```
+```text
 skill-name/
 ├── SKILL.md (required)
 │   ├── YAML frontmatter (name, description — required)
@@ -101,7 +101,7 @@ Information should live in either SKILL.md or references, **not both**. Keep onl
 
 When a skill supports multiple providers/frameworks/domains, put only workflow + selection in SKILL.md and split variants:
 
-```
+```text
 cloud-deploy/
 ├── SKILL.md (workflow + provider selection)
 └── references/
@@ -243,7 +243,7 @@ For each test case, spawn two subagents in the same turn — one with the skill,
 
 **With-skill run:**
 
-```
+```text
 Execute this task:
 - Skill path: <path-to-skill>
 - Task: <eval prompt>
@@ -504,7 +504,7 @@ python -m scripts.package_skill <path/to/skill-folder>
 
 Before shipping a skill:
 
-**Content**
+### Content
 
 - [ ] Description includes both *what* and *when* (explicit trigger phrases).
 - [ ] SKILL.md under ~500 lines; bulky material lives in `references/`.
@@ -514,7 +514,7 @@ Before shipping a skill:
 - [ ] No duplication between SKILL.md and references.
 - [ ] No README.md / CHANGELOG.md / installation guide files inside the skill.
 
-**Testing**
+### Testing
 
 - [ ] 2–3 realistic test prompts saved to `evals/evals.json`.
 - [ ] Assertions are objectively verifiable with descriptive names.
@@ -523,7 +523,7 @@ Before shipping a skill:
 - [ ] Benchmark aggregated (`benchmark.json` + `benchmark.md`).
 - [ ] User reviewed outputs in the viewer.
 
-**Optional**
+### Optional
 
 - [ ] Trigger eval set (20 queries) generated and user-reviewed.
 - [ ] Description optimized via `run_loop.py`; `best_description` applied.

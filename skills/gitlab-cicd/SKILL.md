@@ -11,6 +11,7 @@ GitLab CI/CD pipeline configuration -- YAML gotchas, components, templates, and 
 These are the most common pitfalls when writing `.gitlab-ci.yml`. Each one has caused real production issues.
 
 ### Rules Gotchas
+
 - `rules:` and `only:/except:` cannot mix -- use one or the other per job
 - First matching rule wins -- put specific rules before general ones
 - Missing `when:` defaults to `on_success` -- `rules: - if: $CI_COMMIT_TAG` runs on tag pushes
@@ -18,35 +19,42 @@ These are the most common pitfalls when writing `.gitlab-ci.yml`. Each one has c
 - Add `- when: never` at end to prevent fallthrough -- otherwise unmatched conditions may run
 
 ### Silent Failures
+
 - Protected variables missing on non-protected branches -- job runs but variable is empty
 - Runner tag mismatch -- job stays pending forever with no error
 - `docker:dind` on non-privileged runner -- fails with cryptic Docker errors
 - Masked variable format invalid -- variable exposed in logs anyway
 
 ### YAML Merge Traps
+
 - `extends:` does not deep merge arrays -- scripts and variables arrays get replaced, not appended
 - Use `!reference [.job, script]` to reuse: `script: [!reference [.base, script], "my command"]`
 - `include:` files can override each other -- last one wins for same keys
 - Anchors `&`/`*` do not work across files -- use `extends:` for cross-file reuse
 
 ### Artifacts vs Cache
+
 - Cache is not guaranteed between runs -- treat as optimization, not requirement
 - Artifacts auto-download by stage -- add `dependencies: []` to skip if not needed
 - `needs:` downloads artifacts by default -- `needs: [{job: x, artifacts: false}]` to skip
 
 ### Docker-in-Docker
+
 - Shared runners usually do not support privileged mode -- need self-hosted or special config
 - `DOCKER_HOST: tcp://docker:2375` required -- job uses wrong Docker otherwise
 - `DOCKER_TLS_CERTDIR: ""` or configure TLS properly -- half-configured TLS breaks builds
 
 ### Pipeline Triggers
+
 - `CI_PIPELINE_SOURCE` differs by trigger: `push`, `merge_request_event`, `schedule`, `api`, `trigger`, `pipeline`, `parent_pipeline`
 - MR pipelines need `rules: - if: $CI_MERGE_REQUEST_IID` -- not just branch rules
 - Detached vs merged result pipelines -- detached tests source, merged tests the merge result
 - Use `"pipeline"` for multi-project triggers, `"parent_pipeline"` for parent-child
 
 ### Duplicate Pipelines
+
 Without `workflow:rules`, both a branch pipeline AND MR pipeline run for the same push:
+
 ```yaml
 workflow:
   rules:
@@ -55,12 +63,14 @@ workflow:
 ```
 
 ### Deprecated Patterns
+
 - Globally-defined `image`, `services`, `cache`, `before_script`, `after_script` -- use `default:` section
 - `artifacts:public` -- replaced by `artifacts:access` (`developer`, `maintainer`, `none`, `all`)
 - `only:/except:` -- replaced by `rules:` (more flexible)
 - Unquoted numeric variables -- `VAR: 012345` becomes octal (5349). Always quote: `VAR: "012345"`
 
 ### Component / Input Gotchas
+
 - Empty `spec:inputs:` causes error -- use empty `spec:` instead if no inputs needed
 - `~latest` version only works with published catalog resources, not during development
 - Max 100 components per project, max 150 includes per pipeline
@@ -86,7 +96,7 @@ include:
 
 Components live in `templates/` -- one YAML file per component, or a directory with `template.yml`:
 
-```
+```text
 my-components/
 ├── templates/
 │   ├── lint.yml                    # single-file component
@@ -211,6 +221,7 @@ deploy:
 ## Pipeline Best Practices
 
 ### Prevent Duplicate Pipelines
+
 ```yaml
 workflow:
   name: 'Pipeline for $CI_COMMIT_BRANCH'
@@ -248,6 +259,7 @@ test:
 ### Resource Groups (Deployment Safety)
 
 Prevent concurrent deployments:
+
 ```yaml
 deploy:production:
   resource_group: production
@@ -357,7 +369,7 @@ For complete pipeline templates (Node.js, Docker), see [references/pipeline-temp
 
 ### Reuse Pipeline Config
 
-```
+```text
 Sharing CI/CD logic across projects?
 +- Same project         -> extends: or include: local:
 +- Across projects      -> CI/CD Component (CI/CD Catalog)
@@ -367,7 +379,7 @@ Sharing CI/CD logic across projects?
 
 ### Which Pipeline Type?
 
-```
+```text
 What triggers the pipeline?
 +- Code push            -> CI_PIPELINE_SOURCE == "push"
 +- MR created/updated   -> CI_PIPELINE_SOURCE == "merge_request_event"

@@ -19,7 +19,7 @@ mature in 2.3, though **cross-dataset reflinks still fail with
 Group datasets by **backup/snapshot policy, not FHS path**. This is
 the canonical NixOS-on-ZFS pattern:
 
-```
+```text
 tank/local/nix                 # /nix           — never backed up, reproducible
 tank/system/root               # /              — periodic snapshots
 tank/system/var                # /var           — includes journals, state
@@ -39,7 +39,7 @@ Every dataset inherits pool-level defaults unless explicitly overridden.
 
 Set at the pool root so every dataset inherits them:
 
-```
+```ini
 compression=lz4
 atime=off
 xattr=sa
@@ -73,6 +73,7 @@ writes into large files** — a database writing 8 KB pages into a 128 KB
 record triggers read-modify-write amplification.
 
 **Modern consensus:**
+
 - **PostgreSQL: keep `recordsize=128K` + compression enabled** (not
   the old 8K advice). Smaller recordsize kills compression ratios, and
   compression more than offsets the write amplification on modern
@@ -88,6 +89,7 @@ negligible even on already-compressed files. At ~660 MB/s compress
 speed, LZ4 is the safe universal default.
 
 **Upgrade to zstd for specific datasets:**
+
 - **`zstd` (level 3, default)** on Nix store, Docker layers, logs.
   Ratios: Nix store ~2.5–3.5×, logs 5–10×, source code similar.
 - **`zstd-9`** only for cold/archival data where write speed is

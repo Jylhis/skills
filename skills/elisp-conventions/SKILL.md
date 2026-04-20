@@ -39,6 +39,7 @@ Every `.el` file follows this layout:
 ```
 
 **Mandatory:**
+
 - `lexical-binding: t` on line 1
 - `(provide 'my-module)` at the bottom, matching the filename
 - Footer comment `;;; my-module.el ends here`

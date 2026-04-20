@@ -56,7 +56,7 @@ Rather than picking a specific skill upfront, match the **phase of work**
 to a namespace, then rely on the trigger descriptions to pick the exact
 skill.
 
-```
+```text
 Task arrives
     │
     ├── "What should we build?" / unclear scope
@@ -110,7 +110,7 @@ Before implementing anything non-trivial, state the assumptions you're
 making. Give the human a chance to correct silent misinterpretations
 before rework piles up:
 
-```
+```text
 Assumptions I'm making:
 1. [scope / requirements / architecture]
 2. ...

@@ -50,6 +50,7 @@ export default tseslint.config(
 ## Rule selection
 
 **Always enable:**
+
 - `@typescript-eslint/no-floating-promises`
 - `@typescript-eslint/no-misused-promises`
 - `@typescript-eslint/await-thenable`
@@ -58,12 +59,14 @@ export default tseslint.config(
 - `@typescript-eslint/no-explicit-any` (warn at minimum)
 
 **Consider:**
+
 - `@typescript-eslint/strict-boolean-expressions`
 - `@typescript-eslint/prefer-nullish-coalescing`
 - `@typescript-eslint/prefer-optional-chain`
 - `@typescript-eslint/switch-exhaustiveness-check`
 
 **Disable:**
+
 - `no-unused-vars` (base rule — use the TS version).
 
 ## Per-file overrides
@@ -122,6 +125,6 @@ done
 
 ## References
 
-- ESLint flat config: https://eslint.org/docs/latest/use/configure/configuration-files
-- typescript-eslint: https://typescript-eslint.io
-- Shared configs: https://typescript-eslint.io/users/configs
+- ESLint flat config: <https://eslint.org/docs/latest/use/configure/configuration-files>
+- typescript-eslint: <https://typescript-eslint.io>
+- Shared configs: <https://typescript-eslint.io/users/configs>

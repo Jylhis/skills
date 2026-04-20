@@ -46,6 +46,8 @@ in
     ln -sfn "${settingsFile}" "$DEVENV_ROOT/.claude/settings.json"
 
     # Skills dir is a real directory so local and third-party skills coexist.
+    # If a previous run left a symlink (e.g. from an earlier repo layout), drop it.
+    [ -L "$DEVENV_ROOT/.claude/skills" ] && rm "$DEVENV_ROOT/.claude/skills"
     mkdir -p "$DEVENV_ROOT/.claude/skills"
     for skill in "$DEVENV_ROOT/skills"/*/; do
       [ -d "$skill" ] && ln -sfn "$skill" "$DEVENV_ROOT/.claude/skills/$(basename "$skill")"

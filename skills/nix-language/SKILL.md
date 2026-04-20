@@ -182,6 +182,7 @@ stdenv.mkDerivation {
 Nix is lazy: values are not computed when bound — only when referenced. Each binding creates a "thunk" (a deferred computation) that executes on first access. Nix evaluates to Weak Head Normal Form (WHNF) — only the outermost structure is evaluated.
 
 **Consequences:**
+
 - `builtins.length [ (1/0) (2/0) ]` returns `2` without error — list elements are never evaluated
 - `if true then "ok" else (throw "never")` succeeds — the else branch stays unevaluated
 - nixpkgs (300K+ packages) loads instantly — only requested packages evaluate
@@ -230,6 +231,7 @@ myPkg = callPackage ./package.nix {};
 ```
 
 **Why `callPackage` matters:**
+
 - **Overridable:** `myPkg.override { openssl = openssl_1_1; }` swaps one dependency
 - **Cross-compilation:** `callPackage` resolves `nativeBuildInputs` from `buildPackages` automatically through "splicing"
 - **Upstreamable:** Packages in `callPackage` form are directly submittable to nixpkgs
@@ -260,23 +262,23 @@ Read `references/advanced.md` for the full builtins and lib reference. See `refe
 
 Document Nix functions with `/** ... */` — **double** asterisk opening. Single-star `/* */` and `#` are implementation comments; only `/** */` is parsed as documentation by `nixdoc` and LSP tooling.
 
-```nix
+````nix
 /**
   Compute the sum of two numbers.
 
   # Example
-  ```
+  ```nix
   add 1 2
   => 3
   ```
 
   # Type
-  ```
+  ```text
   add :: Number -> Number -> Number
   ```
 */
 add = a: b: a + b;
-```
+````
 
 Body is CommonMark. Use fenced code blocks for examples and type signatures.
 
@@ -309,9 +311,11 @@ lib.const x                        # Always return x
 - **Avoid `with pkgs;` in large scopes** — breaks static analysis, doesn't shadow let-bindings, makes name origins unclear. Prefer `inherit (pkgs) git curl;`. RFC 190 (open) proposes banning `with` in nixpkgs entirely.
 - **Don't use lookup paths** (`<nixpkgs>`) — depends on `$NIX_PATH` environment variable, breaks reproducibility. Pin nixpkgs explicitly.
 - **Set config and overlays explicitly** when importing nixpkgs:
+
   ```nix
   import nixpkgs { config = {}; overlays = []; }
   ```
+
   Without this, impure filesystem reads (`~/.config/nixpkgs/config.nix`) can change results.
 - **Don't use `builtins.toPath`** — deprecated
 - **Don't read secrets at eval time** — `builtins.readFile` embeds content in the store (world-readable)
