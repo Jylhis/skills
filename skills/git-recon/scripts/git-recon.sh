@@ -22,12 +22,15 @@ if [[ "$COMMIT_COUNT" -lt 2 ]]; then
 fi
 
 run_pipeline() {
+  local cmd_template="$1"
+  local default_msg="$2"
   local output
-  output=$(eval "$1" 2>/dev/null) || true
+  # Pass SINCE via environment to bash -c to avoid injection
+  output=$(SINCE="$SINCE" bash -c "$cmd_template" 2>/dev/null) || true
   if [[ -n "$output" ]]; then
     echo "$output"
   else
-    echo "$2"
+    echo "$default_msg"
   fi
 }
 
