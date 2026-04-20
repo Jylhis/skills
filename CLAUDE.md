@@ -51,26 +51,30 @@ See https://devenv.sh/ad-hoc-developer-environments/
 - `_sources.nix` → `{ nixpkgs, promptfoo }` sourced from the same `flake-compat` evaluation; used by in-tree helpers (`runtime/`, `tests/`, `lib/list-catalog.nix`)
 - `devenv.yaml` → devenv inputs (nixpkgs pinned to same rev as flake.lock, synced via `just update`)
 
-### Module System (module.nix)
+### Module System (modules/)
 
-Single module serving three contexts — detected at eval time:
-- **Home Manager**: `home.file` symlinks via `mkOutOfStoreSymlink`
+`modules/` is a single module tree serving three contexts — detected at eval time:
+- **Home Manager**: `home.file` symlinks (optionally `mkOutOfStoreSymlink` when `livePath` is set)
 - **NixOS**: `systemd.tmpfiles.rules` with explicit owner
 - **nix-darwin**: `system.activationScripts.postActivation` (mkdir + ln + chown)
 
-Context detection: `isHomeManager = options ? home.homeDirectory`, `isDarwin = pkgs.stdenv.hostPlatform.isDarwin`.
+Context detection: `isHomeManager = options ? home.homeDirectory`, `isDarwin = pkgs.stdenv.hostPlatform.isDarwin` (see `modules/core.nix`).
 
-The module discovers skills from `skills/` and third-party sources (`sources.nix` keys mapped to flake inputs via `_sources.nix` / `flake-compat`) via `lib/discover.nix`. Pure eval: module resolves everything from relative paths, never from `cfg.repoPath` at eval time.
+`modules/skills.nix` declares `programs.jstack.skills.<name>` (individual) and `programs.jstack.skillSources.<name>` (bulk; supports `include`/`exclude`). `flake.nix` resolves each entry in `bundled-sources.nix` against its flake inputs and injects the result into `modules/bundled.nix` via `_module.args.jstackBundledSources`, so repo-bundled upstream skills appear to downstream consumers as first-class. Consumer-defined `skillSources` / `skills` / `agents` / `commands` merge additively with the bundled defaults — nothing is overridden.
 
 ### Runtime Package
 
 `overlay.nix` adds `jstack-runtime` to nixpkgs. `runtime/default.nix` imports `lib/servers.nix` and builds a `pkgs.buildEnv` from its `packages` list.
 
+### Options documentation
+
+`docs/options/default.nix` renders the `programs.jstack` option tree into a static site via `pkgs.nixosOptionsDoc` + `pandoc`, exposed as `packages.${system}.options-doc` in flake.nix. `.github/workflows/docs.yml` builds it on push to `main` and publishes to GitHub Pages.
+
 ### Canonical Sources
 
 - `settings.nix` → `settings.json` (regenerate with `just generate-settings`)
 - `lib/servers.nix` → `.mcp.json`, `.lsp.json` (regenerate with `just generate-servers`)
-- `sources.nix` → third-party skill source config (keys must match flake input names)
+- `bundled-sources.nix` → upstream skill repos bundled into jstack (keys must match flake input names)
 
 ## Skill Structure
 
@@ -86,15 +90,18 @@ description: "When to trigger this skill"
 
 Skills are grouped logically in `lib/default-skills.nix` (nix, golang, rust, python, typescript, jvm, emacs, etc.) for module consumers.
 
-## Adding Third-Party Sources
+## Bundling Upstream Skill Repositories
 
 1. Add non-flake input to `flake.nix`: `my-source = { url = "github:owner/repo"; flake = false; };`
 2. Run `nix flake lock`
-3. Add entry to `sources.nix`: `my-source = { namespace = "my-ns"; skillsRoot = "path/to/skills"; };`
+3. Add entry to `bundled-sources.nix`: `my-source = { namespace = "my-ns"; subdir = "skills"; include = [ "skill-a" "skill-b" ]; };`
+4. `just check`
+
+Update with `nix flake update my-source` (or `just update` for everything).
 
 ## Testing
 
-- `nix flake check` — pure flake evaluation + module-eval checks (22 assertions across HM/NixOS/nix-darwin)
+- `nix flake check` — pure flake evaluation + module-eval checks across HM/NixOS/nix-darwin
 - `devenv test` — 15 smoke tests (tools, JSON, nix files, servers, discovery, module eval, rev parity)
 - `tests/module-eval.nix` — synthetic eval driver testing all module contexts + negative cases + pure-eval regression
 - `just eval*` — promptfoo evaluation suite (routing, discovery, quality, adversarial)

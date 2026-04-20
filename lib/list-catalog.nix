@@ -11,18 +11,18 @@ let
     namespace = "jstack";
   };
 
-  # Discover third-party skills from flake inputs
-  thirdPartySources = import ../sources.nix;
-  thirdPartyCatalogs = pkgs.lib.mapAttrsToList (
+  # Discover bundled upstream skills (flake inputs declared in bundled-sources.nix).
+  bundledSources = import ../bundled-sources.nix;
+  bundledCatalogs = pkgs.lib.mapAttrsToList (
     pinName: opts:
     discoverSkills {
-      path = flakeSources.${pinName} + "/${opts.skillsRoot or "."}";
-      namespace = opts.namespace;
+      path = flakeSources.${pinName} + "/${opts.subdir or "."}";
+      namespace = opts.namespace or pinName;
       maxDepth = opts.maxDepth or 5;
     }
-  ) thirdPartySources;
+  ) bundledSources;
 
-  allCatalogs = [ localCatalog ] ++ thirdPartyCatalogs;
+  allCatalogs = [ localCatalog ] ++ bundledCatalogs;
   merged = builtins.foldl' (a: b: a // b) { } allCatalogs;
 in
 builtins.mapAttrs (_: s: {

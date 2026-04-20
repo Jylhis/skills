@@ -288,10 +288,10 @@ update_shell_rc() {
   if [[ -L "$rc" && "$(readlink "$rc")" == /nix/store/* ]] || [[ ! -w "$rc" ]]; then
     warn "$rc is managed by Nix — skipping shell rc update"
     printf '\n  Use the home-manager module instead:\n\n'
-    printf '    imports = [ %s/module.nix ];\n' "$REPO_ROOT"
+    printf '    imports = [ %s/modules ];\n' "$REPO_ROOT"
     printf '    programs.jstack = {\n'
     printf '      enable = true;\n'
-    printf '      repoPath = "%s";\n' "$REPO_ROOT"
+    printf '      livePath = "%s";\n' "$REPO_ROOT"
     printf '    };\n\n'
     log_action skip "$rc" "managed by Nix"
     NEXT_STEPS+=("Add the jstack home-manager module to your configuration (see above)")

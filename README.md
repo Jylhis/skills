@@ -22,7 +22,7 @@ All things are generally categorised under following categories:
 ├── settings.nix               # canonical settings source (generates settings.json)
 ├── settings.json              # generated — do not edit directly
 ├── CLAUDE.md                  # source of truth for ~/.claude/CLAUDE.md
-├── sources.nix                # third-party skill source configuration (flake inputs)
+├── bundled-sources.nix        # upstream skill repos bundled as first-class jstack skills
 ├── skills/                    # personal skills (dir-per-skill, SKILL.md inside)
 ├── agents/                    # personal subagent .md files
 ├── commands/                  # personal slash command .md files
@@ -42,7 +42,7 @@ All things are generally categorised under following categories:
 │   ├── bundle.nix             # bundle builder for third-party skills
 │   └── list-catalog.nix       # convenience: list all discovered skills
 ├── runtime/default.nix        # pkgs.buildEnv with LSPs (auto-aggregates from plugin.nix)
-├── module.nix                 # Home Manager module (multi-target)
+├── modules/                   # multi-target module (NixOS / nix-darwin / Home Manager)
 ├── evals/                     # promptfoo eval suite
 │   ├── promptfooconfig.yaml   # eval harness config
 │   └── cases/                 # per-plugin test cases
@@ -73,10 +73,12 @@ Each plugin is defined by a `plugin.nix` file (source of truth). Manifests
 }
 ```
 
-## Third-party sources
+## Bundling upstream skill repos
 
-Pin external skill repos as non-flake inputs in `flake.nix`, then
-configure them in `sources.nix`:
+Pin external skill repos as non-flake inputs in `flake.nix`, then list
+them in `bundled-sources.nix`. The module auto-registers each entry so
+the upstream skills appear as first-class jstack skills to every
+downstream consumer.
 
 ```nix
 # flake.nix
@@ -95,17 +97,36 @@ nix flake lock   # record the pinned revision in flake.lock
 ```
 
 ```nix
-# sources.nix — key must match the flake input name
+# bundled-sources.nix — key must match the flake input name
 {
   anthropic-skills = {
     namespace = "anthropic";
-    skillsRoot = "skills";
-    maxDepth = 4;
+    subdir = "skills";
+    include = [ "pdf-processing" "document-skills" ];
   };
 }
 ```
 
-Non-flake consumers read the same pins via `_sources.nix`, a thin
-`flake-compat` shim over `flake.lock`.
+Update a single upstream: `nix flake update anthropic-skills`. Update
+everything in lock-step (including devenv): `just update`.
 
 List all discovered skills: `just list-skills`
+
+## Consumer-side extras
+
+Downstream NixOS / nix-darwin / Home Manager consumers append extra
+skills, agents, and commands via standard attrset merge — no override
+semantics. Example:
+
+```nix
+programs.jstack = {
+  enable = true;
+  skills.my-local-skill.src = ./skills/my-local-skill;
+  skillSources.my-org = {
+    src = inputs.my-org-skills;
+    subdir = "skills";
+    include = [ "linting" ];
+  };
+  agents.my-reviewer.src = ./agents/my-reviewer.md;
+};
+```

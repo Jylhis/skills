@@ -1,14 +1,11 @@
-# Synthetic eval driver for ../module.nix.
+# Synthetic eval driver for ../modules/.
 #
-# Loads the module four times under stub option contexts that mimic
-# Home Manager, NixOS, and nix-darwin, plus a negative case (system
-# context with no `programs.jstack.user` set). Throws on the first
-# failure; evaluates to the string "OK" when every check passes.
+# Loads the module under stub option contexts that mimic Home Manager,
+# NixOS, and nix-darwin. Tests all user-level tools (Claude Code, Codex,
+# Gemini, Pi, Windsurf MCP) across all three contexts, plus negative cases.
 #
 # Run via:  nix eval --impure --raw --file tests/module-eval.nix
 #           nix eval --raw --apply 'f: f { system = "x86_64-linux"; }' --file tests/module-eval.nix
-#
-# Also executed by `nix flake check` (pure mode) and `just check`.
 
 {
   system ? builtins.currentSystem,
@@ -24,11 +21,9 @@ let
   basePkgs = pkgs;
   lib = basePkgs.lib;
 
-  jstack = import (jstackRepo + "/module.nix");
+  jstackModule = import (jstackRepo + "/modules");
 
   # ── Force-darwin / force-linux pkgs ──────────────────────────────
-  # `module.nix` only reads `pkgs.stdenv.hostPlatform.isDarwin`, so
-  # overriding that one boolean is enough to drive context detection.
   withDarwin =
     isDarwin:
     basePkgs
@@ -42,7 +37,7 @@ let
   darwinPkgs = withDarwin true;
   linuxPkgs = withDarwin false;
 
-  # ── Loose option helpers (catch any value the module sets) ──────
+  # ── Loose option helpers ───────────────────────────────────────
   loose = lib.mkOption {
     type = lib.types.attrsOf lib.types.unspecified;
     default = { };
@@ -60,7 +55,6 @@ let
     default = null;
   };
 
-  # `assertions` exists in NixOS, nix-darwin AND home-manager.
   assertionsStub = {
     options.assertions = lib.mkOption {
       type = lib.types.listOf lib.types.unspecified;
@@ -68,7 +62,7 @@ let
     };
   };
 
-  # ── Stub option declarations per target context ─────────────────
+  # ── Stub option declarations per context ───────────────────────
   hmStubModule = {
     options = {
       home.username = lib.mkOption {
@@ -82,7 +76,9 @@ let
       home.packages = looseList;
       home.sessionVariables = loose;
       home.file = loose;
+      # HM claude-code module stubs
       programs.claude-code.settings = looseAny;
+      programs.claude-code.plugins = looseList;
       lib = lib.mkOption {
         type = lib.types.unspecified;
         default = {
@@ -112,7 +108,7 @@ let
     };
   };
 
-  # ── Eval driver ─────────────────────────────────────────────────
+  # ── Eval driver ────────────────────────────────────────────────
   evalCtx =
     {
       contextModules,
@@ -122,14 +118,25 @@ let
     lib.evalModules {
       modules = contextModules ++ [
         assertionsStub
-        jstack
+        jstackModule
+        { config._module.args.jstackBundledSources = { }; }
         ({
           config = lib.mkMerge [
             {
-              programs.jstack.enable = true;
-              programs.jstack.repoPath = toString jstackRepo;
-              programs.jstack.targets.codex.enable = true;
-              programs.jstack.targets.gemini.enable = true;
+              programs.jstack = {
+                enable = true;
+                instructions = "Test instructions";
+                tools.claude-code.enable = true;
+                tools.codex.enable = true;
+                tools.gemini.enable = true;
+                tools.pi.enable = true;
+                tools.windsurf.enable = true;
+                skills.test-skill.src = jstackRepo + "/skills/devenv";
+                mcpServers.test-server = {
+                  command = "test-mcp";
+                  args = [ "--stdio" ];
+                };
+              };
             }
             extraConfig
           ];
@@ -167,18 +174,16 @@ let
     pkgs' = linuxPkgs;
   };
 
-  # Pure-eval regression: repoPath must NOT be used for eval-time imports.
-  # Setting it to a non-existent path proves the module resolves everything
-  # from its own source tree (relative paths) rather than cfg.repoPath.
-  pureEval = evalCtx {
+  # livePath test: skills should use mkOutOfStoreSymlink
+  hmLivePathEval = evalCtx {
     contextModules = [ hmStubModule ];
     pkgs' = linuxPkgs;
     extraConfig = {
-      programs.jstack.repoPath = lib.mkForce "/DOES-NOT-EXIST/jstack";
+      programs.jstack.livePath = "/home/alice/Developer/jstack";
     };
   };
 
-  # ── Assertions over each context ────────────────────────────────
+  # ── Assertion helpers ──────────────────────────────────────────
   assertionsPass = ctx: lib.all (a: a.assertion) ctx.config.assertions;
   assertionsFail = ctx: !(assertionsPass ctx);
   hasInfix = needle: haystack: lib.any (r: lib.hasInfix needle r) haystack;
@@ -186,53 +191,61 @@ let
   check = name: cond: if cond then null else throw "module-eval: FAIL [${name}]";
 
   results = [
-    # ── Home Manager ──
+    # ── Home Manager ──────────────────────────────────────────────
     (check "hm.assertions.pass" (assertionsPass hmEval))
-    (check "hm.runtime.installed" (builtins.length hmEval.config.home.packages == 1))
-    (check "hm.session.JSTACK_RUNTIME" (hmEval.config.home.sessionVariables ? JSTACK_RUNTIME))
-    (check "hm.claude.skills.linked" (hmEval.config.home.file ? ".claude/skills"))
-    (check "hm.claude.agents.linked" (hmEval.config.home.file ? ".claude/agents"))
-    (check "hm.codex.skills.linked" (hmEval.config.home.file ? ".codex/skills"))
-    (check "hm.gemini.skills.linked" (hmEval.config.home.file ? ".gemini/skills"))
-    (check "hm.claude.settings.imported" (
-      hmEval.config.programs.claude-code.settings ? alwaysThinkingEnabled
-    ))
 
-    # ── NixOS ──
+    # Claude Code: delegates to programs.claude-code in HM
+    (check "hm.claude.settings.delegated" (hmEval.config.programs.claude-code.settings ? "$schema"))
+    (check "hm.claude.skills.linked" (hmEval.config.home.file ? ".claude/skills"))
+    (check "hm.claude.mcp.linked" (hmEval.config.home.file ? ".mcp.json"))
+
+    # Codex: home.file entries
+    (check "hm.codex.skills.linked" (hmEval.config.home.file ? ".codex/skills"))
+    (check "hm.codex.agents.linked" (hmEval.config.home.file ? ".codex/AGENTS.md"))
+
+    # Gemini: home.file entries
+    (check "hm.gemini.skills.linked" (hmEval.config.home.file ? ".gemini/skills"))
+    (check "hm.gemini.settings.linked" (hmEval.config.home.file ? ".gemini/settings.json"))
+
+    # Pi: home.file entries
+    (check "hm.pi.skills.linked" (hmEval.config.home.file ? ".pi/skills"))
+    (check "hm.pi.mcp.linked" (hmEval.config.home.file ? ".pi/mcp.json"))
+
+    # Windsurf: MCP config in user dir
+    (check "hm.windsurf.mcp.linked" (hmEval.config.home.file ? ".codeium/windsurf/mcp_config.json"))
+
+    # Skills resolved
+    (check "hm.skills.resolved" (hmEval.config.programs.jstack._resolvedSkills ? "test-skill"))
+
+    # ── NixOS ────────────────────────────────────────────────────
     (check "nixos.assertions.pass" (assertionsPass nixosEval))
-    (check "nixos.runtime.installed" (builtins.length nixosEval.config.environment.systemPackages == 1))
-    (check "nixos.env.JSTACK_RUNTIME" (nixosEval.config.environment.variables ? JSTACK_RUNTIME))
     (check "nixos.tmpfiles.has-claude" (
-      hasInfix ".claude/skills" nixosEval.config.systemd.tmpfiles.rules
+      hasInfix ".claude/settings.json" nixosEval.config.systemd.tmpfiles.rules
     ))
     (check "nixos.tmpfiles.has-codex" (
       hasInfix ".codex/skills" nixosEval.config.systemd.tmpfiles.rules
     ))
     (check "nixos.tmpfiles.has-gemini" (
-      hasInfix ".gemini/skills" nixosEval.config.systemd.tmpfiles.rules
+      hasInfix ".gemini/settings.json" nixosEval.config.systemd.tmpfiles.rules
+    ))
+    (check "nixos.tmpfiles.has-pi" (hasInfix ".pi/mcp.json" nixosEval.config.systemd.tmpfiles.rules))
+    (check "nixos.tmpfiles.has-windsurf" (
+      hasInfix "mcp_config.json" nixosEval.config.systemd.tmpfiles.rules
     ))
     (check "nixos.tmpfiles.points-at-linux-home" (
       hasInfix "/home/alice/" nixosEval.config.systemd.tmpfiles.rules
     ))
-    (check "nixos.tmpfiles.settings-from-store" (
-      hasInfix ".claude/settings.json" nixosEval.config.systemd.tmpfiles.rules
-      && hasInfix "/nix/store/" nixosEval.config.systemd.tmpfiles.rules
-    ))
 
-    # ── nix-darwin ──
+    # ── nix-darwin ───────────────────────────────────────────────
     (check "darwin.assertions.pass" (assertionsPass darwinEval))
-    (check "darwin.runtime.installed" (
-      builtins.length darwinEval.config.environment.systemPackages == 1
-    ))
-    (check "darwin.env.JSTACK_RUNTIME" (darwinEval.config.environment.variables ? JSTACK_RUNTIME))
     (check "darwin.activation.has-claude" (
-      lib.hasInfix ".claude/skills" darwinEval.config.system.activationScripts.postActivation.text
+      lib.hasInfix ".claude/settings.json" darwinEval.config.system.activationScripts.postActivation.text
     ))
     (check "darwin.activation.has-codex" (
       lib.hasInfix ".codex/skills" darwinEval.config.system.activationScripts.postActivation.text
     ))
     (check "darwin.activation.has-gemini" (
-      lib.hasInfix ".gemini/skills" darwinEval.config.system.activationScripts.postActivation.text
+      lib.hasInfix ".gemini/settings.json" darwinEval.config.system.activationScripts.postActivation.text
     ))
     (check "darwin.activation.points-at-darwin-home" (
       lib.hasInfix "/Users/alice/" darwinEval.config.system.activationScripts.postActivation.text
@@ -240,22 +253,16 @@ let
     (check "darwin.activation.chowns-symlinks" (
       lib.hasInfix "chown -h alice:staff" darwinEval.config.system.activationScripts.postActivation.text
     ))
-    (check "darwin.activation.settings-from-store" (
-      lib.hasInfix ".claude/settings.json" darwinEval.config.system.activationScripts.postActivation.text
-      && lib.hasInfix "/nix/store/" darwinEval.config.system.activationScripts.postActivation.text
-    ))
 
-    # ── Negative case: system context, no user → assertion fires ──
+    # ── Negative case: no user → assertion fires ─────────────────
     (check "nixosNoUser.assertion.fires" (assertionsFail nixosNoUserEval))
 
-    # ── Pure-eval regression: eval must not depend on repoPath ──
-    (check "pure.eval.assertions.pass" (assertionsPass pureEval))
-    (check "pure.eval.runtime.installed" (builtins.length pureEval.config.home.packages == 1))
-    (check "pure.eval.session.JSTACK_RUNTIME" (pureEval.config.home.sessionVariables ? JSTACK_RUNTIME))
-    (check "pure.eval.claude.skills.linked" (pureEval.config.home.file ? ".claude/skills"))
-    (check "pure.eval.claude.settings.imported" (
-      pureEval.config.programs.claude-code.settings ? alwaysThinkingEnabled
-    ))
+    # ── livePath test ────────────────────────────────────────────
+    # Note: livePath for skill bundles in HM context requires further design.
+    # Skill bundles are store derivations (tool-name substitution happens at build time),
+    # so mkOutOfStoreSymlink can't be applied to them directly.
+    # livePath is effective for _generated files in NixOS/nix-darwin contexts.
+    (check "hm.livePath.eval.succeeds" (assertionsPass hmLivePathEval))
   ];
 in
 builtins.deepSeq results "OK"

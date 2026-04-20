@@ -23,6 +23,7 @@ let
   mcpFormat = import ../../lib/mcp-format.nix { inherit lib; };
   instructionGen = import ../../lib/instruction-gen.nix { inherit lib; };
   skillBundle = import ../../lib/skill-bundle.nix { inherit pkgs lib; };
+  fileBundle = import ../../lib/file-bundle.nix { inherit pkgs lib; };
 
   # Filter skills to those targeting this tool (or all tools)
   toolSkills = lib.filterAttrs (
@@ -38,6 +39,18 @@ let
       }
     else
       null;
+
+  agentsDir = fileBundle.mkFileBundle {
+    entries = cfg.agents;
+    toolName = "claude-code";
+    kind = "agents";
+  };
+
+  commandsDir = fileBundle.mkFileBundle {
+    entries = cfg.commands;
+    toolName = "claude-code";
+    kind = "commands";
+  };
 
   # Merge settings
   mergedSettings = {
@@ -135,18 +148,6 @@ in
       description = "Claude Code hooks configuration.";
     };
 
-    commands = lib.mkOption {
-      type = lib.types.attrsOf lib.types.str;
-      default = { };
-      description = "Slash commands (name -> markdown content).";
-    };
-
-    agents = lib.mkOption {
-      type = lib.types.attrsOf lib.types.unspecified;
-      default = { };
-      description = "Subagent definitions.";
-    };
-
     extraInstructions = lib.mkOption {
       type = lib.types.lines;
       default = "";
@@ -168,6 +169,14 @@ in
 
         (lib.mkIf (skills != null) {
           home.file.".claude/skills".source = skills;
+        })
+
+        (lib.mkIf (agentsDir != null) {
+          home.file.".claude/agents".source = agentsDir;
+        })
+
+        (lib.mkIf (commandsDir != null) {
+          home.file.".claude/commands".source = commandsDir;
         })
 
         (lib.mkIf (mcpJson != null) {
@@ -195,6 +204,18 @@ in
         (lib.mkIf (skills != null) {
           programs.jstack._generated.claude-code.dirs = {
             ".claude/skills" = skills;
+          };
+        })
+
+        (lib.mkIf (agentsDir != null) {
+          programs.jstack._generated.claude-code.dirs = {
+            ".claude/agents" = agentsDir;
+          };
+        })
+
+        (lib.mkIf (commandsDir != null) {
+          programs.jstack._generated.claude-code.dirs = {
+            ".claude/commands" = commandsDir;
           };
         })
       ]

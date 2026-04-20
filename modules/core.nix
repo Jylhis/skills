@@ -135,6 +135,52 @@ in
       '';
     };
 
+    agents = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            src = lib.mkOption {
+              type = lib.types.path;
+              description = "Path to a markdown file defining this subagent.";
+            };
+            tools = lib.mkOption {
+              type = lib.types.nullOr (lib.types.listOf lib.types.str);
+              default = null;
+              description = "Tool names to deploy this agent to, or null for all enabled tools.";
+            };
+          };
+        }
+      );
+      default = { };
+      description = ''
+        Subagent definitions. Merged additively with repo-shipped agents so
+        downstream consumers can append without overriding.
+      '';
+    };
+
+    commands = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            src = lib.mkOption {
+              type = lib.types.path;
+              description = "Path to the slash command markdown file.";
+            };
+            tools = lib.mkOption {
+              type = lib.types.nullOr (lib.types.listOf lib.types.str);
+              default = null;
+              description = "Tool names to deploy this command to, or null for all enabled tools.";
+            };
+          };
+        }
+      );
+      default = { };
+      description = ''
+        Slash command definitions. Merged additively with repo-shipped
+        commands so downstream consumers can append without overriding.
+      '';
+    };
+
     # Internal option for tool modules to register files for deployment.
     # Each tool module sets _generated.<toolName>.{files,dirs}.
     # This module reads all entries and deploys them per context.

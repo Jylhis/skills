@@ -232,11 +232,11 @@ in
     ' > /dev/null || fail "default-skills.nix eval failed"
     pass "default-skills.nix consistent"
 
-    # 12. sources.nix parses without error.
-    echo "-- test 12/15: sources.nix parses"
-    nix eval --impure --json --expr 'import ./sources.nix' > /dev/null \
-      || fail "sources.nix failed to parse"
-    pass "sources.nix valid"
+    # 12. bundled-sources.nix parses without error.
+    echo "-- test 12/15: bundled-sources.nix parses"
+    nix eval --impure --json --expr 'import ./bundled-sources.nix' > /dev/null \
+      || fail "bundled-sources.nix failed to parse"
+    pass "bundled-sources.nix valid"
 
     # 13. promptfoo config is valid YAML.
     echo "-- test 13/15: promptfoo config valid"
@@ -244,16 +244,16 @@ in
     yq '.' promptfooconfig.yaml > /dev/null || fail "promptfooconfig.yaml invalid"
     pass "promptfooconfig.yaml valid"
 
-    # 14. module.nix evaluates cleanly under HM, NixOS, and nix-darwin
-    # stub contexts (and the negative-user assertion fires). The
-    # driver throws on the first failed sub-check and prints "OK"
-    # only when all 22 checks pass.
-    echo "-- test 14/15: module.nix valid for HM / NixOS / nix-darwin"
+    # 14. module evaluates cleanly under HM, NixOS, and nix-darwin
+    # stub contexts (and the negative-user assertion fires). The driver
+    # throws on the first failed sub-check and prints "OK" only when
+    # all checks pass.
+    echo "-- test 14/15: modules/ valid for HM / NixOS / nix-darwin"
     module_eval_out=$(nix eval --impure --raw --apply 'f: f {}' --file tests/module-eval.nix 2>&1) \
       || fail "tests/module-eval.nix failed:\n$module_eval_out"
     [ "$(printf '%s\n' "$module_eval_out" | tail -n1)" = "OK" ] \
       || fail "tests/module-eval.nix did not return OK:\n$module_eval_out"
-    pass "module.nix valid across all targets"
+    pass "modules/ valid across all targets"
 
     # 15. nixpkgs revision parity across devenv.lock and flake.lock
     echo "-- test 15/15: nixpkgs revision parity"

@@ -14,7 +14,7 @@
   };
 
   outputs =
-    { self, nixpkgs, ... }:
+    inputs@{ self, nixpkgs, ... }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
@@ -22,19 +22,30 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
+
+      # Resolve bundled-sources.nix entries to concrete source paths by
+      # looking each key up in this flake's inputs. Passed to modules/
+      # via _module.args so the module evaluates purely without having
+      # to re-enter flake-compat.
+      bundledSources = nixpkgs.lib.mapAttrs (
+        name: cfg:
+        cfg
+        // {
+          src = inputs.${name};
+        }
+      ) (import ./bundled-sources.nix);
+
+      moduleWithBundled = {
+        imports = [ ./modules ];
+        _module.args.jstackBundledSources = bundledSources;
+      };
     in
     {
       overlays.default = import ./overlay.nix;
 
-      # v2 modules (multi-tool, per-tool config generation)
-      nixosModules.default = import ./modules;
-      darwinModules.default = import ./modules;
-      homeModules.default = import ./modules;
-
-      # v1 legacy modules (plugin-based, repoPath symlinks)
-      nixosModules.legacy = import ./module.nix;
-      darwinModules.legacy = import ./module.nix;
-      homeModules.legacy = import ./module.nix;
+      nixosModules.default = moduleWithBundled;
+      darwinModules.default = moduleWithBundled;
+      homeModules.default = moduleWithBundled;
 
       # Lib exports for consumers
       lib = {
@@ -50,6 +61,10 @@
         in
         {
           default = pkgs.jstack-runtime;
+          options-doc = import ./docs/options {
+            inherit pkgs;
+            inherit (pkgs) lib;
+          };
         }
       );
 
@@ -57,15 +72,11 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          moduleEvalV1 = import ./tests/module-eval.nix { inherit system pkgs; };
-          moduleEvalV2 = import ./tests/module-eval-v2.nix { inherit system pkgs; };
+          moduleEval = import ./tests/module-eval.nix { inherit system pkgs; };
         in
         {
           module-eval = pkgs.runCommand "jstack-module-eval" { } ''
-            echo ${moduleEvalV1} > $out
-          '';
-          module-eval-v2 = pkgs.runCommand "jstack-module-eval-v2" { } ''
-            echo ${moduleEvalV2} > $out
+            echo ${moduleEval} > $out
           '';
         }
       );

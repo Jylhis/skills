@@ -11,13 +11,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ matrix.os }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: devenv test
-    runs-on: ubuntu-latest
+  check:
+    name: check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +32,8 @@ jobs:
             experimental-features = nix-command flakes
 
       # https://devenv.sh/binary-caching/
+      # cachix-action auto-pushes every store path realised during this
+      # job to the jylhis cache.
       - uses: cachix/cachix-action@v15
         with:
           name: jylhis
@@ -36,6 +42,12 @@ jobs:
       - uses: cachix/cachix-action@v15
         with:
           name: devenv
+
+      - name: nix flake check
+        run: nix flake check -L
+
+      - name: Build packages
+        run: nix build -L .#default .#options-doc
 
       - name: Install devenv
         run: nix profile install nixpkgs#devenv

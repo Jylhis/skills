@@ -11,9 +11,9 @@ check:
     statix check . --ignore '.devenv/*' 'result/*'
     deadnix --fail --exclude .devenv result .
 
-# Run v2 module tests
-check-v2:
-    nix eval --impure --raw --apply 'f: f {}' --file tests/module-eval-v2.nix
+# Run module evaluation tests directly
+check-modules:
+    nix eval --impure --raw --apply 'f: f {}' --file tests/module-eval.nix
 
 # Format all nix files
 fmt:
@@ -93,12 +93,12 @@ generate-servers:
 list-skills:
     nix eval --impure --json --expr 'import ./lib/list-catalog.nix' | jq .
 
-# Add a third-party skill source (add as non-flake input in flake.nix, then lock)
+# Bundle an upstream skill repo (add non-flake input, then lock)
 add-source owner repo:
     @echo "Add the following to flake.nix inputs:"
     @echo '  {{repo}} = { url = "github:{{owner}}/{{repo}}"; flake = false; };'
     @echo "Then run: nix flake lock"
-    @echo "Finally, edit sources.nix to configure namespace and discovery."
+    @echo "Finally, add an entry to bundled-sources.nix with namespace, subdir, and include list."
 
 lint:
     devenv shell -- lint
