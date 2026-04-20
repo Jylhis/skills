@@ -18,35 +18,44 @@ let
   cfg = config.programs.jstack;
   discoverSkills = import ../lib/discover.nix;
 
-  # Resolve skillSources into individual skill entries via discover.nix
+  # Resolve skillSources into individual skill entries.
+  # Two modes:
+  #   paths non-empty  → explicit selection; each entry (name → relPath) becomes a skill dir
+  #   paths empty      → walk src + subdir with discover.nix; include/exclude filters apply
   discoveredSkills = lib.concatMapAttrs (
-    sourceName: sourceCfg:
-    let
-      catalog = discoverSkills {
-        path = sourceCfg.src + "/${sourceCfg.subdir}";
-        namespace = sourceCfg.namespace;
-        maxDepth = sourceCfg.maxDepth;
-      };
-
-      # Apply include/exclude filters
-      filtered =
-        if sourceCfg.include != [ ] then
-          lib.filterAttrs (_: s: builtins.elem s.name sourceCfg.include) catalog
-        else if sourceCfg.exclude != [ ] then
-          lib.filterAttrs (_: s: !(builtins.elem s.name sourceCfg.exclude)) catalog
-        else
-          catalog;
-    in
-    # Convert catalog entries to skill option format
-    lib.mapAttrs' (
-      _id: skill:
-      lib.nameValuePair skill.name {
-        src = skill.path;
+    _sourceName: sourceCfg:
+    if sourceCfg.paths != { } then
+      lib.mapAttrs (_: relPath: {
+        src = sourceCfg.src + "/${relPath}";
         packages = sourceCfg.packages;
         transform = sourceCfg.transform;
         tools = null;
-      }
-    ) filtered
+      }) sourceCfg.paths
+    else
+      let
+        catalog = discoverSkills {
+          path = sourceCfg.src + "/${sourceCfg.subdir}";
+          namespace = sourceCfg.namespace;
+          maxDepth = sourceCfg.maxDepth;
+        };
+
+        filtered =
+          if sourceCfg.include != [ ] then
+            lib.filterAttrs (_: s: builtins.elem s.name sourceCfg.include) catalog
+          else if sourceCfg.exclude != [ ] then
+            lib.filterAttrs (_: s: !(builtins.elem s.name sourceCfg.exclude)) catalog
+          else
+            catalog;
+      in
+      lib.mapAttrs' (
+        _id: skill:
+        lib.nameValuePair skill.name {
+          src = skill.path;
+          packages = sourceCfg.packages;
+          transform = sourceCfg.transform;
+          tools = null;
+        }
+      ) filtered
   ) cfg.skillSources;
 
   # Merge individual skills with discovered skills (individual takes precedence)
@@ -157,6 +166,21 @@ in
                 type = lib.types.int;
                 default = 5;
                 description = "Maximum directory depth for skill discovery.";
+              };
+
+              paths = lib.mkOption {
+                type = lib.types.attrsOf lib.types.str;
+                default = { };
+                description = ''
+                  Explicit skill selection as `{ <name> = <relative-path>; }`.
+                  Each value is a path (relative to `src`) that contains a
+                  SKILL.md. When set, `subdir`/`include`/`exclude` are ignored
+                  and no directory scan is performed — each entry is mounted
+                  as a skill under its key name.
+                '';
+                example = {
+                  claude-md-improver = "plugins/claude-md-management/skills/claude-md-improver";
+                };
               };
             };
           }

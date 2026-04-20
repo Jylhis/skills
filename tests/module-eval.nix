@@ -114,12 +114,13 @@ let
       contextModules,
       pkgs',
       extraConfig ? { },
+      bundledSources ? { },
     }:
     lib.evalModules {
       modules = contextModules ++ [
         assertionsStub
         jstackModule
-        { config._module.args.jstackBundledSources = { }; }
+        { config._module.args.jstackBundledSources = bundledSources; }
         ({
           config = lib.mkMerge [
             {
@@ -180,6 +181,34 @@ let
     pkgs' = linuxPkgs;
     extraConfig = {
       programs.jstack.livePath = "/home/alice/Developer/jstack";
+    };
+  };
+
+  # Bundled-sources injection test: skillSources, agentSources and
+  # commandSources should each populate when jstackBundledSources is
+  # non-empty. Uses the repo's own skills/agents/commands as stand-in
+  # inputs so the test doesn't depend on network-fetched flake inputs.
+  hmBundledEval = evalCtx {
+    contextModules = [ hmStubModule ];
+    pkgs' = linuxPkgs;
+    bundledSources = {
+      example = {
+        src = jstackRepo;
+        skills = {
+          namespace = "example";
+          paths = {
+            devenv = "skills/devenv";
+          };
+        };
+        agents = {
+          paths = {
+            debugger = "agents/debugger.md";
+          };
+        };
+        commands = {
+          subdir = "commands";
+        };
+      };
     };
   };
 
@@ -263,6 +292,18 @@ let
     # so mkOutOfStoreSymlink can't be applied to them directly.
     # livePath is effective for _generated files in NixOS/nix-darwin contexts.
     (check "hm.livePath.eval.succeeds" (assertionsPass hmLivePathEval))
+
+    # ── Bundled-sources injection ────────────────────────────────
+    (check "hm.bundled.skill.resolved" (
+      hmBundledEval.config.programs.jstack._resolvedSkills ? "devenv"
+    ))
+    (check "hm.bundled.agent.resolved" (hmBundledEval.config.programs.jstack.agents ? "debugger"))
+    (check "hm.bundled.skillSources.wired" (
+      hmBundledEval.config.programs.jstack.skillSources ? "example"
+    ))
+    (check "hm.bundled.agentSources.wired" (
+      hmBundledEval.config.programs.jstack.agentSources ? "example"
+    ))
   ];
 in
 builtins.deepSeq results "OK"

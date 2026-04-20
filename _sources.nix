@@ -13,5 +13,12 @@ let
   inputs = (import flake-compat { src = ./.; }).defaultNix.inputs;
 in
 {
-  inherit (inputs) nixpkgs promptfoo;
+  inherit (inputs)
+    nixpkgs
+    promptfoo
+    cc-skills-golang
+    obsidian-skills
+    rust-skills
+    claude-plugins-official
+    ;
 }

@@ -11,6 +11,22 @@
       url = "github:promptfoo/promptfoo/0.121.3";
       flake = false;
     };
+    cc-skills-golang = {
+      url = "github:samber/cc-skills-golang";
+      flake = false;
+    };
+    obsidian-skills = {
+      url = "github:kepano/obsidian-skills";
+      flake = false;
+    };
+    rust-skills = {
+      url = "github:actionbook/rust-skills";
+      flake = false;
+    };
+    claude-plugins-official = {
+      url = "github:anthropics/claude-plugins-official";
+      flake = false;
+    };
   };
 
   outputs =

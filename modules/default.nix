@@ -8,6 +8,7 @@
   imports = [
     ./core.nix
     ./skills.nix
+    ./file-sources.nix
     ./bundled.nix
     ./mcp.nix
     ./lsp.nix
