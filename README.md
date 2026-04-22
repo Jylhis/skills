@@ -1,8 +1,8 @@
 # jstack
 
-My vibecoding setup. Heavily in progress. Do not expect stability or even working setup.
+My vibecoding setup. Heavily in progress. Do not expect stability or even a working setup.
 
-Fully managed with Nix. Bundles skills, agents, commands, hooks, settings, tools, development environment for testing and evaluating performance with promptfoo.
+Fully managed with Nix. Bundles skills, agents, commands, hooks, settings, tools, and a development environment for testing and evaluating performance with promptfoo.
 
 Currently only support claude code, but codex and gemini support is in progress (kind of).
 
