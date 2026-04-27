@@ -45,7 +45,7 @@ echo ""
 
 echo "=== FILE CHURN (most changed files) ==="
 run_pipeline \
-  "git log --format=format: --name-only --since=\"$SINCE\" | grep -v '^$' | sort | uniq -c | sort -nr | head -20" \
+  'git log --format=format: --name-only --since="$SINCE" | grep -v "^$" | sort | uniq -c | sort -nr | head -20' \
   "(no file changes found in this period)"
 echo ""
 
