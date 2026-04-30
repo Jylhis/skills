@@ -22,6 +22,8 @@ let
   inherit (basePkgs) lib;
 
   jstackModule = import (jstackRepo + "/modules");
+  devenvModule = import (jstackRepo + "/modules/devenv.nix");
+  mcpFormat = import (jstackRepo + "/lib/mcp-format.nix") { inherit lib; };
 
   # ── Force-darwin / force-linux pkgs ──────────────────────────────
   withDarwin =
@@ -83,6 +85,9 @@ let
       programs.claude-code.settings = looseAny;
       programs.claude-code.plugins = looseList;
       programs.codex.enable = lib.mkEnableOption "upstream codex";
+      programs.codex.settings = looseAny;
+      programs.codex.custom-instructions = looseStr;
+      programs.codex.skills = looseAny;
       programs.gemini-cli.enable = lib.mkEnableOption "upstream gemini-cli";
       programs.aider-chat.enable = lib.mkEnableOption "upstream aider-chat";
       programs.opencode.enable = lib.mkEnableOption "upstream opencode";
@@ -92,6 +97,42 @@ let
           file.mkOutOfStoreSymlink = path: { _outOfStoreSymlink = path; };
         };
       };
+    };
+  };
+
+  hmNoCodexStubModule = {
+    options = {
+      home.username = lib.mkOption {
+        type = lib.types.str;
+        default = "alice";
+      };
+      home.homeDirectory = lib.mkOption {
+        type = lib.types.str;
+        default = "/home/alice";
+      };
+      home.packages = looseList;
+      home.sessionVariables = loose;
+      home.file = loose;
+      programs.claude-code.enable = lib.mkEnableOption "upstream claude-code";
+      programs.claude-code.settings = looseAny;
+      programs.claude-code.plugins = looseList;
+      programs.gemini-cli.enable = lib.mkEnableOption "upstream gemini-cli";
+      programs.aider-chat.enable = lib.mkEnableOption "upstream aider-chat";
+      programs.opencode.enable = lib.mkEnableOption "upstream opencode";
+      lib = lib.mkOption {
+        type = lib.types.unspecified;
+        default = {
+          file.mkOutOfStoreSymlink = path: { _outOfStoreSymlink = path; };
+        };
+      };
+    };
+  };
+
+  devenvStubModule = {
+    options = {
+      packages = looseList;
+      enterShell = looseStr;
+      claude.code = loose;
     };
   };
 
@@ -157,6 +198,11 @@ let
 
   hmEval = evalCtx {
     contextModules = [ hmStubModule ];
+    pkgs' = linuxPkgs;
+  };
+
+  hmCodexDirectEval = evalCtx {
+    contextModules = [ hmNoCodexStubModule ];
     pkgs' = linuxPkgs;
   };
 
@@ -245,6 +291,79 @@ let
     };
   };
 
+  devenvCodexEval = lib.evalModules {
+    modules = [
+      devenvStubModule
+      devenvModule
+      {
+        config = {
+          jstack = {
+            enable = true;
+            instructions = "Project instructions";
+            tools.codex = {
+              enable = true;
+              approvalPolicy = "on-request";
+              extraInstructions = "Codex project instructions";
+            };
+            skills.test-skill.src = jstackRepo + "/skills/devenv";
+            mcpServers.http-server = {
+              type = "http";
+              url = "https://example.test/mcp";
+              bearer_token_env_var = "MCP_TOKEN";
+              enabled_tools = [ "search" ];
+            };
+          };
+        };
+      }
+    ];
+    specialArgs = {
+      pkgs = linuxPkgs;
+    };
+  };
+
+  codexReadOnlyEval = evalCtx {
+    contextModules = [ hmStubModule ];
+    pkgs' = linuxPkgs;
+    extraConfig = {
+      programs.jstack.tools.codex.sandboxMode = "read-only";
+    };
+  };
+
+  codexInvalidSandbox = builtins.tryEval (
+    builtins.deepSeq
+      (evalCtx {
+        contextModules = [ hmStubModule ];
+        pkgs' = linuxPkgs;
+        extraConfig = {
+          programs.jstack.tools.codex.sandboxMode = "full-auto";
+        };
+      }).config.programs.jstack.tools.codex.sandboxMode
+      true
+  );
+
+  codexMcpAttrs = mcpFormat.formatCodexMcpAttrs {
+    stdio-server = {
+      command = "stdio-mcp";
+      args = [ "--stdio" ];
+      env.TOKEN = "value";
+      env_vars = [ "LOCAL_TOKEN" ];
+      cwd = "/tmp/project";
+    };
+    http-server = {
+      type = "http";
+      url = "https://example.test/mcp";
+      bearer_token_env_var = "MCP_TOKEN";
+      http_headers.Region = "test";
+      env_http_headers.Authorization = "AUTH_HEADER";
+      startup_timeout_sec = 20;
+      tool_timeout_sec = 45;
+      enabled = false;
+      required = true;
+      enabled_tools = [ "open" ];
+      disabled_tools = [ "screenshot" ];
+    };
+  };
+
   # ── Assertion helpers ──────────────────────────────────────────
   assertionsPass = ctx: lib.all (a: a.assertion) ctx.config.assertions;
   assertionsFail = ctx: !(assertionsPass ctx);
@@ -261,9 +380,24 @@ let
     (check "hm.claude.skills.linked" (hmEval.config.home.file ? ".claude/skills"))
     (check "hm.claude.mcp.linked" (hmEval.config.home.file ? ".mcp.json"))
 
-    # Codex: home.file entries
-    (check "hm.codex.skills.linked" (hmEval.config.home.file ? ".codex/skills"))
-    (check "hm.codex.agents.linked" (hmEval.config.home.file ? ".codex/AGENTS.md"))
+    # Codex: delegates to programs.codex in HM when upstream exists
+    (check "hm.codex.settings.delegated" (
+      hmEval.config.programs.codex.settings.sandbox_mode == "workspace-write"
+    ))
+    (check "hm.codex.mcp.delegated" (
+      hmEval.config.programs.codex.settings.mcp_servers."test-server".command == "test-mcp"
+    ))
+    (check "hm.codex.instructions.delegated" (
+      lib.hasInfix "Test instructions" hmEval.config.programs.codex."custom-instructions"
+    ))
+    (check "hm.codex.skills.delegated" (hmEval.config.programs.codex.skills != { }))
+
+    # Codex: direct fallback writes files when upstream is absent
+    (check "hm.codex.fallback.skills.linked" (hmCodexDirectEval.config.home.file ? ".agents/skills"))
+    (check "hm.codex.fallback.agents.linked" (hmCodexDirectEval.config.home.file ? ".codex/AGENTS.md"))
+    (check "hm.codex.fallback.config.linked" (
+      hmCodexDirectEval.config.home.file ? ".codex/config.toml"
+    ))
 
     # Gemini: home.file entries
     (check "hm.gemini.skills.linked" (hmEval.config.home.file ? ".gemini/skills"))
@@ -285,7 +419,7 @@ let
       hasInfix ".claude/settings.json" nixosEval.config.systemd.tmpfiles.rules
     ))
     (check "nixos.tmpfiles.has-codex" (
-      hasInfix ".codex/skills" nixosEval.config.systemd.tmpfiles.rules
+      hasInfix ".agents/skills" nixosEval.config.systemd.tmpfiles.rules
     ))
     (check "nixos.tmpfiles.has-gemini" (
       hasInfix ".gemini/settings.json" nixosEval.config.systemd.tmpfiles.rules
@@ -304,7 +438,7 @@ let
       lib.hasInfix ".claude/settings.json" darwinEval.config.system.activationScripts.postActivation.text
     ))
     (check "darwin.activation.has-codex" (
-      lib.hasInfix ".codex/skills" darwinEval.config.system.activationScripts.postActivation.text
+      lib.hasInfix ".agents/skills" darwinEval.config.system.activationScripts.postActivation.text
     ))
     (check "darwin.activation.has-gemini" (
       lib.hasInfix ".gemini/settings.json" darwinEval.config.system.activationScripts.postActivation.text
@@ -351,6 +485,38 @@ let
     ))
     (check "hm.bundled.agentSources.wired" (
       hmBundledEval.config.programs.jstack.agentSources ? "example"
+    ))
+
+    # ── Codex option and MCP formatting coverage ─────────────────
+    (check "codex.sandbox.read-only.accepted" (
+      codexReadOnlyEval.config.programs.jstack.tools.codex.sandboxMode == "read-only"
+    ))
+    (check "codex.sandbox.full-auto.rejected" (!codexInvalidSandbox.success))
+    (check "codex.mcp.stdio.shape" (
+      codexMcpAttrs."stdio-server".command == "stdio-mcp"
+      && codexMcpAttrs."stdio-server".env_vars == [ "LOCAL_TOKEN" ]
+      && codexMcpAttrs."stdio-server".cwd == "/tmp/project"
+    ))
+    (check "codex.mcp.http.shape" (
+      codexMcpAttrs."http-server".url == "https://example.test/mcp"
+      && codexMcpAttrs."http-server".bearer_token_env_var == "MCP_TOKEN"
+      && codexMcpAttrs."http-server".http_headers.Region == "test"
+      && codexMcpAttrs."http-server".env_http_headers.Authorization == "AUTH_HEADER"
+      && !codexMcpAttrs."http-server".enabled
+      && codexMcpAttrs."http-server".required
+      && codexMcpAttrs."http-server".startup_timeout_sec == 20
+      && codexMcpAttrs."http-server".tool_timeout_sec == 45
+      && codexMcpAttrs."http-server".enabled_tools == [ "open" ]
+      && codexMcpAttrs."http-server".disabled_tools == [ "screenshot" ]
+    ))
+    (check "devenv.codex.config.emitted" (
+      lib.hasInfix "$DEVENV_ROOT/.codex/config.toml" devenvCodexEval.config.enterShell
+    ))
+    (check "devenv.codex.agents.emitted" (
+      lib.hasInfix "$DEVENV_ROOT/AGENTS.md" devenvCodexEval.config.enterShell
+    ))
+    (check "devenv.codex.skills.linked" (
+      lib.hasInfix "$DEVENV_ROOT/.agents/skills/test-skill" devenvCodexEval.config.enterShell
     ))
   ];
 in

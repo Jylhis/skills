@@ -52,6 +52,28 @@ let
     in
     if withMcp != { } then pkgs.writeText "opencode.json" (builtins.toJSON withMcp) else null;
 
+  codexSettings =
+    let
+      tool = cfg.tools.codex;
+      settingsWithoutNested = lib.removeAttrs tool.settings [ "mcp_servers" ];
+      mergedMcpServers =
+        mcpFormat.formatCodexMcpAttrs cfg.mcpServers // (tool.settings.mcp_servers or { });
+    in
+    {
+      sandbox_mode = tool.sandboxMode;
+    }
+    // lib.optionalAttrs (tool.approvalPolicy != null) {
+      approval_policy = tool.approvalPolicy;
+    }
+    // settingsWithoutNested
+    // lib.optionalAttrs (mergedMcpServers != { }) { mcp_servers = mergedMcpServers; };
+
+  codexConfig =
+    if codexSettings != { } then
+      mcpFormat.formatToml pkgs "codex-project-config.toml" codexSettings
+    else
+      null;
+
   # Skill symlink script: creates per-skill symlinks for live editing
   skillLinkScript =
     let
@@ -105,7 +127,10 @@ in
       type = lib.types.attrsOf (
         lib.types.submodule {
           options = {
-            command = lib.mkOption { type = lib.types.str; };
+            command = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
             args = lib.mkOption {
               type = lib.types.listOf lib.types.str;
               default = [ ];
@@ -125,6 +150,54 @@ in
             url = lib.mkOption {
               type = lib.types.nullOr lib.types.str;
               default = null;
+            };
+            cwd = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            experimental_environment = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            env_vars = lib.mkOption {
+              type = lib.types.listOf lib.types.unspecified;
+              default = [ ];
+            };
+            bearer_token_env_var = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+            };
+            http_headers = lib.mkOption {
+              type = lib.types.attrsOf lib.types.str;
+              default = { };
+            };
+            env_http_headers = lib.mkOption {
+              type = lib.types.attrsOf lib.types.str;
+              default = { };
+            };
+            startup_timeout_sec = lib.mkOption {
+              type = lib.types.nullOr lib.types.int;
+              default = null;
+            };
+            tool_timeout_sec = lib.mkOption {
+              type = lib.types.nullOr lib.types.int;
+              default = null;
+            };
+            enabled = lib.mkOption {
+              type = lib.types.nullOr lib.types.bool;
+              default = null;
+            };
+            required = lib.mkOption {
+              type = lib.types.nullOr lib.types.bool;
+              default = null;
+            };
+            enabled_tools = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+            };
+            disabled_tools = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
             };
           };
         }
@@ -149,6 +222,35 @@ in
         settings = lib.mkOption {
           type = lib.types.attrsOf lib.types.unspecified;
           default = { };
+        };
+        extraInstructions = lib.mkOption {
+          type = lib.types.lines;
+          default = "";
+        };
+      };
+      codex = {
+        enable = lib.mkEnableOption "Codex project config";
+        settings = lib.mkOption {
+          type = lib.types.attrsOf lib.types.unspecified;
+          default = { };
+        };
+        approvalPolicy = lib.mkOption {
+          type = lib.types.nullOr (
+            lib.types.enum [
+              "untrusted"
+              "on-request"
+              "never"
+            ]
+          );
+          default = null;
+        };
+        sandboxMode = lib.mkOption {
+          type = lib.types.enum [
+            "read-only"
+            "workspace-write"
+            "danger-full-access"
+          ];
+          default = "workspace-write";
         };
         extraInstructions = lib.mkOption {
           type = lib.types.lines;
@@ -206,10 +308,12 @@ in
       mcpServers = lib.mapAttrs (
         _: srv:
         {
-          inherit (srv) command type;
+          inherit (srv) type;
         }
+        // lib.optionalAttrs (srv.command != null) { inherit (srv) command; }
         // lib.optionalAttrs (srv.args != [ ]) { inherit (srv) args; }
         // lib.optionalAttrs (srv.env != { }) { inherit (srv) env; }
+        // lib.optionalAttrs (srv.url != null) { inherit (srv) url; }
       ) cfg.mcpServers;
     };
 
@@ -217,6 +321,24 @@ in
       # ── jstack: skill deployment (live symlinks) ──
       mkdir -p "$DEVENV_ROOT/.agents/skills"
       ${skillLinkScript}
+
+      ${lib.optionalString cfg.tools.codex.enable ''
+        # ── jstack: Codex project config ──
+        mkdir -p "$DEVENV_ROOT/.codex"
+        ${
+          let
+            content = mkInstr cfg.tools.codex.extraInstructions;
+          in
+          lib.optionalString (content != "") ''
+            cat > "$DEVENV_ROOT/AGENTS.md" <<'JSTACK_EOF'
+            ${content}
+            JSTACK_EOF
+          ''
+        }
+        ${lib.optionalString (codexConfig != null) ''
+          ln -sfn "${codexConfig}" "$DEVENV_ROOT/.codex/config.toml"
+        ''}
+      ''}
 
       ${lib.optionalString cfg.tools.cursor.enable ''
         # ── jstack: Cursor project config ──
