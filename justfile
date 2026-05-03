@@ -8,6 +8,7 @@ check:
     devenv test
     statix check . --ignore '.devenv/*' 'result/*'
     deadnix --fail --exclude .devenv result .
+    python3 scripts/validate_skills.py
 
 # Run module evaluation tests directly
 check-modules:
@@ -90,6 +91,11 @@ generate-servers:
 # List all discovered skills from local plugins and third-party sources
 list-skills:
     nix eval --impure --json --expr 'import ./lib/list-catalog.nix' | jq .
+
+
+# Fast contributor validation for skill content
+check-skills:
+    python3 scripts/validate_skills.py
 
 # Security-scan an imported bundled source (pass the source key from bundled-sources.nix)
 scan-source source:

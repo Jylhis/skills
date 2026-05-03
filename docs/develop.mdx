@@ -27,7 +27,8 @@ Inside the dev shell, the following scripts are exposed:
 |---|---|
 | `install` | Alias for `bash scripts/install.bash` |
 | `lint` | Run `markdownlint-cli2` over `skills/**/SKILL.md`, `agents/*.md`, `commands/*.md`, then `jq empty settings.json` |
-| `check` | Run Nix evaluation, flake checks, devenv tests, `statix`, and `deadnix` |
+| `check` | Run Nix evaluation, flake checks, devenv tests, `statix`, `deadnix`, and skill validation |
+| `check-skills` | Validate skill structure and high-risk instruction patterns |
 
 ## Lint
 
@@ -51,7 +52,8 @@ just check
 ```
 
 Use `just check` before opening a pull request. For faster feedback on
-module wiring, run `just check-modules`.
+module wiring, run `just check-modules`. For skill-only edits, run
+`just check-skills`. See [Skill validator](/skill-validator).
 
 ## Editing skills
 

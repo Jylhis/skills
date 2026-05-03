@@ -1,0 +1,33 @@
+---
+title: Skill validator
+description: Structural and safety checks for imported skill directories.
+---
+
+Use the validator to catch malformed skills and high-risk instructions early.
+
+## Run
+
+```bash
+just check-skills
+# or
+python3 scripts/validate_skills.py
+```
+
+## Rules enforced
+
+- Every skill directory must include `SKILL.md`.
+- `SKILL.md` must have parseable YAML frontmatter.
+- Frontmatter must include non-empty `name` and `description`.
+- `allowedTools` declarations must be parseable and use sane tool tokens.
+- Skill files are scanned for high-risk instruction patterns:
+  - pipe-to-shell remote execution (`curl ... | bash`)
+  - obfuscated execution chains (`base64 -d ... | sh`)
+  - instruction override / exfiltration text (`ignore previous instructions`)
+
+## Remediation
+
+Validator output includes file path + line and a remediation hint. Typical fixes:
+
+- Add missing `SKILL.md` or frontmatter keys.
+- Replace unsafe shell snippets with safer, inspectable steps.
+- Remove instruction-override or hidden execution snippets from imported content.

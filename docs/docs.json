@@ -11,7 +11,13 @@
   "navigation": [
     {
       "group": "Get started",
-      "pages": ["index", "install", "develop", "architecture"]
+      "pages": [
+        "index",
+        "install",
+        "develop",
+        "architecture",
+        "skill-validator"
+      ]
     },
     {
       "group": "Skill Groups",

@@ -57,3 +57,6 @@ jobs:
 
       - name: Run devenv tests
         run: devenv test
+
+      - name: Validate skills
+        run: python3 scripts/validate_skills.py
