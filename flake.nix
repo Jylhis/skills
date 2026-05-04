@@ -71,6 +71,54 @@
       url = "github:grafana/skills";
       flake = false;
     };
+    composio-awesome-codex-skills = {
+      url = "github:ComposioHQ/awesome-codex-skills";
+      flake = false;
+    };
+    superpowers-zh = {
+      url = "github:jnMetaCode/superpowers-zh";
+      flake = false;
+    };
+    prat011-awesome-llm-skills = {
+      url = "github:Prat011/awesome-llm-skills";
+      flake = false;
+    };
+    aboutsecurity = {
+      url = "github:wgpsec/AboutSecurity";
+      flake = false;
+    };
+    finance-skills = {
+      url = "github:himself65/finance-skills";
+      flake = false;
+    };
+    claude-workflow-v2 = {
+      url = "github:CloudAI-X/claude-workflow-v2";
+      flake = false;
+    };
+    awesome-claude-code-toolkit = {
+      url = "github:rohitg00/awesome-claude-code-toolkit";
+      flake = false;
+    };
+    vibe-skills = {
+      url = "github:foryourhealth111-pixel/Vibe-Skills";
+      flake = false;
+    };
+    tech-leads-agent-skills = {
+      url = "github:tech-leads-club/agent-skills";
+      flake = false;
+    };
+    gitagent = {
+      url = "github:open-gitagent/gitagent";
+      flake = false;
+    };
+    waza = {
+      url = "github:tw93/Waza";
+      flake = false;
+    };
+    mattpocock-skills = {
+      url = "github:mattpocock/skills";
+      flake = false;
+    };
   };
 
   outputs =

@@ -274,4 +274,164 @@ in
       subdir = "skills";
     };
   };
+
+  # ── TODO.md upstream imports ─────────────────────────────────────
+  # Composio's generated `composio-skills/` marketplace tree contains
+  # hundreds of external-action automation skills. Import only the
+  # curated top-level skills that are hosted directly in the repo.
+  composio-awesome-codex-skills = {
+    src = inputs.composio-awesome-codex-skills;
+    skills = {
+      namespace = "composio";
+      paths = {
+        agent-deep-links = "agent-deep-links";
+        brand-guidelines = "brand-guidelines";
+        canvas-design = "canvas-design";
+        changelog-generator = "changelog-generator";
+        codebase-migrate = "codebase-migrate";
+        competitive-ads-extractor = "competitive-ads-extractor";
+        connect = "connect";
+        connect-apps = "connect-apps";
+        content-research-writer = "content-research-writer";
+        create-plan = "create-plan";
+        datadog-logs = "datadog-logs";
+        deploy-pipeline = "deploy-pipeline";
+        developer-growth-analysis = "developer-growth-analysis";
+        domain-name-brainstormer = "domain-name-brainstormer";
+        email-draft-polish = "email-draft-polish";
+        file-organizer = "file-organizer";
+        gh-address-comments = "gh-address-comments";
+        gh-fix-ci = "gh-fix-ci";
+        helium-mcp = "helium-mcp";
+        image-enhancer = "image-enhancer";
+        internal-comms = "internal-comms";
+        invoice-organizer = "invoice-organizer";
+        issue-triage = "issue-triage";
+        langsmith-fetch = "langsmith-fetch";
+        lead-research-assistant = "lead-research-assistant";
+        linear = "linear";
+        mcp-builder = "mcp-builder";
+        meeting-insights-analyzer = "meeting-insights-analyzer";
+        meeting-notes-and-actions = "meeting-notes-and-actions";
+        notion-knowledge-capture = "notion-knowledge-capture";
+        notion-meeting-intelligence = "notion-meeting-intelligence";
+        notion-research-documentation = "notion-research-documentation";
+        notion-spec-to-implementation = "notion-spec-to-implementation";
+        paperjsx = "paperjsx";
+        pr-review-ci-fix = "pr-review-ci-fix";
+        raffle-winner-picker = "raffle-winner-picker";
+        sentry-triage = "sentry-triage";
+        skill-share = "skill-share";
+        slack-gif-creator = "slack-gif-creator";
+        spreadsheet-formula-helper = "spreadsheet-formula-helper";
+        support-ticket-triage = "support-ticket-triage";
+        tailored-resume-generator = "tailored-resume-generator";
+        theme-factory = "theme-factory";
+        video-downloader = "video-downloader";
+        webapp-testing = "webapp-testing";
+      };
+    };
+  };
+
+  superpowers-zh = {
+    src = inputs.superpowers-zh;
+    skills = {
+      namespace = "superpowers-zh";
+      subdir = "skills";
+    };
+  };
+
+  prat011-awesome-llm-skills = {
+    src = inputs.prat011-awesome-llm-skills;
+    skills = {
+      namespace = "prat011";
+      subdir = ".";
+    };
+  };
+
+  aboutsecurity = {
+    src = inputs.aboutsecurity;
+    skills = {
+      namespace = "aboutsecurity";
+      subdir = "skills";
+    };
+  };
+
+  finance-skills = {
+    src = inputs.finance-skills;
+    skills = {
+      namespace = "finance";
+      subdir = "plugins";
+      exclude = [ "skill-creator" ];
+    };
+  };
+
+  claude-workflow-v2 = {
+    src = inputs.claude-workflow-v2;
+    skills = {
+      namespace = "workflow";
+      subdir = "skills";
+    };
+  };
+
+  awesome-claude-code-toolkit = {
+    src = inputs.awesome-claude-code-toolkit;
+    skills = {
+      namespace = "cc-toolkit";
+      subdir = "skills";
+    };
+  };
+
+  # Vibe-Skills bundles a large third-party skill warehouse. Import the
+  # root orchestration skill only; the bundled warehouse can be revisited
+  # as separate curated imports.
+  vibe-skills = {
+    src = inputs.vibe-skills;
+    skills = {
+      namespace = "vibe";
+      paths.vibe = ".";
+    };
+  };
+
+  tech-leads-agent-skills = {
+    src = inputs.tech-leads-agent-skills;
+    skills = {
+      namespace = "tlc";
+      subdir = "packages/skills-catalog/skills";
+    };
+  };
+
+  gitagent = {
+    src = inputs.gitagent;
+    skills = {
+      namespace = "gitagent";
+      subdir = "skills";
+      exclude = [ "example-skill" ];
+    };
+  };
+
+  waza = {
+    src = inputs.waza;
+    skills = {
+      namespace = "waza";
+      subdir = "skills";
+    };
+  };
+
+  # ── mattpocock/skills — small engineering workflow skills ────────
+  mattpocock-skills = {
+    src = inputs.mattpocock-skills;
+    skills = {
+      namespace = "mattpocock";
+      subdir = "skills";
+      exclude = [
+        "design-an-interface"
+        "edit-article"
+        "obsidian-vault"
+        "qa"
+        "request-refactor-plan"
+        "ubiquitous-language"
+      ];
+    };
+  };
 }

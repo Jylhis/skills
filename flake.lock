@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "aboutsecurity": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777098964,
+        "narHash": "sha256-v4dl6VdcJFN7pKzfPy3OR5VukZRYalpb/uMm/jH91Wc=",
+        "owner": "wgpsec",
+        "repo": "AboutSecurity",
+        "rev": "15fdec92c57e304f9ddc291160da90b160f25966",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wgpsec",
+        "repo": "AboutSecurity",
+        "type": "github"
+      }
+    },
     "addyosmani-agent-skills": {
       "flake": false,
       "locked": {
@@ -29,6 +45,22 @@
       "original": {
         "owner": "Orchestra-Research",
         "repo": "AI-Research-SKILLs",
+        "type": "github"
+      }
+    },
+    "awesome-claude-code-toolkit": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776675007,
+        "narHash": "sha256-xhwcaZfIJcyKmTkPuEckbN4qKSQPmvm7JcSfYF2ATwc=",
+        "owner": "rohitg00",
+        "repo": "awesome-claude-code-toolkit",
+        "rev": "659efb0f7269f58a077bb9202f08725408c88cbb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rohitg00",
+        "repo": "awesome-claude-code-toolkit",
         "type": "github"
       }
     },
@@ -64,6 +96,22 @@
         "type": "github"
       }
     },
+    "claude-workflow-v2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771092344,
+        "narHash": "sha256-CV4HEJ+XTczVPe0GnlYQKFATLz6LD7R1hXcy/O990Fc=",
+        "owner": "CloudAI-X",
+        "repo": "claude-workflow-v2",
+        "rev": "b6952dd3cd31b548d57ea88352c84692030e5480",
+        "type": "github"
+      },
+      "original": {
+        "owner": "CloudAI-X",
+        "repo": "claude-workflow-v2",
+        "type": "github"
+      }
+    },
     "cloudflare-skills": {
       "flake": false,
       "locked": {
@@ -80,6 +128,38 @@
         "type": "github"
       }
     },
+    "composio-awesome-codex-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777361144,
+        "narHash": "sha256-rax8hzynv/jUMkIgAIR4O6/kjYP4G5gyil9mROwfkLI=",
+        "owner": "ComposioHQ",
+        "repo": "awesome-codex-skills",
+        "rev": "14667b4850a3d99b23f8fbc0cf73c879ef219c66",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ComposioHQ",
+        "repo": "awesome-codex-skills",
+        "type": "github"
+      }
+    },
+    "finance-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777237150,
+        "narHash": "sha256-2wHNrhveU/vMURzariHuoJguaEwd+ev/tITukLG8TNs=",
+        "owner": "himself65",
+        "repo": "finance-skills",
+        "rev": "be2c2fdfa3e609071fe00974da7d8944e6310e6b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "himself65",
+        "repo": "finance-skills",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -93,6 +173,22 @@
       "original": {
         "owner": "edolstra",
         "repo": "flake-compat",
+        "type": "github"
+      }
+    },
+    "gitagent": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777273535,
+        "narHash": "sha256-UOsZ2v/FiLj/xb5fPgfibu8itHXBGOTZRJsRkdtCVgo=",
+        "owner": "open-gitagent",
+        "repo": "gitagent",
+        "rev": "23bb53a88506522d44d8cb726eea2c972686d6e5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "open-gitagent",
+        "repo": "gitagent",
         "type": "github"
       }
     },
@@ -141,6 +237,22 @@
       "original": {
         "owner": "hashicorp",
         "repo": "agent-skills",
+        "type": "github"
+      }
+    },
+    "mattpocock-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777549091,
+        "narHash": "sha256-qOhU5bBnT6kI8c7i0r0IyecrgLJNNPlmQtAb6qWM73Q=",
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mattpocock",
+        "repo": "skills",
         "type": "github"
       }
     },
@@ -224,26 +336,54 @@
         "type": "github"
       }
     },
+    "prat011-awesome-llm-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776854817,
+        "narHash": "sha256-EY7lvql8CM45e2HpUSLsol8aK4IJ6EjkEDHkUD3TnlU=",
+        "owner": "Prat011",
+        "repo": "awesome-llm-skills",
+        "rev": "f417203aa4a4c17268653382512081d10eaada23",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Prat011",
+        "repo": "awesome-llm-skills",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
+        "aboutsecurity": "aboutsecurity",
         "addyosmani-agent-skills": "addyosmani-agent-skills",
         "ai-research-skills": "ai-research-skills",
+        "awesome-claude-code-toolkit": "awesome-claude-code-toolkit",
         "cc-skills-golang": "cc-skills-golang",
         "claude-plugins-official": "claude-plugins-official",
+        "claude-workflow-v2": "claude-workflow-v2",
         "cloudflare-skills": "cloudflare-skills",
+        "composio-awesome-codex-skills": "composio-awesome-codex-skills",
+        "finance-skills": "finance-skills",
         "flake-compat": "flake-compat",
+        "gitagent": "gitagent",
         "github-awesome-copilot": "github-awesome-copilot",
         "grafana-skills": "grafana-skills",
         "hashicorp-agent-skills": "hashicorp-agent-skills",
+        "mattpocock-skills": "mattpocock-skills",
         "microsoft-skills": "microsoft-skills",
         "minimax-skills": "minimax-skills",
         "nixpkgs": "nixpkgs",
         "obsidian-skills": "obsidian-skills",
         "openai-skills": "openai-skills",
+        "prat011-awesome-llm-skills": "prat011-awesome-llm-skills",
         "rust-skills": "rust-skills",
+        "superpowers-zh": "superpowers-zh",
         "taste-skill": "taste-skill",
+        "tech-leads-agent-skills": "tech-leads-agent-skills",
         "trailofbits-skills": "trailofbits-skills",
-        "trailofbits-skills-curated": "trailofbits-skills-curated"
+        "trailofbits-skills-curated": "trailofbits-skills-curated",
+        "vibe-skills": "vibe-skills",
+        "waza": "waza"
       }
     },
     "rust-skills": {
@@ -262,6 +402,22 @@
         "type": "github"
       }
     },
+    "superpowers-zh": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777345904,
+        "narHash": "sha256-jI21dIkd+zgHn/+6GwRuRFDnunYjUcb8+B5bQXZFbx0=",
+        "owner": "jnMetaCode",
+        "repo": "superpowers-zh",
+        "rev": "8298e9f865d276add7cbda918d829dac8c76188e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jnMetaCode",
+        "repo": "superpowers-zh",
+        "type": "github"
+      }
+    },
     "taste-skill": {
       "flake": false,
       "locked": {
@@ -275,6 +431,22 @@
       "original": {
         "owner": "Leonxlnx",
         "repo": "taste-skill",
+        "type": "github"
+      }
+    },
+    "tech-leads-agent-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777353201,
+        "narHash": "sha256-qSywFo2/FXf8X2kFIkIavswukphpGHhkIR0CMyq5sq8=",
+        "owner": "tech-leads-club",
+        "repo": "agent-skills",
+        "rev": "81e7e0dd3abe314aa004ec276c1d64643d2bd6c0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tech-leads-club",
+        "repo": "agent-skills",
         "type": "github"
       }
     },
@@ -307,6 +479,38 @@
       "original": {
         "owner": "trailofbits",
         "repo": "skills-curated",
+        "type": "github"
+      }
+    },
+    "vibe-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777689001,
+        "narHash": "sha256-+PvBA54h8PYbcwrzySeH1dJA6u659A6ppevGzsglsXI=",
+        "owner": "foryourhealth111-pixel",
+        "repo": "Vibe-Skills",
+        "rev": "0d029ae9b9b901596eeb9767d8e52e63a778befa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "foryourhealth111-pixel",
+        "repo": "Vibe-Skills",
+        "type": "github"
+      }
+    },
+    "waza": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777904341,
+        "narHash": "sha256-qBRekhGXid4n5GuFYKYj2IhOasvPdrhwNwosxJFRyuw=",
+        "owner": "tw93",
+        "repo": "Waza",
+        "rev": "a1acdbaf4c7bf5c9b04a9d262cad53aaa68146cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tw93",
+        "repo": "Waza",
         "type": "github"
       }
     }

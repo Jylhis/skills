@@ -31,5 +31,17 @@ in
     ai-research-skills
     github-awesome-copilot
     grafana-skills
+    composio-awesome-codex-skills
+    superpowers-zh
+    prat011-awesome-llm-skills
+    aboutsecurity
+    finance-skills
+    claude-workflow-v2
+    awesome-claude-code-toolkit
+    vibe-skills
+    tech-leads-agent-skills
+    gitagent
+    waza
+    mattpocock-skills
     ;
 }

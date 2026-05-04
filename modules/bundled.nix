@@ -76,33 +76,35 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
-    programs.jstack.skillSources = lib.mapAttrs (_: entry: {
-      inherit (entry) src;
-      subdir = entry.subdir or ".";
-      namespace = entry.namespace or "";
-      include = entry.include or [ ];
-      exclude = entry.exclude or [ ];
-      paths = entry.paths or { };
-      maxDepth = entry.maxDepth or 5;
-    }) bundledSkillSources;
+    programs.jstack = {
+      skillSources = lib.mapAttrs (_: entry: {
+        inherit (entry) src;
+        subdir = entry.subdir or ".";
+        namespace = entry.namespace or "";
+        include = entry.include or [ ];
+        exclude = entry.exclude or [ ];
+        paths = entry.paths or { };
+        maxDepth = entry.maxDepth or 5;
+      }) bundledSkillSources;
 
-    programs.jstack.agentSources = lib.mapAttrs (_: entry: {
-      inherit (entry) src;
-      subdir = entry.subdir or ".";
-      include = entry.include or [ ];
-      exclude = entry.exclude or [ ];
-      paths = entry.paths or { };
-    }) bundledAgentSources;
+      agentSources = lib.mapAttrs (_: entry: {
+        inherit (entry) src;
+        subdir = entry.subdir or ".";
+        include = entry.include or [ ];
+        exclude = entry.exclude or [ ];
+        paths = entry.paths or { };
+      }) bundledAgentSources;
 
-    programs.jstack.commandSources = lib.mapAttrs (_: entry: {
-      inherit (entry) src;
-      subdir = entry.subdir or ".";
-      include = entry.include or [ ];
-      exclude = entry.exclude or [ ];
-      paths = entry.paths or { };
-    }) bundledCommandSources;
+      commandSources = lib.mapAttrs (_: entry: {
+        inherit (entry) src;
+        subdir = entry.subdir or ".";
+        include = entry.include or [ ];
+        exclude = entry.exclude or [ ];
+        paths = entry.paths or { };
+      }) bundledCommandSources;
 
-    programs.jstack.agents = repoAgents;
-    programs.jstack.commands = repoCommands;
+      agents = repoAgents;
+      commands = repoCommands;
+    };
   };
 }

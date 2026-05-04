@@ -67,30 +67,38 @@ let
   # ── Stub option declarations per context ───────────────────────
   hmStubModule = {
     options = {
-      home.username = lib.mkOption {
-        type = lib.types.str;
-        default = "alice";
+      home = {
+        username = lib.mkOption {
+          type = lib.types.str;
+          default = "alice";
+        };
+        homeDirectory = lib.mkOption {
+          type = lib.types.str;
+          default = "/home/alice";
+        };
+        packages = looseList;
+        sessionVariables = loose;
+        file = loose;
       };
-      home.homeDirectory = lib.mkOption {
-        type = lib.types.str;
-        default = "/home/alice";
-      };
-      home.packages = looseList;
-      home.sessionVariables = loose;
-      home.file = loose;
       # HM upstream AI-CLI module stubs. Our tool modules default their
       # `tools.<name>.enable` to these when the upstream module is loaded,
       # so they need to exist in the option tree for the default to fire.
-      programs.claude-code.enable = lib.mkEnableOption "upstream claude-code";
-      programs.claude-code.settings = looseAny;
-      programs.claude-code.plugins = looseList;
-      programs.codex.enable = lib.mkEnableOption "upstream codex";
-      programs.codex.settings = looseAny;
-      programs.codex.custom-instructions = looseStr;
-      programs.codex.skills = looseAny;
-      programs.gemini-cli.enable = lib.mkEnableOption "upstream gemini-cli";
-      programs.aider-chat.enable = lib.mkEnableOption "upstream aider-chat";
-      programs.opencode.enable = lib.mkEnableOption "upstream opencode";
+      programs = {
+        claude-code = {
+          enable = lib.mkEnableOption "upstream claude-code";
+          settings = looseAny;
+          plugins = looseList;
+        };
+        codex = {
+          enable = lib.mkEnableOption "upstream codex";
+          settings = looseAny;
+          custom-instructions = looseStr;
+          skills = looseAny;
+        };
+        gemini-cli.enable = lib.mkEnableOption "upstream gemini-cli";
+        aider-chat.enable = lib.mkEnableOption "upstream aider-chat";
+        opencode.enable = lib.mkEnableOption "upstream opencode";
+      };
       lib = lib.mkOption {
         type = lib.types.unspecified;
         default = {
@@ -102,23 +110,29 @@ let
 
   hmNoCodexStubModule = {
     options = {
-      home.username = lib.mkOption {
-        type = lib.types.str;
-        default = "alice";
+      home = {
+        username = lib.mkOption {
+          type = lib.types.str;
+          default = "alice";
+        };
+        homeDirectory = lib.mkOption {
+          type = lib.types.str;
+          default = "/home/alice";
+        };
+        packages = looseList;
+        sessionVariables = loose;
+        file = loose;
       };
-      home.homeDirectory = lib.mkOption {
-        type = lib.types.str;
-        default = "/home/alice";
+      programs = {
+        claude-code = {
+          enable = lib.mkEnableOption "upstream claude-code";
+          settings = looseAny;
+          plugins = looseList;
+        };
+        gemini-cli.enable = lib.mkEnableOption "upstream gemini-cli";
+        aider-chat.enable = lib.mkEnableOption "upstream aider-chat";
+        opencode.enable = lib.mkEnableOption "upstream opencode";
       };
-      home.packages = looseList;
-      home.sessionVariables = loose;
-      home.file = loose;
-      programs.claude-code.enable = lib.mkEnableOption "upstream claude-code";
-      programs.claude-code.settings = looseAny;
-      programs.claude-code.plugins = looseList;
-      programs.gemini-cli.enable = lib.mkEnableOption "upstream gemini-cli";
-      programs.aider-chat.enable = lib.mkEnableOption "upstream aider-chat";
-      programs.opencode.enable = lib.mkEnableOption "upstream opencode";
       lib = lib.mkOption {
         type = lib.types.unspecified;
         default = {
@@ -175,15 +189,21 @@ let
               programs.jstack = {
                 enable = true;
                 instructions = "Test instructions";
-                tools.claude-code.enable = true;
-                tools.codex.enable = true;
-                tools.gemini.enable = true;
-                tools.pi.enable = true;
-                tools.windsurf.enable = true;
-                skills.test-skill.src = jstackRepo + "/skills/devenv";
-                mcpServers.test-server = {
-                  command = "test-mcp";
-                  args = [ "--stdio" ];
+                tools = {
+                  claude-code.enable = true;
+                  codex.enable = true;
+                  gemini.enable = true;
+                  pi.enable = true;
+                  windsurf.enable = true;
+                };
+                skills.test-skill = {
+                  src = jstackRepo + "/skills/devenv";
+                };
+                mcpServers = {
+                  test-server = {
+                    command = "test-mcp";
+                    args = [ "--stdio" ];
+                  };
                 };
               };
             }
@@ -239,13 +259,15 @@ let
       { config._module.args.jstackBundledSources = { }; }
       {
         config = {
-          programs.jstack.enable = true;
-          # Upstream enable flags only — no explicit tools.*.enable.
-          programs.claude-code.enable = true;
-          programs.codex.enable = true;
-          programs.gemini-cli.enable = true;
-          programs.aider-chat.enable = true;
-          programs.opencode.enable = true;
+          programs = {
+            jstack.enable = true;
+            # Upstream enable flags only — no explicit tools.*.enable.
+            claude-code.enable = true;
+            codex.enable = true;
+            gemini-cli.enable = true;
+            aider-chat.enable = true;
+            opencode.enable = true;
+          };
         };
       }
     ];
@@ -295,7 +317,9 @@ let
     contextModules = [ hmStubModule ];
     pkgs' = linuxPkgs;
     extraConfig = {
-      programs.jstack.skills.invalid-codex-skill.src = jstackRepo + "/tests/fixtures/invalid-codex-skill";
+      programs.jstack.skills.invalid-codex-skill = {
+        src = jstackRepo + "/tests/fixtures/invalid-codex-skill";
+      };
     };
   };
 
@@ -317,12 +341,16 @@ let
               approvalPolicy = "on-request";
               extraInstructions = "Codex project instructions";
             };
-            skills.test-skill.src = jstackRepo + "/skills/devenv";
-            mcpServers.http-server = {
-              type = "http";
-              url = "https://example.test/mcp";
-              bearer_token_env_var = "MCP_TOKEN";
-              enabled_tools = [ "search" ];
+            skills.test-skill = {
+              src = jstackRepo + "/skills/devenv";
+            };
+            mcpServers = {
+              http-server = {
+                type = "http";
+                url = "https://example.test/mcp";
+                bearer_token_env_var = "MCP_TOKEN";
+                enabled_tools = [ "search" ];
+              };
             };
           };
         };
@@ -337,7 +365,9 @@ let
     contextModules = [ hmStubModule ];
     pkgs' = linuxPkgs;
     extraConfig = {
-      programs.jstack.tools.codex.sandboxMode = "read-only";
+      programs.jstack.tools.codex = {
+        sandboxMode = "read-only";
+      };
     };
   };
 
@@ -347,7 +377,9 @@ let
         contextModules = [ hmStubModule ];
         pkgs' = linuxPkgs;
         extraConfig = {
-          programs.jstack.tools.codex.sandboxMode = "full-auto";
+          programs.jstack.tools.codex = {
+            sandboxMode = "full-auto";
+          };
         };
       }).config.programs.jstack.tools.codex.sandboxMode
       true
