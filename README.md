@@ -114,6 +114,14 @@ everything in lock-step (including devenv): `just update`.
 
 List all discovered skills: `just list-skills`
 
+## Upstream source intake checklist
+
+Before adding or updating any third-party source in `flake.nix` or `bundled-sources.nix`, follow the governance policy and complete the mandatory checks in:
+
+- [`docs/skill-source-governance.md`](docs/skill-source-governance.md)
+
+Use this as the single contributor path for acceptance criteria, validation, and exception handling.
+
 ## Consumer-side extras
 
 Downstream NixOS / nix-darwin / Home Manager consumers append extra
