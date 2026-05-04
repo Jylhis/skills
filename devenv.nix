@@ -137,47 +137,47 @@ in
     fail() { echo "FAIL: $*" >&2; exit 1; }
     pass() { echo "PASS: $*"; }
 
-    echo "==> devenv test suite (14 tests)"
+    echo "==> devenv test suite (15 tests)"
 
     # 1. Required CLI tools resolve on PATH.
-    echo "-- test 1/14: required tools on PATH"
+    echo "-- test 1/15: required tools on PATH"
     for bin in jq yq rg fd shellcheck markdownlint-cli2 treefmt git just codex gemini; do
       command -v "$bin" >/dev/null || fail "missing $bin"
     done
     pass "required tools available"
 
     # 2. .claude/settings.json is valid JSON (symlinked from nix store).
-    echo "-- test 2/14: .claude/settings.json parses as JSON"
+    echo "-- test 2/15: .claude/settings.json parses as JSON"
     jq empty .claude/settings.json || fail ".claude/settings.json invalid"
     pass ".claude/settings.json valid"
 
     # 3. Project nix files exist and are non-empty.
-    echo "-- test 3/14: project nix files present"
+    echo "-- test 3/15: project nix files present"
     for f in devenv.nix default.nix runtime/default.nix _sources.nix overlay.nix; do
       [ -s "$f" ] || fail "missing or empty $f"
     done
     pass "nix files present"
 
     # 4. Project bash scripts pass `bash -n` syntax check.
-    echo "-- test 4/14: bash -n on scripts"
+    echo "-- test 4/15: bash -n on scripts"
     for f in scripts/install.bash; do
       bash -n "$f" || fail "syntax error in $f"
     done
     pass "scripts parse"
 
     # 5. shellcheck on bundled scripts (errors only, not style/info).
-    echo "-- test 5/14: shellcheck --severity=error"
+    echo "-- test 5/15: shellcheck --severity=error"
     shellcheck --severity=error scripts/install.bash \
       || fail "shellcheck reported errors"
     pass "shellcheck clean"
 
     # 6. treefmt is wired up and can resolve its generated config.
-    echo "-- test 6/14: treefmt loads config"
+    echo "-- test 6/15: treefmt loads config"
     treefmt --version >/dev/null || fail "treefmt not runnable"
     pass "treefmt available"
 
     # 7. Generated server and tool config files are valid.
-    echo "-- test 7/14: generated config files valid"
+    echo "-- test 7/15: generated config files valid"
     if [ -f .mcp.json ]; then
       jq empty .mcp.json || fail ".mcp.json invalid"
     fi
@@ -192,7 +192,7 @@ in
     pass "generated config files valid"
 
     # 8. .claude/settings.json is a symlink into the nix store built from settings.nix.
-    echo "-- test 8/14: .claude/settings.json links to nix store"
+    echo "-- test 8/15: .claude/settings.json links to nix store"
     [ -L .claude/settings.json ] || fail ".claude/settings.json is not a symlink"
     target=$(readlink -f .claude/settings.json)
     case "$target" in
@@ -205,7 +205,7 @@ in
     pass ".claude/settings.json -> $target"
 
     # 9. lib/discover.nix can discover skills from skills/.
-    echo "-- test 9/14: lib/discover.nix discovers skills"
+    echo "-- test 9/15: lib/discover.nix discovers skills"
     skill_count=$(nix eval --impure --json --expr '
       let d = import ./lib/discover.nix;
           c = d { path = ./skills; namespace = "jstack"; };
@@ -215,7 +215,7 @@ in
     pass "discover.nix found $skill_count skills"
 
     # 10. lib/servers.nix evaluates and has expected keys.
-    echo "-- test 10/14: lib/servers.nix evaluates"
+    echo "-- test 10/15: lib/servers.nix evaluates"
     server_keys=$(nix eval --impure --json --expr '
       let sources = import ./_sources.nix; pkgs = import sources.nixpkgs {};
           s = import ./lib/servers.nix { inherit pkgs; };
@@ -225,7 +225,7 @@ in
     pass "lib/servers.nix valid: $server_keys"
 
     # 11. lib/default-skills.nix lists skills that exist on disk.
-    echo "-- test 11/14: default-skills.nix consistency"
+    echo "-- test 11/15: default-skills.nix consistency"
     nix eval --impure --json --expr '
       let ds = import ./lib/default-skills.nix;
       in builtins.length (builtins.attrNames ds.all)
@@ -235,7 +235,7 @@ in
     # 12. bundled-sources.nix parses without error.
     # (bundled-sources.nix is a function of flake inputs, so we apply it to the
     # inputs attrset from _sources.nix before evaluating.)
-    echo "-- test 12/14: bundled-sources.nix parses"
+    echo "-- test 12/15: bundled-sources.nix parses"
     nix eval --impure --json --expr 'builtins.attrNames ((import ./bundled-sources.nix) (import ./_sources.nix))' > /dev/null \
       || fail "bundled-sources.nix failed to parse"
     pass "bundled-sources.nix valid"
@@ -244,20 +244,26 @@ in
     # stub contexts (and the negative-user assertion fires). The driver
     # throws on the first failed sub-check and prints "OK" only when
     # all checks pass.
-    echo "-- test 13/14: modules/ valid for HM / NixOS / nix-darwin"
+    echo "-- test 13/15: modules/ valid for HM / NixOS / nix-darwin"
     module_eval_out=$(nix eval --impure --raw --apply 'f: f {}' --file tests/module-eval.nix 2>&1) \
       || fail "tests/module-eval.nix failed:\n$module_eval_out"
     [ "$(printf '%s\n' "$module_eval_out" | tail -n1)" = "OK" ] \
       || fail "tests/module-eval.nix did not return OK:\n$module_eval_out"
     pass "modules/ valid across all targets"
 
-    # 14. nixpkgs revision parity across devenv.lock and flake.lock
-    echo "-- test 14/14: nixpkgs revision parity"
+    # 14. bundled source scanner unit tests
+    echo "-- test 14/15: bundled source scanner tests"
+    python3 -m unittest discover -s tests -p 'test_*.py' \
+      || fail "bundled source scanner tests failed"
+    pass "bundled source scanner tests passed"
+
+    # 15. nixpkgs revision parity across devenv.lock and flake.lock
+    echo "-- test 15/15: nixpkgs revision parity"
     devenv_rev=$(jq -r '.nodes.nixpkgs.locked.rev' devenv.lock)
     flake_rev=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
     [ "$devenv_rev" = "$flake_rev" ] || fail "nixpkgs rev mismatch: devenv=$devenv_rev flake=$flake_rev"
     pass "nixpkgs revision $flake_rev matches across devenv and flake"
 
-    echo "==> all 14 tests passed"
+    echo "==> all 15 tests passed"
   '';
 }
