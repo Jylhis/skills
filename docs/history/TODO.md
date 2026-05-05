@@ -1,3 +1,7 @@
+> **Archived 2026-05-05.** This roadmap targeted the v2 bundled-sources
+> architecture, which has since been removed. Kept for historical
+> reference only.
+
 # Skills catalog roadmap
 
 Living roadmap for reviewing, validating, organizing, and maintaining the skill

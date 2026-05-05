@@ -6,12 +6,12 @@
     "MD024": { "siblings_only": true }
   },
   "globs": [
-    "skills/**/SKILL.md",
-    "agents/*.md",
-    "commands/*.md"
+    "**/*.md"
   ],
   "ignores": [
     ".devenv/**",
-    "result/**"
+    "result/**",
+    "staging/**",
+    "docs/history/**"
   ]
 }

@@ -1,3 +1,7 @@
+> **Archived 2026-05-05.** Describes a prior `jstack v2` design that was
+> not adopted. The current repo is a flat skills catalogue with one small
+> Nix module — see top-level `README.md`.
+
 # jstack v2 Plan
 
 Remove plugins and manual install setups. Only support:
