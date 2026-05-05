@@ -17,7 +17,10 @@ run() { if [[ $DRY_RUN -eq 1 ]]; then echo "DRY: $*"; else "$@"; fi; }
 
 link() {
   local src="$1" dst="$2"
-  if [[ -L "$dst" ]] && [[ "$(readlink -f "$dst")" == "$src" ]]; then
+  # We always create absolute-path symlinks (via `ln -s "$src" "$dst"`
+  # below where $src is already absolute), so plain `readlink` is enough —
+  # avoids `readlink -f` which is GNU-only and not on stock macOS.
+  if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
     echo "skip $dst (already linked)"
     return
   fi

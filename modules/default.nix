@@ -31,15 +31,35 @@ let
     else
       null;
 
+  # Look up the user record from `users.users.<name>` if the consuming
+  # configuration declares one. Returns null when the user isn't declared
+  # there (e.g. on machines where the interactive user is created outside
+  # the NixOS module system, or on nix-darwin setups that skip it).
+  declaredUser =
+    if effectiveUser == null then
+      null
+    else
+      config.users.users.${effectiveUser} or null;
+
   effectiveHome =
     if isHomeManager then
       config.home.homeDirectory
     else if effectiveUser == null then
       "/INVALID-skills-user-not-set"
+    else if declaredUser != null && (declaredUser.home or null) != null then
+      declaredUser.home
     else if isDarwin then
       "/Users/${effectiveUser}"
     else
       "/home/${effectiveUser}";
+
+  effectiveGroup =
+    if declaredUser != null && (declaredUser.group or "") != "" then
+      declaredUser.group
+    else if isDarwin then
+      "staff"
+    else
+      effectiveUser;
 
   skillsStorePath = pkgs.runCommand "skills" { } ''
     mkdir -p $out
@@ -116,7 +136,8 @@ in
 
     (lib.mkIf isNixOS {
       systemd.tmpfiles.rules = lib.mapAttrsToList (
-        relPath: storePath: "L+ ${effectiveHome}/${relPath} - ${effectiveUser} ${effectiveUser} - ${storePath}"
+        relPath: storePath:
+        "L+ ${effectiveHome}/${relPath} - ${effectiveUser} ${effectiveGroup} - ${storePath}"
       ) paths;
     })
 
@@ -125,7 +146,7 @@ in
         lib.mapAttrsToList (relPath: storePath: ''
           mkdir -p "$(dirname "${effectiveHome}/${relPath}")"
           ln -sfn "${storePath}" "${effectiveHome}/${relPath}"
-          chown -h ${effectiveUser}:staff "${effectiveHome}/${relPath}" 2>/dev/null || true
+          chown -h ${effectiveUser}:${effectiveGroup} "${effectiveHome}/${relPath}" 2>/dev/null || true
         '') paths
       );
     })
