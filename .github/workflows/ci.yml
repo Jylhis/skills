@@ -46,8 +46,8 @@ jobs:
       - name: nix flake check
         run: nix flake check -L
 
-      - name: Build packages
-        run: nix build -L .#default .#options-doc
+      - name: Build default package
+        run: nix build -L .#default
 
       - name: Install devenv
         run: nix profile install nixpkgs#devenv

@@ -16,10 +16,8 @@ in
 {
   packages.default = flake.packages.${system}.default;
   inherit (flake)
-    overlays
     nixosModules
     darwinModules
     homeModules
-    lib
     ;
 }

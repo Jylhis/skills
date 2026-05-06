@@ -1,142 +1,91 @@
 # skills
 
-A curated catalogue of agent skills plus a multi-tool deployment module.
-Fully managed with Nix. Bundles skills, agents, commands, hooks,
-settings, and a devenv dev shell — imported from a dozen upstream sources and augmented with locally maintained
-skills. Superset of the [trailofbits/skills-curated](https://github.com/trailofbits/skills-curated)
-model.
-
-Supports Claude Code, Codex, Gemini, Pi, Windsurf, Cursor, OpenCode,
-Cline, and Aider via a single `programs.jstack` option tree.
-
-Installation with the home-manager / nix-darwin / NixOS module or
-`scripts/install.bash`.
-
-Docs: https://docs.jylhis.com/skills
-
-## Categories
-
-All things are generally categorised under following categories:
-
-- **supporting** - Not called by user directly, automatically loaded by models when needed e.g. rust-dev
-- **workflow** - The main thing you call e.g. /review, /debug, /troubleshoot
+A flat catalogue of [Agent Skills](https://agentskills.io) for Claude
+Code, plus a small Nix module to symlink the catalogue into `~/.claude/`.
 
 ## Layout
 
 ```
-.
-├── settings.nix               # canonical settings source (generates settings.json)
-├── settings.json              # generated — do not edit directly
-├── CLAUDE.md                  # source of truth for ~/.claude/CLAUDE.md
-├── bundled-sources.nix        # upstream skill repos bundled as first-class jstack skills
-├── skills/                    # personal skills (dir-per-skill, SKILL.md inside)
-├── agents/                    # personal subagent .md files
-├── commands/                  # personal slash command .md files
-├── hooks/                     # hook scripts referenced from settings.json
-├── plugins/                   # one directory per plugin (e.g. plugins/rust-dev/)
-│   └── <plugin>/
-│       ├── plugin.nix         # plugin metadata (source of truth)
-│       ├── skills/            # plugin skills
-│       ├── .claude-plugin/    # generated: plugin.json
-│       ├── .mcp.json          # generated: MCP server config
-│       └── .lsp.json          # generated: LSP server config
-├── lib/                       # Nix library (discovery, manifests, bundles)
-│   ├── default.nix            # library entry point
-│   ├── targets.nix            # agent target definitions
-│   ├── discover.nix           # recursive SKILL.md scanner
-│   ├── manifest.nix           # manifest generators (plugin.json, .mcp.json, .lsp.json)
-│   ├── bundle.nix             # bundle builder for third-party skills
-│   └── list-catalog.nix       # convenience: list all discovered skills
-├── runtime/default.nix        # pkgs.buildEnv with LSPs (auto-aggregates from plugin.nix)
-├── modules/                   # multi-target module (NixOS / nix-darwin / Home Manager)
-├── docs/                      # Mintlify documentation site
-├── flake.nix                  # source of truth for pinned inputs (nixpkgs, flake-compat)
-├── flake.lock                 # pinned input revisions (read by flake + flake-compat)
-├── _sources.nix               # flake-compat shim that exposes flake inputs to non-flake consumers
-└── scripts/
-    └── install.bash           # link the repo into agent config dirs, build runtime
+skills/                # one directory per skill, each with SKILL.md
+staging/               # legacy content awaiting per-skill review
+AGENTS.md              # tool-agnostic project context (Claude/Codex/Gemini)
+CLAUDE.md GEMINI.md    # thin tool wrappers that import AGENTS.md
+modules/default.nix    # NixOS / nix-darwin / Home Manager module
+scripts/install.sh     # non-Nix install (symlinks into ~/.claude/)
+scripts/validate.py    # portable SKILL.md lint
+evals/                 # eval scaffolding (stub — see evals/README.md)
+docs/skill-authoring-guide.md  # how to write a portable skill
+docs/skills-spec-v3.md         # target architecture spec we are growing into
+docs/upstream-sources.md       # parked list of repos to revisit
+docs/history/          # archived design docs
 ```
 
-## Plugin definition
+A skill is a directory containing a `SKILL.md` with YAML frontmatter:
 
-Each plugin is defined by a `plugin.nix` file (source of truth). Manifests
-(`plugin.json`, `.mcp.json`, `.lsp.json`) are generated from it.
+```markdown
+---
+name: my-skill
+description: When to trigger this skill (50–1024 chars).
+---
 
-```nix
-{ pkgs }:
-{
-  name = "my-plugin";
-  version = "1.0.0";
-  description = "What this plugin provides";
-  author.name = "Your Name";
-  packages = [ pkgs.some-tool ];   # optional: added to runtime PATH
-  mcpServers = { ... };            # optional: generates .mcp.json
-  lspServers = { ... };            # optional: generates .lsp.json
-}
+# Body — reference material, examples, best practices.
 ```
 
-## Bundling upstream skill repos
+Optional siblings: `scripts/`, `references/`, `assets/`.
 
-Pin external skill repos as non-flake inputs in `flake.nix`, then list
-them in `bundled-sources.nix`. The module auto-registers each entry so
-the upstream skills appear as first-class jstack skills to every
-downstream consumer.
+## Install
+
+### Plain symlink (no Nix)
+
+```bash
+bash scripts/install.sh
+```
+
+Symlinks `skills/` → `~/.claude/skills` and `CLAUDE.md` → `~/.claude/CLAUDE.md`.
+Idempotent. Backs up any existing files.
+
+### Home Manager / NixOS / nix-darwin
 
 ```nix
-# flake.nix
 {
-  inputs = {
-    anthropic-skills = {
-      url = "github:anthropics/skills";
-      flake = false;
+  inputs.skills.url = "github:Jylhis/skills";
+
+  outputs = { self, nixpkgs, home-manager, skills, ... }: {
+    homeConfigurations.alice = home-manager.lib.homeManagerConfiguration {
+      modules = [
+        skills.homeModules.default
+        { programs.skills.enable = true; }
+      ];
     };
   };
 }
 ```
 
+Module options (all optional):
+
+| Option | Default | Description |
+|---|---|---|
+| `enable` | `false` | Activate the module. |
+| `src` | `./skills` (the flake's own) | Path to a directory of skill subdirectories. |
+| `claudeMd` | `./CLAUDE.md` | Path to symlink as `~/.claude/CLAUDE.md`, or `null`. |
+| `user` | `null` | Required on NixOS / nix-darwin. Ignored under HM. |
+| `livePath` | `null` | HM only: out-of-store symlink to a live checkout. |
+
+## Contributing
+
+Add a skill: create `skills/<name>/SKILL.md` with the frontmatter above.
+That's the entire contract. See [`docs/skill-authoring-guide.md`](docs/skill-authoring-guide.md)
+for the portability profile and rejected fields.
+
+Promote a skill from `staging/`: `git mv staging/skills/<name> skills/<name>`,
+review and update the SKILL.md to current conventions, run
+`just validate`, then commit.
+
+## Development
+
 ```bash
-nix flake lock   # record the pinned revision in flake.lock
-```
-
-```nix
-# bundled-sources.nix — key must match the flake input name
-{
-  anthropic-skills = {
-    namespace = "anthropic";
-    subdir = "skills";
-    include = [ "pdf-processing" "document-skills" ];
-  };
-}
-```
-
-Update a single upstream: `nix flake update anthropic-skills`. Update
-everything in lock-step (including devenv): `just update`.
-
-List all discovered skills: `just list-skills`
-
-## Upstream source intake checklist
-
-Before adding or updating any third-party source in `flake.nix` or `bundled-sources.nix`, follow the governance policy and complete the mandatory checks in:
-
-- [`docs/skill-source-governance.md`](docs/skill-source-governance.md)
-
-Use this as the single contributor path for acceptance criteria, validation, and exception handling.
-
-## Consumer-side extras
-
-Downstream NixOS / nix-darwin / Home Manager consumers append extra
-skills, agents, and commands via standard attrset merge — no override
-semantics. Example:
-
-```nix
-programs.jstack = {
-  enable = true;
-  skills.my-local-skill.src = ./skills/my-local-skill;
-  skillSources.my-org = {
-    src = inputs.my-org-skills;
-    subdir = "skills";
-    include = [ "linting" ];
-  };
-  agents.my-reviewer.src = ./agents/my-reviewer.md;
-};
+direnv allow      # or: devenv shell
+just              # list available recipes
+just check        # nix-instantiate + flake check + statix + deadnix + markdownlint
+just fmt          # nixfmt all .nix files
 ```

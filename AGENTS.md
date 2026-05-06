@@ -1,32 +1,82 @@
-# Repository Guidelines
+# AGENTS.md
 
-## Project Structure & Module Organization
+Always-loaded project context for AI coding agents (Claude Code, Codex,
+Gemini CLI, etc.). Tool-specific wrappers (`CLAUDE.md`, `GEMINI.md`)
+extend this file via their respective import mechanisms.
 
-This repository is a Nix-managed catalogue of agent skills and deployment modules. Core Nix library code lives in `lib/`, reusable NixOS/nix-darwin/Home Manager modules in `modules/`, and runtime package composition in `runtime/`. Local skill definitions are under `skills/<name>/SKILL.md`; agent prompts are in `agents/`, slash commands in `commands/`, and templates in `templates/`. Documentation is in `docs/`, scripts are in `scripts/`, and module evaluation tests are in `tests/`. Bundled upstream sources are configured through `flake.nix` and `bundled-sources.nix`.
+## What this repo is
 
-## Build, Test, and Development Commands
+A flat catalogue of [Agent Skills](https://agentskills.io) plus one
+small Nix module that symlinks the catalogue into `~/.claude/`. See
+`README.md` for the consumer-facing description.
 
-Use `just` as the task entry point.
+## Layout
 
-- `just check`: runs Nix evaluation, flake checks, devenv tests, `statix`, and `deadnix`.
-- `just check-modules`: evaluates `tests/module-eval.nix` directly.
-- `just fmt`: formats all Nix files with `nixfmt`.
-- `just build`: builds the default runtime package with `nix-build`.
-- `just list-skills`: lists discovered skills from local and bundled sources.
-- `just update`: updates `flake.lock`, synchronizes `devenv.yaml`, and refreshes `devenv.lock`.
+- `skills/` — curated skills (one directory per skill, each with `SKILL.md`).
+- `staging/` — legacy content awaiting per-skill review. Do not edit
+  unless promoting an item out of staging or removing it. Nothing here
+  is built or deployed.
+- `modules/default.nix` — single Nix module covering Home Manager,
+  NixOS, and nix-darwin. Detects context at eval time.
+- `scripts/install.sh` — non-Nix install path (plain symlinks).
+- `scripts/validate.py` — portable skill frontmatter lint.
+- `docs/upstream-sources.md` — list of upstream skill repos parked for
+  later re-import. Not wired into the build.
+- `docs/skills-spec-v3.md` — target architecture spec we are growing
+  toward. Not all sections are implemented.
+- `docs/skill-authoring-guide.md` — how to write a portable SKILL.md.
+- `docs/history/` — archived design docs (`PLAN.md`, `TODO.md`).
+- `evals/` — eval scaffolding (currently empty; see `evals/README.md`).
 
-## Coding Style & Naming Conventions
+## Skill format
 
-Prefer small, composable Nix files and keep option/module logic close to existing patterns in `modules/` and `lib/`. Format Nix changes with `just fmt`; lint with `statix check . --ignore '.devenv/*' 'result/*'` and remove dead code with `deadnix --fail --exclude .devenv result .`. Skill directories use kebab-case and must contain `SKILL.md`. Markdown skill, agent, and command files are covered by `.markdownlint-cli2.jsonc`.
+A skill is a directory under `skills/` containing a `SKILL.md` with YAML
+frontmatter:
 
-## Testing Guidelines
+```markdown
+---
+name: <matches the directory basename>
+description: When to trigger this skill (50–1024 chars).
+---
+# Markdown body
+```
 
-Add or update `tests/module-eval.nix` when changing module behavior, target wiring, assertions, or generated configuration. Run `just check-modules` for focused feedback and `just check` before opening a pull request.
+Optional siblings: `scripts/`, `references/`, `assets/`.
 
-## Commit & Pull Request Guidelines
+The portable lint (`scripts/validate.py`) rejects target-specific
+frontmatter fields (`allowed-tools`, `tools`, `model`, etc.) and tool-
+specific path variables (`${CLAUDE_PLUGIN_ROOT}`, `${extensionPath}`,
+`!\`...\``). Skills that need target-specific behavior live under
+`target-skills/<target>/<name>/` (not yet populated).
 
-Recent history uses short imperative commit subjects such as `Add TODO.md for pending upstream skill imports` and `Bundle GitHub platform skills from github/awesome-copilot`. Keep commits focused and mention lockfile or bundle updates explicitly. Pull requests should summarize the change, note affected tools or skill groups, link related issues, and include validation commands run. Include screenshots only for documentation or rendered output changes.
+## Development workflow
 
-## Security & Configuration Tips
+All tools come from devenv. Enter the shell with `direnv allow` or
+`devenv shell`.
 
-Do not commit secrets. Keep local credentials in the environment. Treat generated files and lockfiles carefully: update them through `just update`, `nix flake update <input>`, or documented generation commands rather than manual edits.
+```
+just check    # nix-instantiate + nix flake check + statix + deadnix + markdownlint + shellcheck + validate.py
+just fmt      # nixfmt all .nix files
+just build    # nix build (produces a derivation containing skills/)
+just install  # symlink skills/ + AGENTS.md + CLAUDE.md into ~/.claude/
+just list     # find skills -name SKILL.md
+just validate # portable skill lint only
+```
+
+Ad-hoc devenv environment when a recipe needs an extra package:
+
+```
+devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
+```
+
+## Repo conventions
+
+- Single Nix module; no per-tool deployment logic. The previous
+  multi-tool design is parked in `docs/history/PLAN.md`.
+- Module option namespace: `programs.skills` (not `programs.jstack`).
+- No bundled upstream skill repos. To re-import, vendor selected
+  `<skill>/SKILL.md` trees into `staging/` (or `skills/` directly).
+  The previous URL list lives in `docs/upstream-sources.md`.
+- No generated `settings.json`, `.mcp.json`, or `.lsp.json` in this
+  repo. Configure those in your tool config directly.
+- Portable skills must pass `scripts/validate.py`. Run on every commit.
