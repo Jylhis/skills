@@ -44,6 +44,19 @@ or restore a Nix import path purpose-built for the specific source.
 | `waza` | github:tw93/Waza | `waza` | `skills/` | |
 | `mattpocock-skills` | github:mattpocock/skills | `mattpocock` | `skills/` | excludes `design-an-interface`, `edit-article`, `obsidian-vault`, `qa`, `request-refactor-plan`, `ubiquitous-language` |
 
+## Anthropic-published skills (rely on upstream distribution)
+
+The following skills were vendored into `staging/` but have been removed in
+favor of Anthropic's own distribution channels. Re-vendor only if upstream
+diverges from what we need.
+
+| Skill | Origin | Why removed |
+|---|---|---|
+| `claude-api` | Anthropic (auto-loaded by Claude Code) | Already shipped with Claude Code; maintaining a fork drifts from upstream. Multi-language subtree (`python/`, `typescript/`, `java/`, `go/`, ...) does not fit our two-level layout. |
+| `mcp-builder` | Anthropic | Available via Anthropic plugin distribution; broken `license:` reference and `reference/` (singular) layout would need cleanup. |
+| `session-log` | Anthropic | Used target-specific `allowed-tools` frontmatter (rejected by `scripts/validate.py`); `init` skill covers the same niche. |
+| `skill-creator` | Anthropic | Available via Anthropic plugin distribution; `init` skill covers session-start workflow. |
+
 ## How this used to work
 
 `flake.nix` listed each repo as a non-flake input. `bundled-sources.nix`
