@@ -8,9 +8,15 @@ Code, plus a small Nix module to symlink the catalogue into `~/.claude/`.
 ```
 skills/                # one directory per skill, each with SKILL.md
 staging/               # legacy content awaiting per-skill review
+AGENTS.md              # tool-agnostic project context (Claude/Codex/Gemini)
+CLAUDE.md GEMINI.md    # thin tool wrappers that import AGENTS.md
 modules/default.nix    # NixOS / nix-darwin / Home Manager module
 scripts/install.sh     # non-Nix install (symlinks into ~/.claude/)
-docs/upstream-sources.md  # parked list of repos to revisit
+scripts/validate.py    # portable SKILL.md lint
+evals/                 # eval scaffolding (stub — see evals/README.md)
+docs/skill-authoring-guide.md  # how to write a portable skill
+docs/skills-spec-v3.md         # target architecture spec we are growing into
+docs/upstream-sources.md       # parked list of repos to revisit
 docs/history/          # archived design docs
 ```
 
@@ -68,10 +74,12 @@ Module options (all optional):
 ## Contributing
 
 Add a skill: create `skills/<name>/SKILL.md` with the frontmatter above.
-That's the entire contract.
+That's the entire contract. See [`docs/skill-authoring-guide.md`](docs/skill-authoring-guide.md)
+for the portability profile and rejected fields.
 
 Promote a skill from `staging/`: `git mv staging/skills/<name> skills/<name>`,
-review and update the SKILL.md to current conventions, commit.
+review and update the SKILL.md to current conventions, run
+`just validate`, then commit.
 
 ## Development
 

@@ -34,6 +34,7 @@ link() {
 
 run mkdir -p "$CLAUDE_DIR"
 link "$REPO_ROOT/skills" "$CLAUDE_DIR/skills"
+[[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
 [[ -f "$REPO_ROOT/CLAUDE.md" ]] && link "$REPO_ROOT/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 
 if [[ -d "$BACKUP_DIR" ]]; then

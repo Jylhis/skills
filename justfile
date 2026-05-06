@@ -5,7 +5,7 @@ default:
 fmt:
     nixfmt .
 
-# Validate evaluation, lint, and shell scripts
+# Validate evaluation, lint, shell scripts, and portable skill frontmatter
 check:
     nix-instantiate --eval default.nix > /dev/null
     nix flake check --no-build
@@ -13,12 +13,17 @@ check:
     deadnix --fail --exclude .devenv result .
     markdownlint-cli2 '**/*.md' '#staging/**' '#docs/history/**' '#.devenv/**' '#result/**'
     shellcheck scripts/install.sh
+    python3 scripts/validate.py
+
+# Portable skill lint only
+validate:
+    python3 scripts/validate.py
 
 # Build the skills package (a copy of skills/ in the nix store)
 build:
     nix build
 
-# Symlink skills/ and CLAUDE.md into ~/.claude/
+# Symlink skills/ + AGENTS.md + CLAUDE.md into ~/.claude/
 install:
     bash scripts/install.sh
 

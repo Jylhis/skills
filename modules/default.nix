@@ -66,17 +66,28 @@ let
     cp -r ${cfg.src}/. $out/
   '';
 
-  paths = {
-    ".claude/skills" = skillsStorePath;
-  } // lib.optionalAttrs (cfg.claudeMd != null) {
-    ".claude/CLAUDE.md" = cfg.claudeMd;
-  };
+  paths =
+    { ".claude/skills" = skillsStorePath; }
+    // lib.optionalAttrs (cfg.claudeMd != null) {
+      ".claude/CLAUDE.md" = cfg.claudeMd;
+    }
+    // lib.optionalAttrs (cfg.agentsMd != null) {
+      ".claude/AGENTS.md" = cfg.agentsMd;
+    };
 
   hmSource =
     relPath: storePath:
     if cfg.livePath != null then
       let
-        liveSub = if relPath == ".claude/skills" then "skills" else "CLAUDE.md";
+        liveSub =
+          if relPath == ".claude/skills" then
+            "skills"
+          else if relPath == ".claude/CLAUDE.md" then
+            "CLAUDE.md"
+          else if relPath == ".claude/AGENTS.md" then
+            "AGENTS.md"
+          else
+            throw "programs.skills: unknown live path mapping for ${relPath}";
       in
       config.lib.file.mkOutOfStoreSymlink (cfg.livePath + "/" + liveSub)
     else
@@ -95,7 +106,16 @@ in
     claudeMd = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = ../CLAUDE.md;
-      description = "Path to the repo CLAUDE.md to symlink to ~/.claude/CLAUDE.md, or null to skip.";
+      description = "Path to symlink as ~/.claude/CLAUDE.md, or null to skip.";
+    };
+
+    agentsMd = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = ../AGENTS.md;
+      description = ''
+        Path to symlink as ~/.claude/AGENTS.md, or null to skip. Deployed
+        alongside CLAUDE.md so Claude Code's `@AGENTS.md` import resolves.
+      '';
     };
 
     user = lib.mkOption {

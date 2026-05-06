@@ -9,6 +9,7 @@
     deadnix
     markdownlint-cli2
     shellcheck
+    python3
   ];
 
   enterShell = ''
@@ -22,5 +23,6 @@
     statix check . --ignore '.devenv/*' 'result/*'
     deadnix --fail --exclude .devenv result .
     shellcheck scripts/install.sh
+    python3 scripts/validate.py
   '';
 }
