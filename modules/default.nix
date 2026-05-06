@@ -155,18 +155,41 @@ in
     })
 
     (lib.mkIf isNixOS {
-      systemd.tmpfiles.rules = lib.mapAttrsToList (
-        relPath: storePath:
-        "L+ ${effectiveHome}/${relPath} - ${effectiveUser} ${effectiveGroup} - ${storePath}"
-      ) paths;
+      # `L+` tmpfiles entries auto-create parent dirs as root:root, which
+      # leaves ~/.claude unwritable for the user on first install. Emit
+      # an explicit `d` rule for ~/.claude so it's owned by the user
+      # before the symlink rules run.
+      systemd.tmpfiles.rules =
+        [ "d ${effectiveHome}/.claude 0755 ${effectiveUser} ${effectiveGroup} - -" ]
+        ++ lib.mapAttrsToList (
+          relPath: storePath:
+          "L+ ${effectiveHome}/${relPath} - ${effectiveUser} ${effectiveGroup} - ${storePath}"
+        ) paths;
     })
 
     (lib.mkIf isNixDarwin {
+      # `ln -sfn DST` won't replace a pre-existing real directory at DST
+      # (a common case for ~/.claude/skills), so `darwin-rebuild switch`
+      # would fail. Back up real files/dirs first; replace symlinks
+      # in-place. Activation runs as root, so chown the result to the
+      # target user.
       system.activationScripts.postActivation.text = lib.concatStringsSep "\n" (
-        lib.mapAttrsToList (relPath: storePath: ''
-          mkdir -p "$(dirname "${effectiveHome}/${relPath}")"
-          ln -sfn "${storePath}" "${effectiveHome}/${relPath}"
-          chown -h ${effectiveUser}:${effectiveGroup} "${effectiveHome}/${relPath}" 2>/dev/null || true
+        [
+          ''
+            mkdir -p "${effectiveHome}/.claude"
+            chown ${effectiveUser}:${effectiveGroup} "${effectiveHome}/.claude" 2>/dev/null || true
+          ''
+        ]
+        ++ lib.mapAttrsToList (relPath: storePath: ''
+          dst="${effectiveHome}/${relPath}"
+          mkdir -p "$(dirname "$dst")"
+          if [ -L "$dst" ]; then
+            rm -f "$dst"
+          elif [ -e "$dst" ]; then
+            mv "$dst" "$dst.before-skills-$(date -u +%Y%m%dT%H%M%SZ)"
+          fi
+          ln -s "${storePath}" "$dst"
+          chown -h ${effectiveUser}:${effectiveGroup} "$dst" 2>/dev/null || true
         '') paths
       );
     })
