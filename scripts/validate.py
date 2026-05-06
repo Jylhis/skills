@@ -35,99 +35,155 @@ REJECTED_BODY_PATTERNS = [
     re.compile(r"!\{[^}]*\}"),
 ]
 
+BLOCK_SCALAR_INDICATORS = ("|", ">", "")
 
-def parse_frontmatter(text: str) -> tuple[dict, str] | None:
-    """Return (frontmatter_dict, body) or None if no frontmatter."""
+
+# ── Frontmatter parsing ────────────────────────────────────────────────
+
+
+def _split_frontmatter(text: str) -> tuple[str, str] | None:
+    """Return (frontmatter_text, body) or None if no closed `---` block."""
     if not text.startswith("---\n"):
         return None
     end = text.find("\n---\n", 4)
     if end == -1:
         return None
-    fm_text = text[4:end]
-    body = text[end + 5:]
+    return text[4:end], text[end + 5:]
 
-    # Minimal YAML parser: supports `key: value` and `key:` followed by
-    # indented block scalar / mapping. Good enough for the allowed keys.
+
+def _is_skippable(line: str) -> bool:
+    return not line.strip() or line.lstrip().startswith("#")
+
+
+def _is_top_level_key(line: str) -> bool:
+    return bool(line) and line[0] not in (" ", "\t") and ":" in line
+
+
+def _flush_block(fm: dict, key: str | None, block: list[str]) -> None:
+    if key is not None and block:
+        fm[key] = "\n".join(block).strip()
+
+
+def _handle_top_level(line: str, fm: dict) -> str | None:
+    """Process a top-level `key: value` line. Returns the key when the
+    value is a block-scalar header (further lines belong to it), else None."""
+    key, _, val = line.partition(":")
+    key, val = key.strip(), val.strip()
+    if val in BLOCK_SCALAR_INDICATORS:
+        if val == "":
+            fm[key] = ""
+        return key
+    fm[key] = val.strip("\"'")
+    return None
+
+
+def _parse_yaml_lines(fm_text: str) -> dict:
+    """Minimal YAML parser: supports `key: value` and `key:` followed by an
+    indented block scalar / mapping. Good enough for the allowed keys."""
     fm: dict = {}
     current_key: str | None = None
-    block_lines: list[str] = []
+    block: list[str] = []
+
     for line in fm_text.splitlines():
-        if not line.strip() or line.lstrip().startswith("#"):
+        if _is_skippable(line):
             continue
-        if line[0] not in (" ", "\t") and ":" in line:
-            if current_key is not None and block_lines:
-                fm[current_key] = "\n".join(block_lines).strip()
-                block_lines = []
-            key, _, val = line.partition(":")
-            key = key.strip()
-            val = val.strip()
-            if val in ("|", ">", ""):
-                current_key = key
-                block_lines = []
-                if val == "":
-                    fm[key] = ""
-            else:
-                fm[key] = val.strip("\"'")
-                current_key = None
+        if _is_top_level_key(line):
+            _flush_block(fm, current_key, block)
+            block = []
+            current_key = _handle_top_level(line, fm)
         elif current_key is not None:
-            block_lines.append(line.lstrip())
-    if current_key is not None and block_lines:
-        fm[current_key] = "\n".join(block_lines).strip()
-    return fm, body
+            block.append(line.lstrip())
+
+    _flush_block(fm, current_key, block)
+    return fm
 
 
-def validate_skill(skill_md: Path) -> list[str]:
+def parse_frontmatter(text: str) -> tuple[dict, str] | None:
+    """Return (frontmatter_dict, body) or None if no frontmatter."""
+    split = _split_frontmatter(text)
+    if split is None:
+        return None
+    fm_text, body = split
+    return _parse_yaml_lines(fm_text), body
+
+
+# ── Per-skill checks ───────────────────────────────────────────────────
+
+
+def _check_encoding(rel: Path, raw: bytes) -> tuple[list[str], str | None]:
     errors: list[str] = []
-    rel = skill_md.relative_to(REPO_ROOT)
-    raw = skill_md.read_bytes()
-
     if raw.startswith(b"\xef\xbb\xbf"):
         errors.append(f"{rel}: BOM detected; files must be UTF-8 without BOM")
     try:
         text = raw.decode("utf-8")
     except UnicodeDecodeError as exc:
         errors.append(f"{rel}: not valid UTF-8: {exc}")
-        return errors
+        return errors, None
     if "\r\n" in text:
         errors.append(f"{rel}: CRLF line endings; use LF")
+    return errors, text
 
-    parsed = parse_frontmatter(text)
-    if parsed is None:
-        errors.append(f"{rel}: missing or malformed YAML frontmatter (must start with `---`)")
-        return errors
-    fm, body = parsed
 
-    name = fm.get("name", "")
-    expected_name = skill_md.parent.name
+def _check_name(rel: Path, name: str, expected: str) -> list[str]:
     if not name:
-        errors.append(f"{rel}: missing `name`")
-    elif name != expected_name:
-        errors.append(f"{rel}: name `{name}` does not match dir basename `{expected_name}`")
-    elif not NAME_RE.match(name):
-        errors.append(f"{rel}: name `{name}` must be lowercase letters/numbers/hyphens, no leading/trailing/consecutive hyphens")
+        return [f"{rel}: missing `name`"]
+    if name != expected:
+        return [f"{rel}: name `{name}` does not match dir basename `{expected}`"]
+    if not NAME_RE.match(name):
+        return [f"{rel}: name `{name}` must be lowercase letters/numbers/hyphens, no leading/trailing/consecutive hyphens"]
+    return []
 
-    desc = fm.get("description", "")
+
+def _check_description(rel: Path, desc: str) -> list[str]:
     if not desc:
-        errors.append(f"{rel}: missing `description`")
-    else:
-        n = len(desc)
-        if n < DESC_MIN or n > DESC_MAX:
-            errors.append(f"{rel}: description length {n} out of range [{DESC_MIN}, {DESC_MAX}]")
+        return [f"{rel}: missing `description`"]
+    n = len(desc)
+    if n < DESC_MIN or n > DESC_MAX:
+        return [f"{rel}: description length {n} out of range [{DESC_MIN}, {DESC_MAX}]"]
+    return []
 
-    rejected = set(fm.keys()) & REJECTED_FRONTMATTER_KEYS
+
+def _check_frontmatter_keys(rel: Path, keys: set[str]) -> list[str]:
+    errors: list[str] = []
+    rejected = keys & REJECTED_FRONTMATTER_KEYS
     if rejected:
         errors.append(f"{rel}: rejected target-specific frontmatter keys: {sorted(rejected)}")
-
-    unknown = set(fm.keys()) - ALLOWED_FRONTMATTER_KEYS - REJECTED_FRONTMATTER_KEYS
+    unknown = keys - ALLOWED_FRONTMATTER_KEYS - REJECTED_FRONTMATTER_KEYS
     if unknown:
         errors.append(f"{rel}: unknown frontmatter keys: {sorted(unknown)} (allowed: {sorted(ALLOWED_FRONTMATTER_KEYS)})")
+    return errors
 
+
+def _check_body(rel: Path, body: str) -> list[str]:
+    errors: list[str] = []
     for pat in REJECTED_BODY_PATTERNS:
         m = pat.search(body)
         if m:
             errors.append(f"{rel}: rejected target-specific syntax in body: {m.group(0)!r}")
-
     return errors
+
+
+def validate_skill(skill_md: Path) -> list[str]:
+    rel = skill_md.relative_to(REPO_ROOT)
+    encoding_errors, text = _check_encoding(rel, skill_md.read_bytes())
+    if text is None:
+        return encoding_errors
+
+    parsed = parse_frontmatter(text)
+    if parsed is None:
+        return encoding_errors + [f"{rel}: missing or malformed YAML frontmatter (must start with `---`)"]
+    fm, body = parsed
+
+    return [
+        *encoding_errors,
+        *_check_name(rel, fm.get("name", ""), skill_md.parent.name),
+        *_check_description(rel, fm.get("description", "")),
+        *_check_frontmatter_keys(rel, set(fm.keys())),
+        *_check_body(rel, body),
+    ]
+
+
+# ── Entry point ────────────────────────────────────────────────────────
 
 
 def main() -> int:
