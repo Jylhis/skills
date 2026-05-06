@@ -1,7 +1,6 @@
 ---
 name: devenv
 description: "Use for devenv.sh developer environment patterns including devenv.nix, devenv.yaml, devenv shell, devenv up, devenv init, devenv test, devenv languages, devenv processes, devenv services, pre-commit hooks in devenv, cachix caching, devenv.lock, direnv integration, ad-hoc nix environments, enterShell configuration, nixpkgs pin override, exact nixpkgs commit in devenv.yaml, cachix devenv-nixpkgs rolling, devenv container, devenv tasks, devenv mcp, devenv lsp, overlay integration, or MCP tool integration with mcp__devenv__search_options and mcp__devenv__search_packages."
-user-invocable: false
 ---
 
 # devenv

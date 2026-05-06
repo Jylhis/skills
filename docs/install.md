@@ -9,16 +9,37 @@ single plugin for Claude Code, Gemini CLI, and Codex.
 bash scripts/install.sh
 ```
 
-Creates symlinks from each tool's plugin/extension directory to this repo.
-Idempotent; backs up any existing files first. Pass `--dry-run` to preview.
+Idempotent; backs up anything it would overwrite. Pass `--dry-run` to preview.
 
-## What gets linked
+## What the script does
 
-| Tool | Symlink target | Points to |
+| Tool | Mechanism | Where |
 |---|---|---|
-| Claude Code | `~/.claude/plugins/jylhis-skills` | repo root |
-| Gemini CLI | `~/.gemini/extensions/jylhis-skills` | repo root |
-| Codex | `~/.codex/plugins/jylhis-skills` | repo root |
+| Claude Code | local marketplace + `plugin install` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
+| Gemini CLI | symlink | `~/.gemini/extensions/jylhis-skills` → repo root |
+| Codex | symlink | `~/.codex/plugins/jylhis-skills` → repo root |
+
+For Claude Code, the script registers this repo as a local marketplace
+and then installs the `jylhis-skills` plugin from it, so it appears in
+`/plugin`. If the `claude` CLI isn't on `PATH`, run these manually
+inside Claude Code instead:
+
+```
+/plugin marketplace add <path-to-this-repo>
+/plugin install jylhis-skills@jylhis-skills
+```
+
+### Install scope (user vs project)
+
+`claude plugin install` records enablement in a `settings.json` file.
+The script picks a scope automatically:
+
+- **user** (default) — writes to `~/.claude/settings.json`; plugin
+  enabled in every directory.
+- **project** — writes to `<repo>/.claude/settings.json`; plugin only
+  enabled when running Claude inside this repo. Auto-selected if
+  `~/.claude/settings.json` is read-only (e.g. managed by Nix
+  home-manager). Override with `CLAUDE_PLUGIN_SCOPE=project bash scripts/install.sh`.
 
 Claude Code also gets direct context links:
 

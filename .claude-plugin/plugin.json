@@ -4,5 +4,7 @@
   "version": "1.0.0",
   "author": { "name": "Jylhis" },
   "repository": "https://github.com/Jylhis/skills",
-  "skills": []
+  "skills": [
+    "./skills/nix/devenv"
+  ]
 }

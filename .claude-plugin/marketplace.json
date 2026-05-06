@@ -1,0 +1,10 @@
+{
+  "name": "jylhis-skills",
+  "owner": { "name": "Jylhis" },
+  "plugins": [
+    {
+      "name": "jylhis-skills",
+      "source": "./"
+    }
+  ]
+}
