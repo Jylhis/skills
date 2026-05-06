@@ -1,17 +1,9 @@
 default:
     @just --list --justfile {{justfile()}}
 
-# Format every Nix file in the tree
-fmt:
-    nixfmt .
-
-# Validate evaluation, lint, shell scripts, and portable skill frontmatter
+# Lint markdown, shell scripts, and portable skill frontmatter
 check:
-    nix-instantiate --eval default.nix > /dev/null
-    nix flake check --no-build
-    statix check . --ignore '.devenv/*' 'result/*'
-    deadnix --fail --exclude .devenv result .
-    markdownlint-cli2 '**/*.md' '#staging/**' '#docs/history/**' '#.devenv/**' '#result/**'
+    markdownlint-cli2 '**/*.md' '#staging/**' '#docs/history/**' '#.devenv/**'
     shellcheck scripts/install.sh
     python3 scripts/validate.py
 
@@ -19,11 +11,7 @@ check:
 validate:
     python3 scripts/validate.py
 
-# Build the skills package (a copy of skills/ in the nix store)
-build:
-    nix build
-
-# Symlink skills/ + AGENTS.md + CLAUDE.md into ~/.claude/
+# Symlink repo root as plugin into each tool's plugin directory
 install:
     bash scripts/install.sh
 

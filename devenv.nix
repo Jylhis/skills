@@ -4,9 +4,6 @@
     git
     just
     jq
-    nixfmt-rfc-style
-    statix
-    deadnix
     markdownlint-cli2
     shellcheck
     python3
@@ -18,10 +15,7 @@
 
   enterTest = ''
     set -e
-    nix-instantiate --eval default.nix > /dev/null
-    nix flake check --no-build
-    statix check . --ignore '.devenv/*' 'result/*'
-    deadnix --fail --exclude .devenv result .
+    markdownlint-cli2 '**/*.md' '#staging/**' '#docs/history/**' '#.devenv/**'
     shellcheck scripts/install.sh
     python3 scripts/validate.py
   '';

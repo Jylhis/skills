@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-skills",
+  "description": "Curated agent skills catalogue by Jylhis",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": []
+}

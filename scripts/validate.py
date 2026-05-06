@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """Portable SKILL.md lint.
 
-Walks `skills/` (skipping `staging/`) and validates every SKILL.md against
-the portability profile from docs/skills-spec-v3.md §6.
+Walks `skills/` at two levels deep (`skills/<category>/<name>/SKILL.md`) and
+validates every SKILL.md against the portability profile from
+docs/skills-spec-v3.md §6.
+
+Also cross-checks that every discovered skill path is listed in
+`.claude-plugin/plugin.json`.
 """
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / "skills"
+PLUGIN_JSON = REPO_ROOT / ".claude-plugin" / "plugin.json"
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DESC_MIN = 50
@@ -42,7 +48,6 @@ BLOCK_SCALAR_INDICATORS = ("|", ">", "")
 
 
 def _split_frontmatter(text: str) -> tuple[str, str] | None:
-    """Return (frontmatter_text, body) or None if no closed `---` block."""
     if not text.startswith("---\n"):
         return None
     end = text.find("\n---\n", 4)
@@ -65,8 +70,6 @@ def _flush_block(fm: dict, key: str | None, block: list[str]) -> None:
 
 
 def _handle_top_level(line: str, fm: dict) -> str | None:
-    """Process a top-level `key: value` line. Returns the key when the
-    value is a block-scalar header (further lines belong to it), else None."""
     key, _, val = line.partition(":")
     key, val = key.strip(), val.strip()
     if val in BLOCK_SCALAR_INDICATORS:
@@ -78,8 +81,6 @@ def _handle_top_level(line: str, fm: dict) -> str | None:
 
 
 def _parse_yaml_lines(fm_text: str) -> dict:
-    """Minimal YAML parser: supports `key: value` and `key:` followed by an
-    indented block scalar / mapping. Good enough for the allowed keys."""
     fm: dict = {}
     current_key: str | None = None
     block: list[str] = []
@@ -99,7 +100,6 @@ def _parse_yaml_lines(fm_text: str) -> dict:
 
 
 def parse_frontmatter(text: str) -> tuple[dict, str] | None:
-    """Return (frontmatter_dict, body) or None if no frontmatter."""
     split = _split_frontmatter(text)
     if split is None:
         return None
@@ -183,6 +183,35 @@ def validate_skill(skill_md: Path) -> list[str]:
     ]
 
 
+# ── plugin.json cross-check ────────────────────────────────────────────
+
+
+def check_plugin_json(skill_files: list[Path]) -> list[str]:
+    """Warn about skills missing from .claude-plugin/plugin.json."""
+    if not PLUGIN_JSON.exists():
+        return [f"{PLUGIN_JSON.relative_to(REPO_ROOT)}: file not found"]
+
+    try:
+        manifest = json.loads(PLUGIN_JSON.read_text())
+    except json.JSONDecodeError as exc:
+        return [f"{PLUGIN_JSON.relative_to(REPO_ROOT)}: invalid JSON: {exc}"]
+
+    listed = {
+        (REPO_ROOT / p.lstrip("./")).resolve()
+        for p in manifest.get("skills", [])
+    }
+    errors: list[str] = []
+    for skill_md in skill_files:
+        skill_dir = skill_md.parent.resolve()
+        if skill_dir not in listed:
+            rel = skill_md.parent.relative_to(REPO_ROOT)
+            errors.append(
+                f"{rel}: not listed in .claude-plugin/plugin.json"
+                f' (add \"./skills/{rel}\")'
+            )
+    return errors
+
+
 # ── Entry point ────────────────────────────────────────────────────────
 
 
@@ -191,7 +220,8 @@ def main() -> int:
         print(f"validate.py: skills/ not found at {SKILLS_DIR}", file=sys.stderr)
         return 1
 
-    skill_files = sorted(SKILLS_DIR.glob("*/SKILL.md"))
+    # Two-level glob: skills/<category>/<name>/SKILL.md
+    skill_files = sorted(SKILLS_DIR.glob("*/*/SKILL.md"))
     if not skill_files:
         print("validate.py: no skills to validate (skills/ is empty)")
         return 0
@@ -199,6 +229,8 @@ def main() -> int:
     all_errors: list[str] = []
     for skill_md in skill_files:
         all_errors.extend(validate_skill(skill_md))
+
+    all_errors.extend(check_plugin_json(skill_files))
 
     if all_errors:
         for err in all_errors:

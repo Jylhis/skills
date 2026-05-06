@@ -6,32 +6,29 @@ extend this file via their respective import mechanisms.
 
 ## What this repo is
 
-A flat catalogue of [Agent Skills](https://agentskills.io) plus one
-small Nix module that symlinks the catalogue into `~/.claude/`. See
-`README.md` for the consumer-facing description.
+A curated [Agent Skills](https://agentskills.io) catalogue packaged as the
+`jylhis-skills` plugin for Claude Code, Gemini CLI, and Codex. See
+`docs/install.md` for install instructions.
 
 ## Layout
 
-- `skills/` — curated skills (one directory per skill, each with `SKILL.md`).
+- `skills/` — curated skills (`skills/<category>/<name>/SKILL.md`).
 - `staging/` — legacy content awaiting per-skill review. Do not edit
-  unless promoting an item out of staging or removing it. Nothing here
-  is built or deployed.
-- `modules/default.nix` — single Nix module covering Home Manager,
-  NixOS, and nix-darwin. Detects context at eval time.
-- `scripts/install.sh` — non-Nix install path (plain symlinks).
-- `scripts/validate.py` — portable skill frontmatter lint.
-- `docs/upstream-sources.md` — list of upstream skill repos parked for
-  later re-import. Not wired into the build.
-- `docs/skills-spec-v3.md` — target architecture spec we are growing
-  toward. Not all sections are implemented.
+  unless promoting an item out of staging or removing it.
+- `.claude-plugin/plugin.json` — Claude Code plugin manifest; lists every skill path explicitly.
+- `gemini-extension.json` — Gemini CLI extension manifest.
+- `scripts/install.sh` — symlinks the repo root into each tool's plugin directory.
+- `scripts/validate.py` — portable skill frontmatter lint (two-level paths).
+- `docs/install.md` — consumer-facing install guide.
 - `docs/skill-authoring-guide.md` — how to write a portable SKILL.md.
-- `docs/history/` — archived design docs (`PLAN.md`, `TODO.md`).
+- `docs/skills-spec-v3.md` — target architecture spec we are growing toward.
+- `docs/upstream-sources.md` — list of upstream skill repos parked for later re-import.
+- `docs/history/` — archived design docs.
 - `evals/` — eval scaffolding (currently empty; see `evals/README.md`).
 
 ## Skill format
 
-A skill is a directory under `skills/` containing a `SKILL.md` with YAML
-frontmatter:
+Skills live at `skills/<category>/<name>/SKILL.md` with YAML frontmatter:
 
 ```markdown
 ---
@@ -46,8 +43,7 @@ Optional siblings: `scripts/`, `references/`, `assets/`.
 The portable lint (`scripts/validate.py`) rejects target-specific
 frontmatter fields (`allowed-tools`, `tools`, `model`, etc.) and tool-
 specific path variables (`${CLAUDE_PLUGIN_ROOT}`, `${extensionPath}`,
-`!\`...\``). Skills that need target-specific behavior live under
-`target-skills/<target>/<name>/` (not yet populated).
+`!\`...\``).
 
 ## Development workflow
 
@@ -55,10 +51,8 @@ All tools come from devenv. Enter the shell with `direnv allow` or
 `devenv shell`.
 
 ```
-just check    # nix-instantiate + nix flake check + statix + deadnix + markdownlint + shellcheck + validate.py
-just fmt      # nixfmt all .nix files
-just build    # nix build (produces a derivation containing skills/)
-just install  # symlink skills/ + AGENTS.md + CLAUDE.md into ~/.claude/
+just check    # markdownlint + shellcheck + validate.py
+just install  # symlink repo root as plugin into each tool's plugin directory
 just list     # find skills -name SKILL.md
 just validate # portable skill lint only
 ```
@@ -71,12 +65,13 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 
 ## Repo conventions
 
-- Single Nix module; no per-tool deployment logic. The previous
-  multi-tool design is parked in `docs/history/PLAN.md`.
-- Module option namespace: `programs.skills` (not `programs.jstack`).
+- The repo root is the plugin. All three tool manifests (`.claude-plugin/plugin.json`,
+  `gemini-extension.json`) live at the root.
+- Skills are two levels deep: `skills/<category>/<name>/SKILL.md`.
+- When promoting a skill, add its path to `.claude-plugin/plugin.json`'s `skills` array.
+- Skill runtime dependencies use `nix run` shebangs in `scripts/` or MCP/LSP
+  config — not in `devenv.nix`.
 - No bundled upstream skill repos. To re-import, vendor selected
-  `<skill>/SKILL.md` trees into `staging/` (or `skills/` directly).
+  `<skill>/SKILL.md` trees into `staging/` then promote individually.
   The previous URL list lives in `docs/upstream-sources.md`.
-- No generated `settings.json`, `.mcp.json`, or `.lsp.json` in this
-  repo. Configure those in your tool config directly.
 - Portable skills must pass `scripts/validate.py`. Run on every commit.

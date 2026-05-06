@@ -1,7 +1,4 @@
 # yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
-imports:
-  - ./modules/claude-skills.nix
-
 inputs:
   nixpkgs:
     url: github:NixOS/nixpkgs/15f4ee454b1dce334612fa6843b3e05cf546efab
