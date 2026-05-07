@@ -151,7 +151,7 @@ Quick reference when you need a flag reminder, not a full manual.
 **Safety rule:** Treat `--help` as code execution, not passive lookup. Only use it when all checks pass:
 
 1. The command is not a path (`/`, `./`, `../`, `~`, or contains path separators)
-2. `type -a <cmd>` resolves to a trusted system location (for example `/usr/bin`), not the current repo/workspace
+2. `type -a <tool>` resolves to a trusted system location (for example `/usr/bin`), not the current repo/workspace
 3. The command is not a repo-provided executable/script
 4. You have no safer local source (`man`, `info`, builtin `help`, `/usr/share/doc`)
 
