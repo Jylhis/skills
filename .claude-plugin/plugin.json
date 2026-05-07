@@ -64,6 +64,7 @@
     "./skills/typescript/typescript-packaging",
     "./skills/typescript/typescript-testing",
     "./skills/typescript/typescript-type-system",
+    "./skills/unix/ast-grep",
     "./skills/unix/offline-docs"
   ]
 }
