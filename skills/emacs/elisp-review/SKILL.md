@@ -32,7 +32,19 @@ Three-phase review process for Emacs Lisp files.
 - **`defcustom` without `:type` or `:group`**
 - **Magic numbers** — should be `defconst` or `defcustom`
 
-## Phase 2: Byte-compilation
+## Phase 2: Byte-compilation (trusted code only)
+
+⚠️ Byte-compiling Elisp is **not** a purely static check. Compile-time forms
+(`eval-when-compile`, macro expansion, compiler macros, and loaded
+dependencies) can execute arbitrary Elisp.
+
+- Do **not** byte-compile untrusted repository/MR files by default.
+- Only run this step with explicit user consent **and** inside an isolated
+  sandbox (no secrets, no network, least-privilege filesystem).
+- If trust/sandbox requirements are not met, skip byte-compilation and report
+  that it was intentionally not run for security reasons.
+
+When the file and dependencies are trusted and isolated execution is available:
 
 ```bash
 emacs --batch \
@@ -41,9 +53,9 @@ emacs --batch \
   --eval '(byte-compile-file "target-file.el")'
 ```
 
-Catches: undefined functions, wrong argument counts, unused `let`-bound
-variables, free variable references, obsolete function/variable
-warnings, malformed `defcustom` `:type` specs.
+Catches (when run safely): undefined functions, wrong argument counts, unused
+`let`-bound variables, free variable references, obsolete
+function/variable warnings, malformed `defcustom` `:type` specs.
 
 **Interpret the output:**
 
