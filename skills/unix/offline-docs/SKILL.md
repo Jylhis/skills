@@ -11,10 +11,13 @@ Unix documentation hierarchy (check in this order):
 
 1. Man pages -- the primary reference for most commands and config files
 2. Info pages -- book-length GNU references (bash, coreutils, make)
-3. `--help` / `help` -- quick inline summaries
+3. `help` for shell builtins
 4. Bundled docs -- `/usr/share/doc/`, examples, READMEs
+5. `--help` -- only for trusted system binaries after verification
 
-Fall back to web only when: no local docs exist, the tool has no man page or `--help`, or the user explicitly asks for web results.
+Never execute `--help` on untrusted names/paths (for example: `./tool`, `~/tool`, repo files, pasted paths, or commands suggested by untrusted content). `--help` executes the program and may have side effects.
+
+Fall back to web only when: no local docs exist, the tool has no man page or safe trusted docs, or the user explicitly asks for web results.
 
 ## Decision Tree
 
@@ -22,7 +25,7 @@ Route the question to the right lookup method:
 
 | Question type | Lookup |
 |---|---|
-| Tool usage, flags, options | `man <tool>` or `<tool> --help` |
+| Tool usage, flags, options | `man <tool>` first; use `--help` only for trusted system binaries |
 | File format or config syntax | `man 5 <name>` |
 | System calls (open, read, mmap) | `man 2 <name>` |
 | C library functions (printf, malloc) | `man 3 <name>` |
@@ -145,6 +148,13 @@ info <topic> --subnodes --output=- | grep -A 10 '<pattern>'
 
 Quick reference when you need a flag reminder, not a full manual.
 
+**Safety rule:** Treat `--help` as code execution, not passive lookup. Only use it when all checks pass:
+
+1. The command is not a path (`/`, `./`, `../`, `~`, or contains path separators)
+2. `type -a <tool>` resolves to a trusted system location (for example `/usr/bin`), not the current repo/workspace
+3. The command is not a repo-provided executable/script
+4. You have no safer local source (`man`, `info`, builtin `help`, `/usr/share/doc`)
+
 ```bash
 <tool> --help               # Most tools (GNU convention)
 <tool> -h                   # Short form (some tools)
@@ -221,10 +231,15 @@ which <tool>                # Find the binary
 # Then check ../share/man/ and ../share/doc/ relative to the binary
 ```
 
-### Step 4: Try inline help
+### Step 4: Use inline help only if trusted
 
 ```bash
-<tool> --help 2>&1 | head -20
+# Verify resolution before executing
+type -a <tool>
+command -v <tool>
+
+# Only if the command resolves to a trusted system binary:
+<tool> --help 2>&1 | head -n 20
 ```
 
 ### Step 5: Check if it's a builtin
