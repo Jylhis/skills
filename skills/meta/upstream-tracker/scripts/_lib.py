@@ -56,91 +56,119 @@ def _indent(line: str) -> int:
     return n
 
 
+def _kv_pair(body: str) -> tuple[str, str]:
+    k, _, v = body.partition(":")
+    return k.strip(), _strip_quotes(v.strip())
+
+
+def _flush_skill(current: dict[str, Any] | None, skill: dict[str, str] | None) -> None:
+    if current is not None and skill is not None:
+        current.setdefault("skills", []).append(skill)
+
+
+class _ManifestParser:
+    """Stateful walker for the restricted YAML shape."""
+
+    def __init__(self) -> None:
+        self.sources: list[dict[str, Any]] = []
+        self.current: dict[str, Any] | None = None
+        self.skill: dict[str, str] | None = None
+        self.in_skills = False
+
+    def feed(self, line: str) -> None:
+        if not line.strip() or line.lstrip().startswith("#") or line == "sources:":
+            return
+        ind = _indent(line)
+        body = line.strip()
+        if ind == 2 and body.startswith("- "):
+            self._open_source(body[2:].lstrip())
+        elif self.current is None:
+            return
+        elif ind == 4 and body == "skills:":
+            _flush_skill(self.current, self.skill)
+            self.skill = None
+            self.in_skills = True
+        elif self.in_skills:
+            self._feed_skill_line(ind, body)
+        elif ind == 4 and ":" in body:
+            _flush_skill(self.current, self.skill)
+            self.skill = None
+            self.in_skills = False
+            k, v = _kv_pair(body)
+            self.current[k] = v
+
+    def _open_source(self, head: str) -> None:
+        if self.current is not None:
+            _flush_skill(self.current, self.skill)
+            self.sources.append(self.current)
+        self.current = {}
+        self.skill = None
+        self.in_skills = False
+        if ":" in head:
+            k, v = _kv_pair(head)
+            self.current[k] = v
+
+    def _feed_skill_line(self, ind: int, body: str) -> None:
+        if ind == 6 and body.startswith("- "):
+            _flush_skill(self.current, self.skill)
+            self.skill = {}
+            head = body[2:].lstrip()
+            if ":" in head:
+                k, v = _kv_pair(head)
+                self.skill[k] = v
+        elif ind == 8 and self.skill is not None and ":" in body:
+            k, v = _kv_pair(body)
+            self.skill[k] = v
+
+    def finish(self) -> dict[str, Any]:
+        if self.current is not None:
+            _flush_skill(self.current, self.skill)
+            self.sources.append(self.current)
+        return {"sources": self.sources}
+
+
 def parse_manifest(path: Path = MANIFEST) -> dict[str, Any]:
     """Parse upstream/sources.yaml.
 
-    Recognises the documented shape only:
-      sources:
-        - id: ...
-          repo: ...
-          branch: ...
-          subpath: ...
-          license: ...
-          upstream-rev: ...
-          reviewed-rev: ...
-          last-fetched: ...
-          skills:
-            - upstream: ...
-              local: ...
+    Recognises only the shape documented in references/manifest-schema.md.
     """
     if not path.exists():
         return {"sources": []}
-
-    sources: list[dict[str, Any]] = []
-    current: dict[str, Any] | None = None
-    in_skills = False
-    current_skill: dict[str, str] | None = None
-
+    walker = _ManifestParser()
     for raw in path.read_text().splitlines():
-        line = raw.rstrip()
-        if not line.strip() or line.lstrip().startswith("#"):
+        walker.feed(raw.rstrip())
+    return walker.finish()
+
+
+_FIELD_ORDER = (
+    "id", "repo", "branch", "subpath", "license",
+    "upstream-rev", "reviewed-rev", "last-fetched",
+)
+
+
+def _emit_source_fields(src: dict[str, Any]) -> list[str]:
+    out: list[str] = []
+    first = True
+    for key in _FIELD_ORDER:
+        if key not in src:
             continue
-        if line == "sources:":
+        prefix = "  - " if first else "    "
+        out.append(f"{prefix}{key}: {_yaml_value(src[key])}")
+        first = False
+    for key, value in src.items():
+        if key in _FIELD_ORDER or key == "skills":
             continue
-        ind = _indent(line)
-        body = line.strip()
+        out.append(f"    {key}: {_yaml_value(value)}")
+    return out
 
-        if ind == 2 and body.startswith("- "):
-            if current is not None:
-                if current_skill is not None:
-                    current.setdefault("skills", []).append(current_skill)
-                    current_skill = None
-                sources.append(current)
-            current = {}
-            in_skills = False
-            body = body[2:].lstrip()
-            if ":" in body:
-                k, _, v = body.partition(":")
-                current[k.strip()] = _strip_quotes(v.strip())
+
+def _emit_skill_entry(entry: dict[str, Any]) -> list[str]:
+    out = [f"      - upstream: {_yaml_value(entry.get('upstream', ''))}"]
+    for k, v in entry.items():
+        if k == "upstream":
             continue
-
-        if current is None:
-            continue
-
-        if ind == 4 and body == "skills:":
-            in_skills = True
-            current_skill = None
-            continue
-
-        if in_skills:
-            if ind == 6 and body.startswith("- "):
-                if current_skill is not None:
-                    current.setdefault("skills", []).append(current_skill)
-                current_skill = {}
-                body = body[2:].lstrip()
-                if ":" in body:
-                    k, _, v = body.partition(":")
-                    current_skill[k.strip()] = _strip_quotes(v.strip())
-                continue
-            if ind == 8 and current_skill is not None and ":" in body:
-                k, _, v = body.partition(":")
-                current_skill[k.strip()] = _strip_quotes(v.strip())
-                continue
-
-        if ind == 4 and ":" in body:
-            in_skills = False
-            if current_skill is not None:
-                current.setdefault("skills", []).append(current_skill)
-                current_skill = None
-            k, _, v = body.partition(":")
-            current[k.strip()] = _strip_quotes(v.strip())
-
-    if current is not None:
-        if current_skill is not None:
-            current.setdefault("skills", []).append(current_skill)
-        sources.append(current)
-
-    return {"sources": sources}
+        out.append(f"        {k}: {_yaml_value(v)}")
+    return out
 
 
 def write_manifest(data: dict[str, Any], path: Path = MANIFEST) -> None:
@@ -148,30 +176,12 @@ def write_manifest(data: dict[str, Any], path: Path = MANIFEST) -> None:
 
     Preserves field order from references/manifest-schema.md.
     """
-    field_order = (
-        "id", "repo", "branch", "subpath", "license",
-        "upstream-rev", "reviewed-rev", "last-fetched",
-    )
     lines: list[str] = ["sources:"]
     for src in data.get("sources", []):
-        first = True
-        for key in field_order:
-            if key not in src:
-                continue
-            prefix = "  - " if first else "    "
-            lines.append(f"{prefix}{key}: {_yaml_value(src[key])}")
-            first = False
-        for key in src:
-            if key in field_order or key == "skills":
-                continue
-            lines.append(f"    {key}: {_yaml_value(src[key])}")
+        lines.extend(_emit_source_fields(src))
         lines.append("    skills:")
         for entry in src.get("skills", []):
-            lines.append(f"      - upstream: {_yaml_value(entry.get('upstream', ''))}")
-            for k, v in entry.items():
-                if k == "upstream":
-                    continue
-                lines.append(f"        {k}: {_yaml_value(v)}")
+            lines.extend(_emit_skill_entry(entry))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n")
 
@@ -194,53 +204,72 @@ def find_source(data: dict[str, Any], source_id: str) -> dict[str, Any]:
 # ── Frontmatter helpers (skill SKILL.md) ───────────────────────────────
 
 
-def parse_frontmatter(text: str) -> tuple[dict[str, Any], str] | None:
+def _split_frontmatter(text: str) -> tuple[str, str] | None:
     if not text.startswith("---\n"):
         return None
     end = text.find("\n---\n", 4)
     if end == -1:
         return None
-    fm_text = text[4:end]
-    body = text[end + 5:]
-    fm: dict[str, Any] = {}
-    current_key: str | None = None
-    block: list[str] = []
-    in_metadata = False
-    metadata: dict[str, str] = {}
+    return text[4:end], text[end + 5:]
 
-    for line in fm_text.splitlines():
+
+class _FrontmatterParser:
+    def __init__(self) -> None:
+        self.fm: dict[str, Any] = {}
+        self.metadata: dict[str, str] = {}
+        self.block: list[str] = []
+        self.current_key: str | None = None
+        self.in_metadata = False
+
+    def feed(self, line: str) -> None:
         if not line.strip() or line.lstrip().startswith("#"):
-            continue
+            return
         ind = _indent(line)
-        body_line = line.strip()
+        body = line.strip()
+        if ind == 0 and ":" in body:
+            self._handle_top_level(body)
+        elif ind == 2 and self.in_metadata and ":" in body:
+            k, v = _kv_pair(body)
+            self.metadata[k] = v
+        elif self.current_key is not None:
+            self.block.append(line.lstrip())
 
-        if ind == 0 and ":" in body_line:
-            if current_key is not None and block:
-                fm[current_key] = "\n".join(block).strip()
-                block = []
-            in_metadata = body_line.startswith("metadata:")
-            current_key = None
-            k, _, v = body_line.partition(":")
-            v = v.strip()
-            if v in ("|", ">"):
-                current_key = k.strip()
-            elif in_metadata and v == "":
-                fm["metadata"] = metadata
-            elif v == "":
-                fm[k.strip()] = ""
-            else:
-                fm[k.strip()] = _strip_quotes(v)
-        elif ind == 2 and in_metadata and ":" in body_line:
-            k, _, v = body_line.partition(":")
-            metadata[k.strip()] = _strip_quotes(v.strip())
-        elif current_key is not None:
-            block.append(line.lstrip())
+    def _handle_top_level(self, body: str) -> None:
+        self._flush_block()
+        self.in_metadata = body.startswith("metadata:")
+        self.current_key = None
+        k, _, v = body.partition(":")
+        v = v.strip()
+        if v in ("|", ">"):
+            self.current_key = k.strip()
+        elif self.in_metadata and v == "":
+            self.fm["metadata"] = self.metadata
+        elif v == "":
+            self.fm[k.strip()] = ""
+        else:
+            self.fm[k.strip()] = _strip_quotes(v)
 
-    if current_key is not None and block:
-        fm[current_key] = "\n".join(block).strip()
-    if metadata and "metadata" not in fm:
-        fm["metadata"] = metadata
-    return fm, body
+    def _flush_block(self) -> None:
+        if self.current_key is not None and self.block:
+            self.fm[self.current_key] = "\n".join(self.block).strip()
+        self.block = []
+
+    def finish(self) -> dict[str, Any]:
+        self._flush_block()
+        if self.metadata and "metadata" not in self.fm:
+            self.fm["metadata"] = self.metadata
+        return self.fm
+
+
+def parse_frontmatter(text: str) -> tuple[dict[str, Any], str] | None:
+    split = _split_frontmatter(text)
+    if split is None:
+        return None
+    fm_text, body = split
+    parser = _FrontmatterParser()
+    for line in fm_text.splitlines():
+        parser.feed(line)
+    return parser.finish(), body
 
 
 def emit_frontmatter(fm: dict[str, Any], body: str) -> str:

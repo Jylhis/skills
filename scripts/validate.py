@@ -216,46 +216,53 @@ def check_plugin_json(skill_files: list[Path]) -> list[str]:
 # ── Optional: upstream-tracker advisory pass ───────────────────────────
 
 
+def _start_new_source(body: str) -> str | None:
+    inner = body[2:].lstrip()
+    if not inner.startswith("id:"):
+        return None
+    return inner.split(":", 1)[1].strip().strip('"\'')
+
+
+def _parse_field(body: str) -> tuple[str, str]:
+    k, _, v = body.partition(":")
+    return k.strip(), v.strip().strip('"\'')
+
+
 def _read_manifest_ids() -> tuple[set[str], dict[str, str]]:
     """Return ({source-ids}, {id: reviewed-rev}) from upstream/sources.yaml.
 
     Restricted parser identical in shape to skills/meta/upstream-tracker/
     scripts/_lib.py — keeps validate.py dependency-free.
     """
-    text = UPSTREAM_MANIFEST.read_text()
     ids: set[str] = set()
     reviewed: dict[str, str] = {}
     current_id: str | None = None
     in_skills = False
 
-    for raw in text.splitlines():
+    for raw in UPSTREAM_MANIFEST.read_text().splitlines():
         line = raw.rstrip()
-        if not line.strip() or line.lstrip().startswith("#") or line == "sources:":
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or line == "sources:":
             continue
         ind = len(line) - len(line.lstrip(" "))
-        body = line.strip()
 
-        if ind == 2 and body.startswith("- "):
-            current_id = None
+        if ind == 2 and stripped.startswith("- "):
+            current_id = _start_new_source(stripped)
+            if current_id:
+                ids.add(current_id)
             in_skills = False
-            inner = body[2:].lstrip()
-            if inner.startswith("id:"):
-                current_id = inner.split(":", 1)[1].strip().strip('"\'')
-                if current_id:
-                    ids.add(current_id)
             continue
-        if current_id is None:
+        if current_id is None or in_skills:
+            if ind == 4 and stripped == "skills:":
+                in_skills = True
             continue
-        if ind == 4 and body == "skills:":
+        if ind == 4 and stripped == "skills:":
             in_skills = True
             continue
-        if in_skills:
-            continue
-        if ind == 4 and ":" in body:
-            k, _, v = body.partition(":")
-            v = v.strip().strip('"\'')
-            if k.strip() == "reviewed-rev":
-                reviewed[current_id] = v
+        if ind == 4 and ":" in stripped:
+            key, value = _parse_field(stripped)
+            if key == "reviewed-rev":
+                reviewed[current_id] = value
     return ids, reviewed
 
 
@@ -283,36 +290,39 @@ def _check_upstream_advisory(skill_files: list[Path], strict: bool) -> tuple[int
         return 0, 0
     try:
         ids, reviewed = _read_manifest_ids()
-    except Exception as exc:  # noqa: BLE001 — advisory pass, never crash main()
+    except (OSError, ValueError) as exc:
         print(f"validate.py: cannot parse {UPSTREAM_MANIFEST.relative_to(REPO_ROOT)}: {exc}",
               file=sys.stderr)
         return 0, (1 if strict else 0)
 
-    warnings = 0
-    for skill_md in skill_files:
-        rel = skill_md.relative_to(REPO_ROOT)
-        parsed = parse_frontmatter(skill_md.read_text(errors="replace"))
-        if parsed is None:
-            continue
-        fm, _ = parsed
-        meta = _extract_metadata(fm)
-        upstream_id = meta.get("upstream-id")
-        if not upstream_id:
-            continue
-        if upstream_id not in ids:
-            print(f"{rel}: upstream-id {upstream_id!r} not in upstream/sources.yaml",
-                  file=sys.stderr)
-            warnings += 1
-            continue
-        skill_rev = meta.get("upstream-rev", "")
-        cursor = reviewed.get(upstream_id, "")
-        if cursor and skill_rev and not cursor.startswith(skill_rev) and not skill_rev.startswith(cursor):
-            print(f"{rel}: baseline upstream-rev {skill_rev[:12]!r} differs from "
-                  f"manifest reviewed-rev {cursor[:12]!r} — backport may be due",
-                  file=sys.stderr)
-            warnings += 1
-
+    warnings = sum(
+        _check_one_upstream(skill_md, ids, reviewed) for skill_md in skill_files
+    )
     return warnings, (warnings if strict else 0)
+
+
+def _check_one_upstream(skill_md: Path, ids: set[str], reviewed: dict[str, str]) -> int:
+    parsed = parse_frontmatter(skill_md.read_text(errors="replace"))
+    if parsed is None:
+        return 0
+    fm, _ = parsed
+    meta = _extract_metadata(fm)
+    upstream_id = meta.get("upstream-id")
+    if not upstream_id:
+        return 0
+    rel = skill_md.relative_to(REPO_ROOT)
+    if upstream_id not in ids:
+        print(f"{rel}: upstream-id {upstream_id!r} not in upstream/sources.yaml",
+              file=sys.stderr)
+        return 1
+    skill_rev = meta.get("upstream-rev", "")
+    cursor = reviewed.get(upstream_id, "")
+    if cursor and skill_rev and not cursor.startswith(skill_rev) and not skill_rev.startswith(cursor):
+        print(f"{rel}: baseline upstream-rev {skill_rev[:12]!r} differs from "
+              f"manifest reviewed-rev {cursor[:12]!r} — backport may be due",
+              file=sys.stderr)
+        return 1
+    return 0
 
 
 # ── Entry point ────────────────────────────────────────────────────────

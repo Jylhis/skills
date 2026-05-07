@@ -83,7 +83,7 @@ def cherry_pick_apply(cache: Path, src: dict, sha: str) -> str | None:
     return skill_local
 
 
-def prompt_decision(commit: dict) -> str:
+def prompt_decision() -> str:
     while True:
         try:
             answer = input("[a]ccept / [s]kip / [d]efer / [c]herry-pick / [q]uit > ").strip().lower()
@@ -119,7 +119,7 @@ def review_commit(src: dict, cache: Path, commit: dict) -> str:
     if len(diff) > 8000:
         print(f"\n[diff truncated; full {len(diff)} chars in cache]")
     print("─" * 72)
-    decision = prompt_decision(commit)
+    decision = prompt_decision()
     if decision == "q":
         return "q"
     if decision == "cherry-pick":
