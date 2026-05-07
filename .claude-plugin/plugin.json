@@ -28,6 +28,7 @@
     "./skills/kotlin/kotlin-code-style",
     "./skills/kotlin/kotlin-coroutines",
     "./skills/meta/skill-creator-lang",
+    "./skills/meta/upstream-tracker",
     "./skills/meta/using-skills",
     "./skills/nix/devenv",
     "./skills/nix/emacs-packaging",
@@ -64,6 +65,7 @@
     "./skills/typescript/typescript-packaging",
     "./skills/typescript/typescript-testing",
     "./skills/typescript/typescript-type-system",
+    "./skills/unix/ast-grep",
     "./skills/unix/offline-docs"
   ]
 }

@@ -1,16 +1,31 @@
-# Upstream skill sources (parked)
+# Upstream skill sources
 
-This file preserves the upstream skill repositories previously bundled via
-`bundled-sources.nix`. The wiring (28 non-flake inputs in `flake.nix`,
-`bundled-sources.nix`, the discovery / namespace / include / exclude
-machinery) was removed in the v3 redesign in favor of a flat
-content-only layout.
+## Active sources
 
-To re-import any of these later, vendor selected `<skill>/SKILL.md` trees
-into `staging/` (or directly into `skills/`) under the original LICENSE,
-or restore a Nix import path purpose-built for the specific source.
+Tracked upstream repositories live in `upstream/sources.yaml`. The
+`meta/upstream-tracker` skill drives import, monitoring, and per-commit
+review. See its `SKILL.md` and the references under
+`skills/meta/upstream-tracker/references/` for the workflow, the
+manifest schema, and the `metadata.upstream-*` frontmatter convention.
 
-## Sources
+`upstream/sources.yaml` does not exist until the first source is
+adopted — the skill creates the layout. Until then the only record of
+intended sources is the **Archive** below.
+
+## Archive — parked upstream sources
+
+The table below preserves the upstream skill repositories previously
+bundled via `bundled-sources.nix`. The wiring (28 non-flake inputs in
+`flake.nix`, `bundled-sources.nix`, the discovery / namespace /
+include / exclude machinery) was removed in the v3 redesign in favor
+of a flat content-only layout.
+
+To re-import any of these, populate `upstream/sources.yaml` with a
+`sources[]` entry per `skills/meta/upstream-tracker/references/manifest-schema.md`,
+then run
+`python3 skills/meta/upstream-tracker/scripts/import.py <id>`.
+
+### Sources
 
 | Key | Repo | Namespace | Subdir / paths | Notes |
 |---|---|---|---|---|

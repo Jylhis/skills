@@ -45,6 +45,16 @@ Optional:
 - `compatibility` — environment requirements (e.g. "Requires git")
 - `metadata` — free-form map; values should be strings
 
+### Vendored from upstream
+
+Skills imported from an external repo via the `meta/upstream-tracker`
+workflow include a `metadata.upstream-*` block recording the baseline
+sha and source id. The fields are advisory — `validate.py` warns on
+unknown ids when `upstream/sources.yaml` exists but doesn't error in
+default mode. See
+[skills/meta/upstream-tracker/references/frontmatter-block.md](../skills/meta/upstream-tracker/references/frontmatter-block.md)
+for the exact shape and the validator's strict-mode behaviour.
+
 ## Rejected fields
 
 The portable lint rejects target-specific frontmatter:

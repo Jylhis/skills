@@ -15,16 +15,26 @@ A curated [Agent Skills](https://agentskills.io) catalogue packaged as the
 - `skills/` — curated skills (`skills/<category>/<name>/SKILL.md`).
 - `staging/` — legacy content awaiting per-skill review. Do not edit
   unless promoting an item out of staging or removing it.
+- `upstream/sources.yaml` — manifest of tracked upstream skill repos
+  (rev pin, review cursor, license, import paths). Created on first
+  adoption; absent until then.
+- `upstream/decisions/<id>.log` — per-source append-only review log
+  (one row per upstream commit decided via `upstream-tracker`).
 - `.claude-plugin/plugin.json` — Claude Code plugin manifest; lists every skill path explicitly.
 - `gemini-extension.json` — Gemini CLI extension manifest.
 - `scripts/install.sh` — symlinks the repo root into each tool's plugin directory.
-- `scripts/validate.py` — portable skill frontmatter lint (two-level paths).
+- `scripts/validate.py` — portable skill frontmatter lint (two-level paths);
+  also runs an advisory `--strict-upstream` pass when `upstream/sources.yaml`
+  exists.
 - `docs/install.md` — consumer-facing install guide.
 - `docs/skill-authoring-guide.md` — how to write a portable SKILL.md.
 - `docs/skills-spec-v3.md` — target architecture spec we are growing toward.
 - `docs/upstream-sources.md` — list of upstream skill repos parked for later re-import.
 - `docs/history/` — archived design docs.
 - `evals/` — eval scaffolding (currently empty; see `evals/README.md`).
+
+For the workflow that operates on `upstream/`, see the
+`meta/upstream-tracker` skill.
 
 ## Skill format
 
