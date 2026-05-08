@@ -61,7 +61,7 @@ All tools come from devenv. Enter the shell with `direnv allow` or
 `devenv shell`.
 
 ```
-just check    # markdownlint + shellcheck + validate.py
+just check    # shellcheck + validate.py
 just install  # symlink repo root as plugin into each tool's plugin directory
 just list     # find skills -name SKILL.md
 just validate # portable skill lint only

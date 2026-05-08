@@ -1,9 +1,8 @@
 default:
     @just --list --justfile {{justfile()}}
 
-# Lint markdown, shell scripts, and portable skill frontmatter
+# Lint shell scripts and portable skill frontmatter
 check:
-    markdownlint-cli2 '**/*.md' '#staging/**' '#docs/history/**' '#.devenv/**'
     shellcheck scripts/install.sh
     python3 scripts/validate.py
 

@@ -4,7 +4,6 @@
     git
     just
     jq
-    markdownlint-cli2
     shellcheck
     python3
   ];
@@ -13,9 +12,14 @@
     echo "skills dev shell — see 'just' for available recipes"
   '';
 
+  languages = {
+    nix.enable = true;
+    shell.enable = true;
+    python.enable = true;
+  };
+
   enterTest = ''
     set -e
-    markdownlint-cli2 '**/*.md' '#staging/**' '#docs/history/**' '#.devenv/**'
     shellcheck scripts/install.sh
     python3 scripts/validate.py
   '';

@@ -65,7 +65,7 @@ All dev tools come from devenv:
 ```bash
 direnv allow       # or: devenv shell
 just               # list recipes
-just check         # markdownlint + shellcheck + validate
+just check         # shellcheck + validate
 just validate      # skill frontmatter lint only
 just list          # list all SKILL.md files
 ```
