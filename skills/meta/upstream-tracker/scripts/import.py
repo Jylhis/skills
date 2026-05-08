@@ -25,6 +25,12 @@ import _lib as L
 
 
 def _reject_symlinks(root: Path, rel_root: str) -> None:
+    if root.is_symlink():
+        print(
+            f"  refusing to import symlink {rel_root}",
+            file=sys.stderr,
+        )
+        sys.exit(3)
     for path in root.rglob("*"):
         if path.is_symlink():
             rel = path.relative_to(root)
