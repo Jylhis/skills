@@ -105,12 +105,13 @@ file tools.
 
 ## Verifying the change took effect
 
-After editing, tell the user to either:
+After editing, tell the user to:
 
-- Restart the session (easiest) — hooks and permissions only re-read on
-  session start.
-- Trigger the relevant event and confirm the hook command ran (check logs,
-  side effects, or add a temporary `echo` to the hook script).
+1. Restart the session — hooks and permissions are only re-read from
+   settings.json on session start.
+2. Verify the change by triggering the relevant event and confirming the
+   hook command ran (check logs, side effects, or add a temporary `echo`
+   to the hook script).
 
 ## Common pitfalls
 

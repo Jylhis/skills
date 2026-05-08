@@ -65,7 +65,7 @@ Find dependency manifests and analyze them. Examples:
 - `go.mod` → go
 - `Gemfile` → bundler
 
-Additionally, read though any documentation (i.e. README.md or similar) to see if you can get additional context on how the environment setup works
+Additionally, read through any documentation (i.e. README.md or similar) to see if you can get additional context on how the environment setup works
 
 ### 2. Design Hook
 
@@ -86,7 +86,6 @@ cat > .claude/hooks/session-start.sh << 'EOF'
 #!/bin/bash
 set -euo pipefail
 
-echo '{"async": true, "asyncTimeout": 300000}'
 # Install dependencies here
 EOF
 
@@ -146,8 +145,8 @@ We're all done. In your last message to the user, Provide a detailed summary to 
   1. Session hook execution (include details if it failed)
   2. linter execution (include details if it failed)
   3. test execution (include details if it failed)
-* Hook execution mode: Syncronous
-  * inform user that hook is running syncronous and the below trade-offs. Let them know that we can change it to async if they prefer faster session startup.
+* Hook execution mode: Synchronous
+  * Inform user that hook is running synchronously and the below trade-offs. Let them know that we can change it to async if they prefer faster session startup.
     * Pros: Guarantees dependencies are installed before your session starts, preventing race conditions where Claude might try to run tests or linters before they're ready
     * Cons: Your remote session will only start once the session start hook is completed
 * inform user that once they merge the session start hook into their repo's default branch, all future sessions will use it.
