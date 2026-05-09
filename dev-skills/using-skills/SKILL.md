@@ -18,9 +18,7 @@ skills/                          ← published catalogue (jylhis-skills plugin)
 ├── filesystems/filesystems/     APFS, Btrfs, ZFS
 ├── gitlab/gitlab/               GitLab CI/CD + glab CLI
 ├── go/go/                       Modern Go (per project's Go version)
-├── java/java/                   Java 21 LTS
 ├── jvm/jvm/                     Gradle build, Maven Central publishing, JUnit/AssertJ/kotest
-├── kotlin/kotlin/               Kotlin 2.0+ + coroutines
 ├── nix/nix/                     Nix language, flakes, Nixpkgs, NixOS, nix-darwin, home-manager, devenv, ...
 ├── python/python/               Python 3.12+
 ├── security/security/           Cross-language security review (Python, TS/Node, JVM)
@@ -51,8 +49,6 @@ dev-skills/                      ← repo-only, not shipped to users
 | TypeScript / Node.js (any aspect) | `typescript` |
 | Nix, Nixpkgs, NixOS, nix-darwin, home-manager, devenv, flakes | `nix` |
 | Go | `go` |
-| Java 21 code style or concurrency | `java` |
-| Kotlin idioms or coroutines | `kotlin` |
 | Gradle build, Maven Central publishing, JUnit / kotest tests | `jvm` |
 | Emacs Lisp, major modes, ERT, gptel/MCP, keybindings | `emacs` |
 | APFS, Btrfs, ZFS, snapshots, replication | `filesystems` |

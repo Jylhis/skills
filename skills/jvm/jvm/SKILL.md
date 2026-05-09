@@ -14,8 +14,6 @@ JVM build files or tests.
 | Maven Central publishing | maven-publish, com.gradleup.nmcp, JReleaser, signing (useInMemoryPgpKeys + env vars), withSourcesJar/withJavadocJar, POM metadata, JPMS module-info, semver release tagging, GitHub Actions release-on-tag | `references/packaging.md` |
 | Testing | JUnit 5 (Jupiter) for Java (@Nested, @ParameterizedTest, @CsvSource), AssertJ, kotest for Kotlin (StringSpec / FunSpec / etc.), mockk / mockito, Testcontainers, JaCoCo, useJUnitPlatform(), awaitility, migrating from PowerMock | `references/testing.md` |
 
-For language-level Java code style or concurrency, use `java`. For
-Kotlin code style or coroutines, use `kotlin`. For JVM **security**
-topics, use `security`.
+For JVM **security** topics, use `security`.
 
 After reading the reference, follow its guidance for the task.
