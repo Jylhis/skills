@@ -140,16 +140,56 @@ if [[ -z "$SCOPE" ]]; then
   fi
 fi
 
+# Read the recorded marketplace source. An older install may point at a
+# stale GitHub mirror (e.g. `Jylhis/jstack`) instead of this repo, which
+# causes Claude to keep serving the pre-merge skill list. Returns empty if
+# the entry is missing or unreadable.
+claude_marketplace_source() {
+  python3 - "$KNOWN" <<'PY' 2>/dev/null || true
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+except (OSError, ValueError):
+    sys.exit(0)
+src = data.get("jylhis-skills", {}).get("source", {})
+if src.get("source") == "local":
+    print(src.get("path") or src.get("location") or "")
+elif src.get("path"):
+    print(src["path"])
+else:
+    parts = [src.get(k, "") for k in ("source", "repo", "url")]
+    print("|".join(p for p in parts if p))
+PY
+}
+
 if command -v claude >/dev/null 2>&1; then
+  current_src="$(claude_marketplace_source)"
+  if [[ -n "$current_src" && "$current_src" != "$REPO_ROOT" ]]; then
+    echo "claude marketplace source ($current_src) differs from $REPO_ROOT; resetting"
+    if grep -q '"jylhis-skills@jylhis-skills"' "$INSTALLED" 2>/dev/null; then
+      run claude plugin uninstall jylhis-skills@jylhis-skills --scope user --keep-data -y || true
+    fi
+    run claude plugin marketplace remove jylhis-skills || true
+  fi
+
   if ! grep -q '"jylhis-skills"' "$KNOWN" 2>/dev/null; then
     run claude plugin marketplace add "$REPO_ROOT" --scope user
   else
     echo "skip marketplace add (jylhis-skills already in $KNOWN)"
   fi
-  if ! grep -q '"jylhis-skills@jylhis-skills"' "$INSTALLED" 2>/dev/null; then
-    run claude plugin install jylhis-skills@jylhis-skills --scope "$SCOPE"
+
+  # Refresh the marketplace's snapshot of $REPO_ROOT, then install or
+  # update so the active cache (~/.claude/plugins/cache/.../<version>/)
+  # reflects the current commit. Without this, `claude plugin install`
+  # is a no-op when the plugin is already recorded in installed_plugins.json
+  # and stale skills, agents, or .lsp.json keep being served.
+  run claude plugin marketplace update jylhis-skills || true
+
+  if grep -q '"jylhis-skills@jylhis-skills"' "$INSTALLED" 2>/dev/null; then
+    run claude plugin update jylhis-skills@jylhis-skills --scope "$SCOPE" || true
   else
-    echo "skip plugin install (jylhis-skills@jylhis-skills already in $INSTALLED)"
+    run claude plugin install jylhis-skills@jylhis-skills --scope "$SCOPE"
   fi
 else
   cat <<EOF
@@ -182,7 +222,30 @@ if [[ -e "$CODEX_LEGACY_LINK" || -L "$CODEX_LEGACY_LINK" ]]; then
   echo "moved legacy Codex plugin path $CODEX_LEGACY_LINK -> $BACKUP_ROOT/"
 fi
 
+# Read the `source = "..."` line under `[marketplaces.jylhis-skills]` in
+# Codex config.toml. Same intent as claude_marketplace_source: detect when
+# an older add pointed at a remote mirror so we can reset before re-adding.
+codex_marketplace_source() {
+  local config="$1"
+  [[ -f "$config" ]] || return 0
+  awk '
+    /^\[marketplaces\.jylhis-skills\]/ { in_section = 1; next }
+    /^\[/                              { in_section = 0 }
+    in_section && /^source[[:space:]]*=/ {
+      sub(/^source[[:space:]]*=[[:space:]]*/, "")
+      gsub(/^"|"$/, "")
+      print
+      exit
+    }
+  ' "$config"
+}
+
 if command -v codex >/dev/null 2>&1; then
+  current_codex_src="$(codex_marketplace_source "$CODEX_DIR/config.toml")"
+  if [[ -n "$current_codex_src" && "$current_codex_src" != "$REPO_ROOT" ]]; then
+    echo "codex marketplace source ($current_codex_src) differs from $REPO_ROOT; resetting"
+    run codex plugin marketplace remove jylhis-skills || true
+  fi
   run codex plugin marketplace add "$REPO_ROOT"
   sync_codex_plugin_cache "$CODEX_DIR"
   enable_codex_plugin "$CODEX_DIR/config.toml"
