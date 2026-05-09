@@ -28,6 +28,9 @@ A curated [Agent Skills](https://agentskills.io) catalogue packaged as the
 - `upstream/decisions/<id>.log` — per-source append-only review log
   (one row per upstream commit decided via `upstream-tracker`).
 - `.claude-plugin/plugin.json` — Claude Code plugin manifest; lists every skill path explicitly.
+- `.lsp.json` — Claude-only: native LSP server registrations (one per language with a skill). Lazily launched via `nix shell nixpkgs#<pkg> -c <lsp>`.
+- `agents/` — Claude-only: shipped subagents (`reviewer`, `explorer`, `debugger`).
+- `commands/` — Claude-only: slash commands (`/explore`, `/lsp-status`).
 - `.codex-plugin/plugin.json` — Codex plugin manifest; loads `skills/` recursively.
 - `.agents/plugins/marketplace.json` — Codex local marketplace entry for this plugin.
 - `gemini-extension.json` — Gemini CLI extension manifest.
@@ -81,6 +84,34 @@ Ad-hoc devenv environment when a recipe needs an extra package:
 ```
 devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 ```
+
+## Claude runtime layer
+
+Claude Code reads four kinds of plugin artefact directly from this repo
+root. Codex's recursive scan is scoped to `./skills/` and Gemini's
+extension only declares `contextFileName`, so these files are inert in
+the other tools — no separate exclusion is needed.
+
+- `.lsp.json` — native LSP plugin format (Claude Code spawns each entry
+  on demand for matching file extensions). One entry per language with
+  a skill: `nix`, `python`, `typescript`, `go`, `java`, `kotlin`. Each
+  uses `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix
+  but no pre-installed LSP. To add a language, append an entry mapping
+  extensions → language id.
+- `agents/<name>.md` — read-only subagents callable as `@reviewer`,
+  `@explorer`, `@debugger`. Frontmatter is `name` + `description` only;
+  per the plugin reference, plugin-shipped agents may not declare
+  `mcpServers`, `hooks`, or `permissionMode`.
+- `commands/<name>.md` — slash commands (`/explore`, `/lsp-status`).
+  Plain markdown with optional `description`, `argument-hint`,
+  `allowed-tools` frontmatter. The body is the prompt; `$ARGUMENTS`
+  receives the user's command line.
+- `.mcp.json` is intentionally absent — the LSP work that would
+  otherwise need an MCP bridge (e.g. `mcp-language-server`) is handled
+  natively by Claude Code's `.lsp.json` integration.
+
+`scripts/validate.py` only globs `skills/*/*/SKILL.md`, so these
+Claude-only files do not need to be excluded explicitly.
 
 ## Repo conventions
 

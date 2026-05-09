@@ -100,6 +100,10 @@ sync_codex_plugin_cache() {
     --exclude 'result-*' \
     --exclude __pycache__ \
     --exclude '*.pyc' \
+    --exclude .claude-plugin \
+    --exclude .lsp.json \
+    --exclude agents \
+    --exclude commands \
     "$REPO_ROOT/" "$cache_root/"
   echo "sync $cache_root <- $REPO_ROOT"
 }

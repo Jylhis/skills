@@ -1,0 +1,53 @@
+{
+  "nix": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#nixd", "-c", "nixd"],
+    "extensionToLanguage": {
+      ".nix": "nix"
+    }
+  },
+  "python": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#basedpyright", "-c", "basedpyright-langserver", "--stdio"],
+    "extensionToLanguage": {
+      ".py": "python",
+      ".pyi": "python"
+    }
+  },
+  "typescript": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#typescript-language-server", "nixpkgs#nodejs", "-c", "typescript-language-server", "--stdio"],
+    "extensionToLanguage": {
+      ".ts": "typescript",
+      ".tsx": "typescriptreact",
+      ".mts": "typescript",
+      ".cts": "typescript",
+      ".js": "javascript",
+      ".jsx": "javascriptreact",
+      ".mjs": "javascript",
+      ".cjs": "javascript"
+    }
+  },
+  "go": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#gopls", "-c", "gopls", "serve"],
+    "extensionToLanguage": {
+      ".go": "go"
+    }
+  },
+  "java": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#jdt-language-server", "-c", "jdt-language-server"],
+    "extensionToLanguage": {
+      ".java": "java"
+    }
+  },
+  "kotlin": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#kotlin-language-server", "-c", "kotlin-language-server"],
+    "extensionToLanguage": {
+      ".kt": "kotlin",
+      ".kts": "kotlin"
+    }
+  }
+}
