@@ -24,6 +24,23 @@ from pathlib import Path
 import _lib as L
 
 
+def _reject_symlinks(root: Path, rel_root: str) -> None:
+    if root.is_symlink():
+        print(
+            f"  refusing to import symlink {rel_root}",
+            file=sys.stderr,
+        )
+        sys.exit(3)
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            rel = path.relative_to(root)
+            print(
+                f"  refusing to import symlink {rel_root}/{rel}",
+                file=sys.stderr,
+            )
+            sys.exit(3)
+
+
 def import_one_skill(cache: Path, src: dict, mapping: dict, sha: str,
                      today: str, force: bool) -> Path:
     upstream_subdir = mapping["upstream"]
@@ -55,6 +72,7 @@ def import_one_skill(cache: Path, src: dict, mapping: dict, sha: str,
             print(f"  upstream path {upstream_full} not found at {sha[:12]}",
                   file=sys.stderr)
             sys.exit(3)
+        _reject_symlinks(upstream_tree, upstream_full)
         if dest.exists():
             shutil.rmtree(dest)
         dest.parent.mkdir(parents=True, exist_ok=True)
