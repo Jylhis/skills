@@ -50,13 +50,10 @@ echo "🧪 Running tests: $TEST_COMMAND"
 if $TEST_COMMAND; then
     echo "✅ Tests passed!"
 
-    echo "📝 Adding approval comment..."
-    glab mr note "$MR_ID" -m "✅ Tests passed locally - approving"
+    echo "📝 Adding test-result comment..."
+    glab mr note "$MR_ID" -m "✅ Local tests passed. Manual code review and approval are still required."
 
-    echo "👍 Approving MR..."
-    glab mr approve "$MR_ID"
-
-    echo "✨ Review complete - MR approved"
+    echo "✨ Tests complete - MR was NOT auto-approved"
 else
     echo "❌ Tests failed!"
 
