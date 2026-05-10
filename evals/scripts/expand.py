@@ -184,7 +184,6 @@ def expand_suite(suite: str, judge: str = "gemini",
     raw = yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}
     cases = raw.get("cases", [])
 
-    used_providers: list = []
     tests: list[dict] = []
     for case in cases:
         provs = default_providers(case)
