@@ -492,15 +492,23 @@ def main() -> int:
         print(f"validate.py: skills/ not found at {SKILLS_DIR}", file=sys.stderr)
         return 1
 
-    # Two-level glob: skills/<category>/<name>/SKILL.md
-    skill_files = sorted(SKILLS_DIR.glob("*/*/SKILL.md"))
-    if not skill_files:
+    # Codex loads skills recursively; validate every SKILL.md under skills/.
+    all_skill_files = sorted(SKILLS_DIR.rglob("SKILL.md"))
+    if not all_skill_files:
         print("validate.py: no skills to validate (skills/ is empty)")
         return 0
+    # Published catalogue layout is restricted to skills/<category>/<name>/SKILL.md.
+    skill_files = sorted(SKILLS_DIR.glob("*/*/SKILL.md"))
+    misplaced = [p for p in all_skill_files if p not in set(skill_files)]
 
     all_errors: list[str] = []
-    for skill_md in skill_files:
+    for skill_md in all_skill_files:
         all_errors.extend(validate_skill(skill_md))
+    for skill_md in misplaced:
+        rel = skill_md.relative_to(REPO_ROOT)
+        all_errors.append(
+            f"{rel}: invalid location; expected skills/<category>/<name>/SKILL.md"
+        )
 
     all_errors.extend(check_plugin_manifests(skill_files))
 
@@ -528,7 +536,7 @@ def main() -> int:
         suffix += f"; {upstream_warnings} upstream advisory warning(s)"
     if scripts_warnings:
         suffix += f"; {scripts_warnings} scripts advisory warning(s)"
-    print(f"validate.py: OK ({len(skill_files)} skill(s)){suffix}")
+    print(f"validate.py: OK ({len(all_skill_files)} skill(s)){suffix}")
     return 0
 
 
