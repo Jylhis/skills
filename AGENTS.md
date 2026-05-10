@@ -6,19 +6,32 @@ extend this file via their respective import mechanisms.
 
 ## What this repo is
 
-A curated [Agent Skills](https://agentskills.io) catalogue packaged as the
-`jylhis-skills` plugin for Claude Code, Gemini CLI, and Codex. See
-`docs/install.md` for install instructions.
+A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis
+that publishes one default plugin and several opt-in plugins to Claude Code,
+Gemini CLI, and Codex. The default plugin (`jylhis-skills-core`) ships
+cross-cutting skills (security, ast-grep, offline-docs) plus the shipped
+subagents and slash commands. Per-language and per-tool plugins
+(`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-jvm`,
+`jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`, `jylhis-gitlab`) are
+discoverable through the marketplace UI but installed only when the user
+opts in. See `docs/install.md` for install instructions.
 
 ## Layout
 
-- `skills/` — published catalogue. One **umbrella** skill per category
-  (`skills/<category>/<category>/SKILL.md`) with sub-topic guidance
-  under that umbrella's `references/` directory. Standalone tool
+- `skills/` — canonical SKILL.md tree, source of truth. One **umbrella**
+  skill per category (`skills/<category>/<category>/SKILL.md`) with sub-topic
+  guidance under that umbrella's `references/` directory. Standalone tool
   skills (e.g. `unix/ast-grep`, `unix/offline-docs`) live at
-  `skills/<category>/<name>/SKILL.md`.
+  `skills/<category>/<name>/SKILL.md`. Skill files are NEVER moved out of
+  this tree.
+- `plugins/<plugin-name>/` — one directory per published plugin, each
+  containing its own `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+  `gemini-extension.json`, and a `skills/` directory of symlinks pointing
+  back into `skills/<category>/<name>`. The default plugin
+  `plugins/jylhis-skills-core/` additionally ships `agents/`, `commands/`,
+  `.lsp.json`, and `GEMINI.md`.
 - `dev-skills/` — repo-only meta skills (`skill-creator-lang`,
-  `upstream-tracker`, `using-skills`). **Not** shipped via the plugin;
+  `upstream-tracker`, `using-skills`). **Not** shipped via any plugin;
   exposed project-locally through `.claude/skills/<name>` symlinks.
 - `staging/` — legacy content awaiting per-skill review. Do not edit
   unless promoting an item out of staging or removing it.
@@ -27,14 +40,13 @@ A curated [Agent Skills](https://agentskills.io) catalogue packaged as the
   adoption; absent until then.
 - `upstream/decisions/<id>.log` — per-source append-only review log
   (one row per upstream commit decided via `upstream-tracker`).
-- `.claude-plugin/plugin.json` — Claude Code plugin manifest; lists every skill path explicitly.
-- `.lsp.json` — Claude-only: native LSP server registrations (one per language with a skill). Lazily launched via `nix shell nixpkgs#<pkg> -c <lsp>`.
-- `agents/` — Claude-only: shipped subagents (`reviewer`, `explorer`, `debugger`).
-- `commands/` — Claude-only: slash commands (`/explore`, `/lsp-status`).
-- `.codex-plugin/plugin.json` — Codex plugin manifest; loads `skills/` recursively.
-- `.agents/plugins/marketplace.json` — Codex local marketplace entry for this plugin.
-- `gemini-extension.json` — Gemini CLI extension manifest.
-- `scripts/install.sh` — registers local marketplaces for Claude Code and Codex, and symlinks Gemini.
+- `.claude-plugin/marketplace.json` — Claude Code marketplace manifest;
+  lists every plugin under `plugins/` (default + opt-in).
+- `.agents/plugins/marketplace.json` — Codex local marketplace; mirrors the
+  Claude listing and uses `policy.installation` to mark the default
+  vs opt-in plugins.
+- `scripts/install.sh` — registers the marketplace in each tool and installs
+  ONLY the default plugin. Prints opt-in commands for the rest.
 - `scripts/validate.py` — portable skill frontmatter lint (two-level paths);
   also runs an advisory `--strict-upstream` pass when `upstream/sources.yaml`
   exists.
@@ -78,10 +90,25 @@ All tools come from devenv. Enter the shell with `direnv allow` or
 
 ```
 just check    # shellcheck + validate.py
-just install  # symlink repo root as plugin into each tool's plugin directory
+just install  # register marketplace in each tool, install jylhis-skills-core only
 just list     # find skills -name SKILL.md
-just validate # portable skill lint only
+just validate # portable skill lint + plugin-manifest cross-check
 ```
+
+## Installing opt-in plugins
+
+`just install` only deploys `jylhis-skills-core`. To pull in a language or
+tool plugin from the same marketplace:
+
+| Tool        | Command                                                                |
+|-------------|------------------------------------------------------------------------|
+| Claude Code | `/plugin install jylhis-python@jylhis-skills`                          |
+| Codex       | `codex plugin install jylhis-python@jylhis-skills` (then enable in `~/.codex/config.toml`) |
+| Gemini CLI  | `ln -s <repo>/plugins/jylhis-python ~/.gemini/extensions/jylhis-python` |
+
+Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
+`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
+`jylhis-gitlab`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 
@@ -91,25 +118,26 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 
 ## Claude runtime layer
 
-Claude Code reads four kinds of plugin artefact directly from this repo
-root. Codex's recursive scan is scoped to `./skills/` and Gemini's
-extension only declares `contextFileName`, so these files are inert in
-the other tools — no separate exclusion is needed.
+Four Claude-only plugin artefacts ship inside the default plugin directory
+(`plugins/jylhis-skills-core/`), not at the repo root. Codex's recursive
+scan stays scoped to each plugin's local `./skills/` and Gemini's extension
+only declares `contextFileName`, so these files are inert in the other
+tools — no separate exclusion is needed.
 
-- `.lsp.json` — native LSP plugin format (Claude Code spawns each entry
-  on demand for matching file extensions). One entry per language with
-  a skill: `nix`, `python`, `typescript`, `go`. Each
-  uses `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix
-  but no pre-installed LSP. To add a language, append an entry mapping
-  extensions → language id.
-- `agents/<name>.md` — read-only subagents callable as `@reviewer`,
-  `@explorer`, `@debugger`. Frontmatter is `name` + `description` only;
-  per the plugin reference, plugin-shipped agents may not declare
-  `mcpServers`, `hooks`, or `permissionMode`.
-- `commands/<name>.md` — slash commands (`/explore`, `/lsp-status`).
-  Plain markdown with optional `description`, `argument-hint`,
-  `allowed-tools` frontmatter. The body is the prompt; `$ARGUMENTS`
-  receives the user's command line.
+- `plugins/jylhis-skills-core/.lsp.json` — native LSP plugin format (Claude
+  Code spawns each entry on demand for matching file extensions). One entry
+  per language with a published plugin: `nix`, `python`, `typescript`, `go`.
+  Each uses `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix
+  but no pre-installed LSP. The LSPs ship with core today; splitting them
+  per language plugin is a follow-up.
+- `plugins/jylhis-skills-core/agents/<name>.md` — read-only subagents
+  callable as `@reviewer`, `@explorer`, `@debugger`. Frontmatter is
+  `name` + `description` only; per the plugin reference, plugin-shipped
+  agents may not declare `mcpServers`, `hooks`, or `permissionMode`.
+- `plugins/jylhis-skills-core/commands/<name>.md` — slash commands
+  (`/explore`, `/lsp-status`). Plain markdown with optional `description`,
+  `argument-hint`, `allowed-tools` frontmatter. The body is the prompt;
+  `$ARGUMENTS` receives the user's command line.
 - `.mcp.json` is intentionally absent — the LSP work that would
   otherwise need an MCP bridge (e.g. `mcp-language-server`) is handled
   natively by Claude Code's `.lsp.json` integration.
@@ -119,15 +147,24 @@ Claude-only files do not need to be excluded explicitly.
 
 ## Repo conventions
 
-- The repo root is the plugin. Tool manifests (`.claude-plugin/plugin.json`,
-  `.codex-plugin/plugin.json`, `gemini-extension.json`) live at the root.
-- Skills are two levels deep: `skills/<category>/<name>/SKILL.md`.
+- The repo root is the **marketplace**, not a plugin. The default plugin is
+  `plugins/jylhis-skills-core/`; opt-in plugins are siblings under `plugins/`.
+- Each `plugins/<name>/` directory contains its own `.claude-plugin/plugin.json`,
+  `.codex-plugin/plugin.json`, and `gemini-extension.json`. Skills are not
+  copied — each plugin has a `skills/` directory of symlinks pointing into
+  the canonical `skills/<category>/<name>/` source tree.
+- Skills are two levels deep on disk: `skills/<category>/<name>/SKILL.md`.
 - The published catalogue uses an **umbrella per category**:
   `skills/<category>/<category>/SKILL.md` is the entry point, deeper
   guidance lives under `references/<topic>.md` (and nested
   `references/<topic>/...md` for multi-file topics).
-- When promoting a skill, add its path to `.claude-plugin/plugin.json`'s `skills` array.
-  Codex discovers skills recursively from `skills/`.
+- When **adding a new skill**: drop it under `skills/<category>/<name>/`,
+  create or extend a `plugins/jylhis-<name>/` directory with the three
+  per-tool manifests and a `skills/<name>` symlink, and add the plugin to
+  `.claude-plugin/marketplace.json` (and `.agents/plugins/marketplace.json`
+  for Codex). `scripts/validate.py` enforces that every on-disk skill is
+  referenced by exactly one plugin manifest.
+- Codex discovers skills recursively from each plugin's local `skills/`.
 - Meta / repo-maintenance skills go in `dev-skills/` (not under
   `skills/`), so they ship neither via the Claude plugin manifest nor
   the Codex recursive scan.

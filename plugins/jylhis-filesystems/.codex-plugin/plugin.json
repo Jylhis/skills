@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-filesystems",
+  "version": "1.0.0",
+  "description": "Low-level filesystem skill — APFS, Btrfs, ZFS.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "apfs", "btrfs", "zfs"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis Filesystems",
+    "shortDescription": "APFS / Btrfs / ZFS skill",
+    "longDescription": "Filesystem-level topics on macOS, Linux, NixOS — APFS clonefile/snapshots, Btrfs subvolumes/impermanence/compression, ZFS datasets/ARC/replication.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-typescript",
+  "description": "TypeScript 5.9+ on Node 22 LTS — type system depth, async patterns, error handling, Node fs/streams/workers, Prettier, ESLint 9 flat config, pnpm workspaces, Vitest.",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": ["./skills/typescript"]
+}

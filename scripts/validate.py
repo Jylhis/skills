@@ -5,9 +5,11 @@ Walks `skills/` at two levels deep (`skills/<category>/<name>/SKILL.md`) and
 validates every SKILL.md against the portability profile from
 docs/skills-spec-v3.md §6.
 
-Also cross-checks `.claude-plugin/plugin.json` against the filesystem
-in both directions: every discovered skill path must be listed, and
-every listed path must resolve to a SKILL.md on disk.
+Also cross-checks the multi-plugin layout under `plugins/*/.claude-plugin/
+plugin.json` against the filesystem: every on-disk skill must be referenced
+by exactly one plugin manifest, every listed skill path (resolved through
+the per-plugin `skills/` symlinks) must lead to a SKILL.md on disk, and the
+top-level `.claude-plugin/marketplace.json` must list each plugin directory.
 """
 from __future__ import annotations
 
@@ -18,8 +20,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / "skills"
-PLUGIN_JSON = REPO_ROOT / ".claude-plugin" / "plugin.json"
+PLUGINS_DIR = REPO_ROOT / "plugins"
+MARKETPLACE_JSON = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 UPSTREAM_MANIFEST = REPO_ROOT / "upstream" / "sources.yaml"
+
+CORE_PLUGIN_NAME = "jylhis-skills-core"
+CORE_PLUGIN_SKILLS = {"security", "ast-grep", "offline-docs"}
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DESC_MIN = 50
@@ -234,44 +240,129 @@ def validate_skill(skill_md: Path) -> list[str]:
     ]
 
 
-# ── plugin.json cross-check ────────────────────────────────────────────
+# ── plugin manifests cross-check ───────────────────────────────────────
 
 
-def check_plugin_json(skill_files: list[Path]) -> list[str]:
-    """Verify .claude-plugin/plugin.json and the filesystem agree both ways."""
-    if not PLUGIN_JSON.exists():
-        return [f"{PLUGIN_JSON.relative_to(REPO_ROOT)}: file not found"]
-
+def _load_json(path: Path) -> tuple[dict | None, str | None]:
     try:
-        manifest = json.loads(PLUGIN_JSON.read_text())
+        return json.loads(path.read_text()), None
     except json.JSONDecodeError as exc:
-        return [f"{PLUGIN_JSON.relative_to(REPO_ROOT)}: invalid JSON: {exc}"]
+        return None, f"{path.relative_to(REPO_ROOT)}: invalid JSON: {exc}"
+    except OSError as exc:
+        return None, f"{path.relative_to(REPO_ROOT)}: cannot read: {exc}"
 
-    manifest_paths = manifest.get("skills", [])
-    listed_dirs = {
-        (REPO_ROOT / p.lstrip("./")).resolve()
-        for p in manifest_paths
-    }
+
+def _resolve_skill_path(plugin_manifest: Path, raw: str) -> Path:
+    """Resolve a plugin.json skills[] entry to its on-disk skill directory.
+
+    Per-plugin manifests live at `plugins/<name>/.claude-plugin/plugin.json`
+    and reference `./skills/<x>` paths. The `skills/` directory is a per-plugin
+    dir of symlinks pointing into the canonical `skills/<category>/<name>/`
+    tree. `Path.resolve()` follows the symlink so each entry lands at the real
+    skill directory.
+    """
+    plugin_root = plugin_manifest.parent.parent  # plugins/<name>/
+    return (plugin_root / raw.lstrip("./")).resolve()
+
+
+def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
+    """Verify per-plugin manifests cover every on-disk skill exactly once."""
+    if not PLUGINS_DIR.is_dir():
+        return [f"plugins/: directory not found"]
+
+    plugin_manifests = sorted(PLUGINS_DIR.glob("*/.claude-plugin/plugin.json"))
+    if not plugin_manifests:
+        return ["plugins/: no plugin manifests found under plugins/*/.claude-plugin/plugin.json"]
+
     fs_skill_dirs = {skill_md.parent.resolve() for skill_md in skill_files}
-
+    coverage: dict[Path, list[str]] = {}
     errors: list[str] = []
+    core_seen: set[str] = set()
 
+    for manifest_path in plugin_manifests:
+        plugin_name = manifest_path.parent.parent.name
+        rel = manifest_path.relative_to(REPO_ROOT)
+
+        manifest, err = _load_json(manifest_path)
+        if err or manifest is None:
+            if err:
+                errors.append(err)
+            continue
+
+        if manifest.get("name") != plugin_name:
+            errors.append(
+                f"{rel}: name {manifest.get('name')!r} does not match plugin dir {plugin_name!r}"
+            )
+
+        for raw in manifest.get("skills", []):
+            target = _resolve_skill_path(manifest_path, raw)
+            if target not in fs_skill_dirs:
+                errors.append(
+                    f"{rel}: listed skill {raw!r} resolves to {target} which has no SKILL.md"
+                )
+                continue
+            coverage.setdefault(target, []).append(plugin_name)
+            if plugin_name == CORE_PLUGIN_NAME:
+                # Each entry is "./skills/<basename>"; collect basenames for the
+                # CORE_PLUGIN_SKILLS contract check.
+                core_seen.add(Path(raw).name)
+
+    # Every on-disk skill must be referenced by exactly one plugin manifest.
     for skill_md in skill_files:
         skill_dir = skill_md.parent.resolve()
-        if skill_dir not in listed_dirs:
-            rel = skill_md.parent.relative_to(REPO_ROOT)
+        owners = coverage.get(skill_dir, [])
+        rel = skill_md.parent.relative_to(REPO_ROOT)
+        if not owners:
+            errors.append(f"{rel}: not referenced by any plugin manifest under plugins/")
+        elif len(owners) > 1:
             errors.append(
-                f"{rel}: not listed in .claude-plugin/plugin.json"
-                f' (add \"./skills/{rel}\")'
+                f"{rel}: referenced by multiple plugins {sorted(owners)} — must belong to one"
             )
 
-    rel_manifest = PLUGIN_JSON.relative_to(REPO_ROOT)
-    for raw in manifest_paths:
-        target = (REPO_ROOT / raw.lstrip("./")).resolve()
-        if target not in fs_skill_dirs:
+    # The default plugin must cover exactly the cross-cutting set.
+    if core_seen and core_seen != CORE_PLUGIN_SKILLS:
+        errors.append(
+            f"plugins/{CORE_PLUGIN_NAME}/.claude-plugin/plugin.json: core skills "
+            f"{sorted(core_seen)} do not match expected {sorted(CORE_PLUGIN_SKILLS)}"
+        )
+
+    errors.extend(_check_marketplace_manifest(plugin_manifests))
+    return errors
+
+
+def _check_marketplace_manifest(plugin_manifests: list[Path]) -> list[str]:
+    if not MARKETPLACE_JSON.exists():
+        return [f"{MARKETPLACE_JSON.relative_to(REPO_ROOT)}: file not found"]
+
+    manifest, err = _load_json(MARKETPLACE_JSON)
+    if err or manifest is None:
+        return [err] if err else []
+
+    rel = MARKETPLACE_JSON.relative_to(REPO_ROOT)
+    listed_sources: set[Path] = set()
+    errors: list[str] = []
+
+    for entry in manifest.get("plugins", []):
+        src = entry.get("source")
+        # marketplace.json supports either a relative-path string or a source object.
+        if isinstance(src, str):
+            target = (REPO_ROOT / src.lstrip("./")).resolve()
+        elif isinstance(src, dict) and src.get("source") == "local":
+            target = (REPO_ROOT / src.get("path", "").lstrip("./")).resolve()
+        else:
+            continue  # external sources (github/url/npm) — out of scope
+        listed_sources.add(target)
+        if not (target / ".claude-plugin" / "plugin.json").exists():
             errors.append(
-                f"{rel_manifest}: listed skill {raw!r} has no SKILL.md on disk"
+                f"{rel}: plugin {entry.get('name')!r} source {src!r} "
+                f"has no .claude-plugin/plugin.json"
             )
+
+    on_disk = {m.parent.parent.resolve() for m in plugin_manifests}
+    for path in sorted(on_disk - listed_sources):
+        errors.append(
+            f"{rel}: plugin dir {path.relative_to(REPO_ROOT)} not listed in marketplace.json"
+        )
 
     return errors
 
@@ -416,7 +507,7 @@ def main() -> int:
     for skill_md in skill_files:
         all_errors.extend(validate_skill(skill_md))
 
-    all_errors.extend(check_plugin_json(skill_files))
+    all_errors.extend(check_plugin_manifests(skill_files))
 
     upstream_warnings, upstream_hard = _check_upstream_advisory(skill_files, strict_upstream)
 

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Install this repo (the jylhis-skills plugin) into supported agent tools.
+# Install the jylhis-skills marketplace + the default plugin into supported
+# agent tools. Per-language and per-tool plugins remain opt-in — the script
+# prints the commands to install them at the end.
+#
 # Also links AGENTS.md and CLAUDE.md directly for Claude Code project context.
 # Idempotent. Backs up any existing files it would overwrite.
 #
@@ -15,6 +18,20 @@ DRY_RUN=0
 run() { if [[ $DRY_RUN -eq 1 ]]; then echo "DRY: $*"; else "$@"; fi; }
 
 BACKUP_ROOT="$HOME/.skills-backup-$TS"
+
+# Plugin set published by the marketplace.
+DEFAULT_PLUGIN="jylhis-skills-core"
+OPTIN_PLUGINS=(
+  jylhis-python
+  jylhis-typescript
+  jylhis-go
+  jylhis-jvm
+  jylhis-emacs
+  jylhis-nix
+  jylhis-filesystems
+  jylhis-gitlab
+)
+LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 
 link() {
   local src="$1" dst="$2"
@@ -34,7 +51,7 @@ link() {
 
 enable_codex_plugin() {
   local config="$1"
-  local plugin_id="jylhis-skills@jylhis-skills"
+  local plugin_id="$2"
   local section="[plugins.\"$plugin_id\"]"
   local tmp
 
@@ -79,7 +96,7 @@ enable_codex_plugin() {
 }
 
 sync_codex_plugin_cache() {
-  local cache_dir="$1/plugins/cache/jylhis-skills/jylhis-skills"
+  local cache_dir="$1/plugins/cache/jylhis-skills/$2"
   local cache_root="$cache_dir/local"
 
   run mkdir -p "$cache_dir"
@@ -88,7 +105,10 @@ sync_codex_plugin_cache() {
     run mv "$cache_root" "$BACKUP_ROOT/$(basename "$cache_root")"
   fi
   run mkdir -p "$cache_root"
-  run rsync -a --delete --delete-excluded \
+  # Codex plugin cache mirrors the per-plugin directory under plugins/<name>/.
+  # Use rsync -L so the per-plugin skills/ symlinks resolve to the canonical
+  # SKILL.md tree under the repo's skills/ root.
+  run rsync -aL --delete --delete-excluded \
     --exclude .git \
     --exclude .devenv \
     --exclude .direnv \
@@ -100,23 +120,19 @@ sync_codex_plugin_cache() {
     --exclude 'result-*' \
     --exclude __pycache__ \
     --exclude '*.pyc' \
-    --exclude .claude-plugin \
-    --exclude .lsp.json \
-    --exclude agents \
-    --exclude commands \
-    "$REPO_ROOT/" "$cache_root/"
-  echo "sync $cache_root <- $REPO_ROOT"
+    "$REPO_ROOT/plugins/$2/" "$cache_root/"
+  echo "sync $cache_root <- $REPO_ROOT/plugins/$2"
 }
 
 # ── Claude Code ──────────────────────────────────────────────────────────────
-# Register this repo as a local marketplace and install the plugin from it.
-# That makes the plugin appear in `/plugin` (raw symlinks under
-# ~/.claude/plugins/ load at runtime but never show in the marketplace UI).
+# Register this repo as a local marketplace and install only the default plugin.
+# Other plugins appear in `/plugin` UI as opt-in and require explicit install.
 CLAUDE_DIR="${CLAUDE_HOME:-$HOME/.claude}"
 run mkdir -p "$CLAUDE_DIR/plugins"
 
-# Migrate older installs: a raw symlink at ~/.claude/plugins/jylhis-skills
-# would cause the plugin to load twice once we also install via marketplace.
+# Migrate older installs:
+#  - a raw symlink at ~/.claude/plugins/jylhis-skills predates the marketplace flow;
+#  - the pre-split single plugin was installed as `jylhis-skills@jylhis-skills`.
 LEGACY_LINK="$CLAUDE_DIR/plugins/jylhis-skills"
 if [[ -L "$LEGACY_LINK" ]]; then
   run mkdir -p "$BACKUP_ROOT"
@@ -167,10 +183,18 @@ if command -v claude >/dev/null 2>&1; then
   current_src="$(claude_marketplace_source)"
   if [[ -n "$current_src" && "$current_src" != "$REPO_ROOT" ]]; then
     echo "claude marketplace source ($current_src) differs from $REPO_ROOT; resetting"
-    if grep -q '"jylhis-skills@jylhis-skills"' "$INSTALLED" 2>/dev/null; then
-      run claude plugin uninstall jylhis-skills@jylhis-skills --scope user --keep-data -y || true
+    if grep -q "\"${LEGACY_PLUGIN}@jylhis-skills\"" "$INSTALLED" 2>/dev/null; then
+      run claude plugin uninstall "${LEGACY_PLUGIN}@jylhis-skills" --scope user --keep-data -y || true
     fi
     run claude plugin marketplace remove jylhis-skills || true
+  fi
+
+  # Drop the pre-split monolithic install if present — its skill set is now
+  # fanned out across the per-language plugins, so leaving it installed would
+  # double-load every skill once we install jylhis-skills-core.
+  if grep -q "\"${LEGACY_PLUGIN}@jylhis-skills\"" "$INSTALLED" 2>/dev/null; then
+    echo "removing legacy single-plugin install ${LEGACY_PLUGIN}@jylhis-skills"
+    run claude plugin uninstall "${LEGACY_PLUGIN}@jylhis-skills" --scope user --keep-data -y || true
   fi
 
   if ! grep -q '"jylhis-skills"' "$KNOWN" 2>/dev/null; then
@@ -180,23 +204,20 @@ if command -v claude >/dev/null 2>&1; then
   fi
 
   # Refresh the marketplace's snapshot of $REPO_ROOT, then install or
-  # update so the active cache (~/.claude/plugins/cache/.../<version>/)
-  # reflects the current commit. Without this, `claude plugin install`
-  # is a no-op when the plugin is already recorded in installed_plugins.json
-  # and stale skills, agents, or .lsp.json keep being served.
+  # update the default plugin only. Other plugins remain opt-in.
   run claude plugin marketplace update jylhis-skills || true
 
-  if grep -q '"jylhis-skills@jylhis-skills"' "$INSTALLED" 2>/dev/null; then
-    run claude plugin update jylhis-skills@jylhis-skills --scope "$SCOPE" || true
+  if grep -q "\"${DEFAULT_PLUGIN}@jylhis-skills\"" "$INSTALLED" 2>/dev/null; then
+    run claude plugin update "${DEFAULT_PLUGIN}@jylhis-skills" --scope "$SCOPE" || true
   else
-    run claude plugin install jylhis-skills@jylhis-skills --scope "$SCOPE"
+    run claude plugin install "${DEFAULT_PLUGIN}@jylhis-skills" --scope "$SCOPE"
   fi
 else
   cat <<EOF
 claude CLI not found on PATH. To finish the Claude Code install, run inside
 Claude Code:
   /plugin marketplace add $REPO_ROOT
-  /plugin install jylhis-skills@jylhis-skills
+  /plugin install ${DEFAULT_PLUGIN}@jylhis-skills
 EOF
 fi
 
@@ -205,9 +226,20 @@ fi
 [[ -f "$REPO_ROOT/CLAUDE.md" ]] && link "$REPO_ROOT/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 
 # ── Gemini CLI ────────────────────────────────────────────────────────────────
+# Each plugin doubles as a Gemini extension. Default install symlinks only the
+# core plugin; opt-in plugins are user-symlinked (see hint at end).
 GEMINI_DIR="$HOME/.gemini"
 run mkdir -p "$GEMINI_DIR/extensions"
-link "$REPO_ROOT" "$GEMINI_DIR/extensions/jylhis-skills"
+
+# Migration: the old install symlinked the entire repo as one extension.
+GEMINI_LEGACY_LINK="$GEMINI_DIR/extensions/jylhis-skills"
+if [[ -L "$GEMINI_LEGACY_LINK" ]]; then
+  run mkdir -p "$BACKUP_ROOT"
+  run mv "$GEMINI_LEGACY_LINK" "$BACKUP_ROOT/$(basename "$GEMINI_LEGACY_LINK")"
+  echo "moved legacy Gemini extension link $GEMINI_LEGACY_LINK -> $BACKUP_ROOT/"
+fi
+
+link "$REPO_ROOT/plugins/$DEFAULT_PLUGIN" "$GEMINI_DIR/extensions/$DEFAULT_PLUGIN"
 
 # ── Codex ─────────────────────────────────────────────────────────────────────
 CODEX_DIR="$HOME/.codex"
@@ -220,6 +252,14 @@ if [[ -e "$CODEX_LEGACY_LINK" || -L "$CODEX_LEGACY_LINK" ]]; then
   run mkdir -p "$BACKUP_ROOT"
   run mv "$CODEX_LEGACY_LINK" "$BACKUP_ROOT/$(basename "$CODEX_LEGACY_LINK")"
   echo "moved legacy Codex plugin path $CODEX_LEGACY_LINK -> $BACKUP_ROOT/"
+fi
+
+# Drop the pre-split monolithic Codex cache if present.
+CODEX_LEGACY_CACHE="$CODEX_DIR/plugins/cache/jylhis-skills/${LEGACY_PLUGIN}"
+if [[ -d "$CODEX_LEGACY_CACHE" ]]; then
+  run mkdir -p "$BACKUP_ROOT"
+  run mv "$CODEX_LEGACY_CACHE" "$BACKUP_ROOT/codex-cache-$(basename "$CODEX_LEGACY_CACHE")"
+  echo "moved legacy Codex cache $CODEX_LEGACY_CACHE -> $BACKUP_ROOT/"
 fi
 
 # Read the `source = "..."` line under `[marketplaces.jylhis-skills]` in
@@ -247,20 +287,33 @@ if command -v codex >/dev/null 2>&1; then
     run codex plugin marketplace remove jylhis-skills || true
   fi
   run codex plugin marketplace add "$REPO_ROOT"
-  sync_codex_plugin_cache "$CODEX_DIR"
-  enable_codex_plugin "$CODEX_DIR/config.toml"
+  sync_codex_plugin_cache "$CODEX_DIR" "$DEFAULT_PLUGIN"
+  enable_codex_plugin "$CODEX_DIR/config.toml" "${DEFAULT_PLUGIN}@jylhis-skills"
 else
   cat <<EOF
 codex CLI not found on PATH. To finish the Codex install, run:
   codex plugin marketplace add $REPO_ROOT
-  mkdir -p ~/.codex/plugins/cache/jylhis-skills/jylhis-skills
-  rsync -a --delete $REPO_ROOT/ ~/.codex/plugins/cache/jylhis-skills/jylhis-skills/local/
+  mkdir -p ~/.codex/plugins/cache/jylhis-skills/${DEFAULT_PLUGIN}
+  rsync -aL --delete $REPO_ROOT/plugins/${DEFAULT_PLUGIN}/ ~/.codex/plugins/cache/jylhis-skills/${DEFAULT_PLUGIN}/local/
 
-Then enable this plugin in ~/.codex/config.toml:
-  [plugins."jylhis-skills@jylhis-skills"]
+Then enable the default plugin in ~/.codex/config.toml:
+  [plugins."${DEFAULT_PLUGIN}@jylhis-skills"]
   enabled = true
 EOF
 fi
+
+# ── Opt-in install hints ────────────────────────────────────────────────────
+cat <<EOF
+
+Default plugin installed: ${DEFAULT_PLUGIN}
+Available opt-in plugins: ${OPTIN_PLUGINS[*]}
+
+To install one in each tool (example: jylhis-python):
+  Claude Code:  /plugin install jylhis-python@jylhis-skills
+  Codex:        codex plugin install jylhis-python@jylhis-skills
+                # then set [plugins."jylhis-python@jylhis-skills"] enabled=true in ~/.codex/config.toml
+  Gemini CLI:   ln -s $REPO_ROOT/plugins/jylhis-python ~/.gemini/extensions/jylhis-python
+EOF
 
 if [[ -d "$BACKUP_ROOT" ]]; then
   echo

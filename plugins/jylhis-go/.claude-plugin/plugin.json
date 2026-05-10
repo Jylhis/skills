@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-go",
+  "description": "Modern Go skill — any/errors/slices/maps/cmp packages, sync.OnceFunc, context.AfterFunc, atomic generics, http.ServeMux method patterns, t.Context, omitzero, b.Loop, iter.Seq.",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": ["./skills/go"]
+}

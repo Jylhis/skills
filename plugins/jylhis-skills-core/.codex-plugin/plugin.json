@@ -1,0 +1,27 @@
+{
+  "name": "jylhis-skills-core",
+  "version": "1.0.0",
+  "description": "Default Jylhis skills bundle: cross-cutting security, ast-grep, offline-docs.",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": [
+    "agent-skills",
+    "codex",
+    "developer-tools"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis Skills Core",
+    "shortDescription": "Default cross-cutting developer skills",
+    "longDescription": "Cross-cutting Agent Skills for security review, structural search (ast-grep), and offline documentation. Install language-specific add-ons (jylhis-python, jylhis-typescript, etc.) separately from the same marketplace.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

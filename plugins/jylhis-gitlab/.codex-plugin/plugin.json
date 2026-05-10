@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-gitlab",
+  "version": "1.0.0",
+  "description": "GitLab CI/CD and glab CLI skill.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "gitlab", "ci-cd"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis GitLab",
+    "shortDescription": "GitLab CI/CD + glab CLI skill",
+    "longDescription": "GitLab CI/CD pipelines (.gitlab-ci.yml, components, runners, caching, downstream pipelines) and the glab CLI for merge requests, issues, comments.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

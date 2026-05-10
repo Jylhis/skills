@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-go",
+  "version": "1.0.0",
+  "description": "Modern Go skill keyed to project Go version.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "go", "golang"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis Go",
+    "shortDescription": "Modern Go skill",
+    "longDescription": "Modern Go work — slices/maps/cmp, sync.OnceFunc, context.AfterFunc, atomic generics, http.ServeMux methods+PathValue, t.Context, omitzero, b.Loop, iter.Seq.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

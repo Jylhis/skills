@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-jvm",
+  "description": "JVM build, packaging, and testing — Gradle 8.10+ Kotlin DSL, version catalogs, toolchains, convention plugins, Maven Central publishing, JUnit 5, AssertJ, kotest, mockk/mockito, Testcontainers, JaCoCo.",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": ["./skills/jvm"]
+}

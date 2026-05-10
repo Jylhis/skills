@@ -1,0 +1,12 @@
+{
+  "name": "jylhis-skills-core",
+  "description": "Default Jylhis skills bundle: cross-cutting security review, ast-grep structural search, and offline documentation lookup. Ships the @reviewer / @explorer / @debugger subagents and the /explore + /lsp-status slash commands.",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/security",
+    "./skills/ast-grep",
+    "./skills/offline-docs"
+  ]
+}

@@ -1,10 +1,61 @@
 {
   "name": "jylhis-skills",
   "owner": { "name": "Jylhis" },
+  "description": "Curated agent-skills marketplace by Jylhis. Default plugin (jylhis-skills-core) ships cross-cutting skills; per-language and per-tool plugins are opt-in.",
   "plugins": [
     {
-      "name": "jylhis-skills",
-      "source": "./"
+      "name": "jylhis-skills-core",
+      "source": "./plugins/jylhis-skills-core",
+      "description": "Default Jylhis bundle: cross-cutting security review, ast-grep structural search, offline documentation lookup. Ships @reviewer / @explorer / @debugger subagents and the /explore + /lsp-status commands.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-python",
+      "source": "./plugins/jylhis-python",
+      "description": "Python 3.12+ — modern style, asyncio, type hints, Ruff, uv, pytest.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-typescript",
+      "source": "./plugins/jylhis-typescript",
+      "description": "TypeScript 5.9+ on Node 22 LTS — type system depth, async, ESLint 9 flat config, pnpm workspaces, Vitest.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-go",
+      "source": "./plugins/jylhis-go",
+      "description": "Modern Go — slices/maps/cmp packages, sync.OnceFunc, context.AfterFunc, atomic generics, http.ServeMux methods, iter.Seq.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-jvm",
+      "source": "./plugins/jylhis-jvm",
+      "description": "JVM build/test — Gradle 8.10+ Kotlin DSL, version catalogs, Maven Central, JUnit 5, kotest, Testcontainers.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-emacs",
+      "source": "./plugins/jylhis-emacs",
+      "description": "Emacs + Emacs Lisp — modern Elisp, major-mode authoring, MELPA/ELPA publishing, ERT, debugging, gptel + MCP.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-nix",
+      "source": "./plugins/jylhis-nix",
+      "description": "Nix / Nixpkgs / NixOS — flakes, packaging, modules, nix-darwin, home-manager, devenv, dockerTools, nixosTests.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-filesystems",
+      "source": "./plugins/jylhis-filesystems",
+      "description": "Low-level filesystems — APFS, Btrfs, ZFS / OpenZFS.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-gitlab",
+      "source": "./plugins/jylhis-gitlab",
+      "description": "GitLab CI/CD pipelines and the glab CLI for terminal-based GitLab workflows.",
+      "category": "Coding"
     }
   ]
 }

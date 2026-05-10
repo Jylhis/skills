@@ -5,15 +5,57 @@
   },
   "plugins": [
     {
-      "name": "jylhis-skills",
-      "source": {
-        "source": "local",
-        "path": "./"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
+      "name": "jylhis-skills-core",
+      "source": { "source": "local", "path": "./plugins/jylhis-skills-core" },
+      "policy": { "installation": "INSTALLED_BY_DEFAULT", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-python",
+      "source": { "source": "local", "path": "./plugins/jylhis-python" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-typescript",
+      "source": { "source": "local", "path": "./plugins/jylhis-typescript" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-go",
+      "source": { "source": "local", "path": "./plugins/jylhis-go" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-jvm",
+      "source": { "source": "local", "path": "./plugins/jylhis-jvm" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-emacs",
+      "source": { "source": "local", "path": "./plugins/jylhis-emacs" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-nix",
+      "source": { "source": "local", "path": "./plugins/jylhis-nix" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-filesystems",
+      "source": { "source": "local", "path": "./plugins/jylhis-filesystems" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-gitlab",
+      "source": { "source": "local", "path": "./plugins/jylhis-gitlab" },
+      "policy": { "installation": "OPT_IN", "authentication": "ON_INSTALL" },
       "category": "Coding"
     }
   ]
