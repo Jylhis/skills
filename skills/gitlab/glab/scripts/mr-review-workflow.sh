@@ -1,6 +1,6 @@
 #!/bin/bash
 # MR Review Workflow Script
-# Automates: checkout MR → run tests → post result as comment → approve if passed
+# Automates: checkout MR → run tests → post result as comment (no automatic approval)
 
 set -e
 
@@ -50,13 +50,11 @@ echo "🧪 Running tests: $TEST_COMMAND"
 if $TEST_COMMAND; then
     echo "✅ Tests passed!"
 
-    echo "📝 Adding approval comment..."
-    glab mr note "$MR_ID" -m "✅ Tests passed locally - approving"
+    echo "📝 Adding success comment..."
+    glab mr note "$MR_ID" -m "✅ Tests passed locally. Review completed; approve manually after human review."
 
-    echo "👍 Approving MR..."
-    glab mr approve "$MR_ID"
-
-    echo "✨ Review complete - MR approved"
+    echo "⚠️  Tests passed, but MR was NOT auto-approved for safety."
+    echo "🔍 Perform manual review, then run: glab mr approve $MR_ID"
 else
     echo "❌ Tests failed!"
 

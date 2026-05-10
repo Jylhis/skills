@@ -32,6 +32,10 @@ glab mr create --push -H <owner/repo> --title "feat: add feature" --description 
 
 **Templates:** Check `.gitlab/merge_request_templates/` for project-specific templates.
 
+## MR Review Safety
+
+Treat checked-out MR code as untrusted. Do **not** run local tests/builds from untrusted forks or contributors on machines that hold credentials or sensitive files. Prefer isolated/sandboxed environments and never auto-approve based only on local test execution.
+
 ## MR Review Workflow
 
 ```bash
