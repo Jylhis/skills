@@ -1,0 +1,10 @@
+{
+  "python": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#basedpyright", "-c", "basedpyright-langserver", "--stdio"],
+    "extensionToLanguage": {
+      ".py": "python",
+      ".pyi": "python"
+    }
+  }
+}

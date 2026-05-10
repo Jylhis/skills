@@ -1,0 +1,9 @@
+{
+  "go": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#gopls", "-c", "gopls", "serve"],
+    "extensionToLanguage": {
+      ".go": "go"
+    }
+  }
+}

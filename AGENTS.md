@@ -29,7 +29,9 @@ opts in. See `docs/install.md` for install instructions.
   `gemini-extension.json`, and a `skills/` directory of symlinks pointing
   back into `skills/<category>/<name>`. The default plugin
   `plugins/jylhis-skills-core/` additionally ships `agents/`, `commands/`,
-  `.lsp.json`, and `GEMINI.md`.
+  and `GEMINI.md`. Language plugins ship their own per-language `.lsp.json`
+  (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
+  installing that plugin is what wires the LSP into Claude Code).
 - `dev-skills/` — repo-only meta skills (`skill-creator-lang`,
   `upstream-tracker`, `using-skills`). **Not** shipped via any plugin;
   exposed project-locally through `.claude/skills/<name>` symlinks.
@@ -118,18 +120,19 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 
 ## Claude runtime layer
 
-Four Claude-only plugin artefacts ship inside the default plugin directory
-(`plugins/jylhis-skills-core/`), not at the repo root. Codex's recursive
-scan stays scoped to each plugin's local `./skills/` and Gemini's extension
-only declares `contextFileName`, so these files are inert in the other
-tools — no separate exclusion is needed.
+Claude-only plugin artefacts ship inside per-plugin directories, not at the
+repo root. Codex's recursive scan stays scoped to each plugin's local
+`./skills/` and Gemini's extension only declares `contextFileName`, so
+these files are inert in the other tools — no separate exclusion is needed.
 
-- `plugins/jylhis-skills-core/.lsp.json` — native LSP plugin format (Claude
-  Code spawns each entry on demand for matching file extensions). One entry
-  per language with a published plugin: `nix`, `python`, `typescript`, `go`.
-  Each uses `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix
-  but no pre-installed LSP. The LSPs ship with core today; splitting them
-  per language plugin is a follow-up.
+- `plugins/jylhis-<lang>/.lsp.json` — native LSP plugin format (Claude
+  Code spawns each entry on demand for matching file extensions). One file
+  per language plugin: `jylhis-nix` registers `nixd`, `jylhis-python`
+  registers `basedpyright`, `jylhis-typescript` registers
+  `typescript-language-server`, `jylhis-go` registers `gopls`. Each uses
+  `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix but no
+  pre-installed LSP. Installing a language plugin wires its LSP; not
+  installing it leaves Claude Code unaware of that language.
 - `plugins/jylhis-skills-core/agents/<name>.md` — read-only subagents
   callable as `@reviewer`, `@explorer`, `@debugger`. Frontmatter is
   `name` + `description` only; per the plugin reference, plugin-shipped
@@ -137,7 +140,9 @@ tools — no separate exclusion is needed.
 - `plugins/jylhis-skills-core/commands/<name>.md` — slash commands
   (`/explore`, `/lsp-status`). Plain markdown with optional `description`,
   `argument-hint`, `allowed-tools` frontmatter. The body is the prompt;
-  `$ARGUMENTS` receives the user's command line.
+  `$ARGUMENTS` receives the user's command line. `/lsp-status` discovers
+  every installed language plugin's `.lsp.json` at runtime, so it
+  reflects only the LSPs the user has opted into.
 - `.mcp.json` is intentionally absent — the LSP work that would
   otherwise need an MCP bridge (e.g. `mcp-language-server`) is handled
   natively by Claude Code's `.lsp.json` integration.
