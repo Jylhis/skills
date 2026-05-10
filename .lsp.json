@@ -14,20 +14,6 @@
       ".pyi": "python"
     }
   },
-  "typescript": {
-    "command": "nix",
-    "args": ["shell", "nixpkgs#typescript-language-server", "nixpkgs#nodejs", "-c", "typescript-language-server", "--stdio"],
-    "extensionToLanguage": {
-      ".ts": "typescript",
-      ".tsx": "typescriptreact",
-      ".mts": "typescript",
-      ".cts": "typescript",
-      ".js": "javascript",
-      ".jsx": "javascriptreact",
-      ".mjs": "javascript",
-      ".cjs": "javascript"
-    }
-  },
   "go": {
     "command": "nix",
     "args": ["shell", "nixpkgs#gopls", "-c", "gopls", "serve"],

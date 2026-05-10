@@ -94,7 +94,7 @@ the other tools — no separate exclusion is needed.
 
 - `.lsp.json` — native LSP plugin format (Claude Code spawns each entry
   on demand for matching file extensions). One entry per language with
-  a skill: `nix`, `python`, `typescript`, `go`. Each
+  a skill: `nix`, `python`, `go`. Each
   uses `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix
   but no pre-installed LSP. To add a language, append an entry mapping
   extensions → language id.
