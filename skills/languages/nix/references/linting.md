@@ -208,23 +208,17 @@ includes = ["*.sh"]
 
 ## nix-instantiate
 
-### Evaluating Nix Files
+### Parsing Nix Files Safely
 
 ```bash
-# Evaluate a Nix expression
-nix-instantiate --eval default.nix
-
-# With strict evaluation (force thunks)
-nix-instantiate --eval --strict default.nix
-
 # Parse only (syntax check)
 nix-instantiate --parse default.nix
 ```
 
-**Important:** When `default.nix` is a function (e.g.,
-`{ pkgs ? ... }: ...`), `--eval` returns `<LAMBDA>` and exits 0. This
-is expected behavior — it confirms the file parses and evaluates to a
-valid function. It is sufficient as a CI syntax check.
+Use `--parse` for CI syntax checks on repository-controlled Nix files.
+Avoid `nix-instantiate --eval` for untrusted code because evaluation can
+execute builtins that read local files, inspect environment variables,
+or trigger fetches.
 
 ## nix flake check
 
