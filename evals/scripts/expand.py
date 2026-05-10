@@ -106,55 +106,67 @@ def stub_judge(name: str, suite: str) -> dict:
     }
 
 
+def _string_match_asserts(a: dict) -> list[dict]:
+    out: list[dict] = []
+    for needle in a.get("contains") or []:
+        out.append({"type": "contains", "value": needle})
+    if a.get("contains_all"):
+        out.append({"type": "contains-all", "value": a["contains_all"]})
+    for pattern in a.get("regex") or []:
+        out.append({"type": "regex", "value": pattern})
+    for pattern in a.get("not_regex") or []:
+        out.append({"type": "not-regex", "value": pattern})
+    if a.get("output_match_regex"):
+        out.append({"type": "regex", "value": a["output_match_regex"]})
+    return out
+
+
+def _trigger_assert(a: dict) -> list[dict]:
+    if "triggered" not in a:
+        return []
+    return [{
+        "type": "javascript",
+        "value": _triggered_assert_body(a["triggered"]),
+        "metric": "trigger_rate",
+    }]
+
+
+def _latency_assert(a: dict) -> list[dict]:
+    if not a.get("max_latency_ms"):
+        return []
+    return [{"type": "latency", "threshold": a["max_latency_ms"]}]
+
+
+def _rubric_assert(case: dict, suite: str, judge: str,
+                    stub_judge_flag: bool, no_rubric: bool) -> list[dict]:
+    a = case.get("assert") or {}
+    rubric = a.get("rubric")
+    if not rubric or no_rubric:
+        return []
+    rubric_path = SUITES_DIR / suite / "rubric.md"
+    rubric_text = rubric_path.read_text(encoding="utf-8") if rubric_path.exists() else ""
+    prompt = (rubric_text + "\n\nCriteria:\n- " + "\n- ".join(rubric)).strip()
+    judge_provider: dict | str = (
+        stub_judge(judge, suite) if stub_judge_flag else judge_id(judge)
+    )
+    return [{
+        "type": "g-eval",
+        "value": prompt,
+        "threshold": case.get("rubric_threshold", 0.7),
+        "provider": judge_provider,
+    }]
+
+
 def build_assertions(case: dict, suite: str, judge: str,
                       stub_judge_flag: bool = False,
                       no_rubric: bool = False) -> list[dict]:
-    asserts: list[dict] = []
     a = case.get("assert") or {}
-
-    for needle in a.get("contains", []) or []:
-        asserts.append({"type": "contains", "value": needle})
-
-    if a.get("contains_all"):
-        asserts.append({"type": "contains-all", "value": a["contains_all"]})
-
-    for pattern in a.get("regex", []) or []:
-        asserts.append({"type": "regex", "value": pattern})
-
-    for pattern in a.get("not_regex", []) or []:
-        asserts.append({"type": "not-regex", "value": pattern})
-
-    if a.get("output_match_regex"):
-        asserts.append({"type": "regex", "value": a["output_match_regex"]})
-
-    if "triggered" in a:
-        expected = a["triggered"]
-        asserts.append({
-            "type": "javascript",
-            "value": _triggered_assert_body(expected),
-            "metric": "trigger_rate",
-        })
-
-    if a.get("max_latency_ms"):
-        asserts.append({"type": "latency", "threshold": a["max_latency_ms"]})
-
-    rubric = a.get("rubric")
-    if rubric and not no_rubric:
-        rubric_path = SUITES_DIR / suite / "rubric.md"
-        rubric_text = rubric_path.read_text(encoding="utf-8") if rubric_path.exists() else ""
-        prompt = (rubric_text + "\n\nCriteria:\n- " + "\n- ".join(rubric)).strip()
-        if stub_judge_flag:
-            judge_provider: dict | str = stub_judge(judge, suite)
-        else:
-            judge_provider = judge_id(judge)
-        asserts.append({
-            "type": "g-eval",
-            "value": prompt,
-            "threshold": case.get("rubric_threshold", 0.7),
-            "provider": judge_provider,
-        })
-
-    return asserts
+    return [
+        *_string_match_asserts(a),
+        *_trigger_assert(a),
+        *_latency_assert(a),
+        *_rubric_assert(case, suite, judge, stub_judge_flag, no_rubric),
+    ]
 
 
 def _triggered_assert_body(expected) -> str:
@@ -186,6 +198,68 @@ def case_threshold(case: dict) -> float:
     return float(t) if t is not None else 1.0
 
 
+def _provider_entry(name: str, suite: str, fixtures_sub: str | None,
+                     stub_sut: bool) -> dict | str:
+    if stub_sut:
+        return stub_provider_for(name, suite, fixtures_sub)
+    return provider_id(name)
+
+
+def _make_test(case: dict, provider: str, suite: str, judge: str,
+                stub_sut: bool, stub_judge_flag: bool, no_rubric: bool) -> dict:
+    test_assert = build_assertions(case, suite, judge,
+                                    stub_judge_flag=stub_judge_flag,
+                                    no_rubric=no_rubric)
+    entry = _provider_entry(provider, suite,
+                             case.get("fixtures_subdir"), stub_sut)
+    test = {
+        "description": f"{case['id']} :: {provider}",
+        "vars": {"prompt": case["prompt"], "case_id": case["id"]},
+        "providers": [entry],
+        "metadata": {
+            "case_id": case["id"],
+            "kind": case.get("kind", "output_quality"),
+            "expected_skill": case.get("expected_skill"),
+            "provider": provider,
+            "suite": suite,
+        },
+        "assert": [],
+    }
+    if test_assert:
+        test["assert"] = [{
+            "type": "assert-set",
+            "threshold": case_threshold(case),
+            "assert": test_assert,
+        }]
+    return test
+
+
+def _stub_provider_block(cases: list[dict], suite: str) -> list[dict]:
+    """De-dup stub provider entries by label.
+
+    The label includes the fixtures subdir so each unique
+    (target, fixtures) tuple gets its own entry with the right
+    EVAL_FIXTURES_DIR in env.
+    """
+    seen: set[str] = set()
+    out: list[dict] = []
+    for case in cases:
+        sub = case.get("fixtures_subdir")
+        for p in default_providers(case):
+            entry = stub_provider_for(p, suite, sub)
+            if entry["label"] in seen:
+                continue
+            seen.add(entry["label"])
+            out.append(entry)
+    return out
+
+
+def _live_provider_block(cases: list[dict]) -> list[str]:
+    return sorted({
+        provider_id(p) for case in cases for p in default_providers(case)
+    })
+
+
 def expand_suite(suite: str, judge: str = "gemini",
                  stub_sut: bool = False, stub_judge_flag: bool = False,
                  no_rubric: bool = False) -> Path:
@@ -195,57 +269,15 @@ def expand_suite(suite: str, judge: str = "gemini",
     raw = yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}
     cases = raw.get("cases", [])
 
-    tests: list[dict] = []
-    for case in cases:
-        provs = default_providers(case)
-        threshold = case_threshold(case)
-        kind = case.get("kind", "output_quality")
-        fixtures_sub = case.get("fixtures_subdir")
-        for p in provs:
-            test_assert = build_assertions(case, suite, judge,
-                                            stub_judge_flag=stub_judge_flag,
-                                            no_rubric=no_rubric)
-            if stub_sut:
-                provider_entry = stub_provider_for(p, suite, fixtures_sub)
-            else:
-                provider_entry = provider_id(p)
-            tests.append({
-                "description": f"{case['id']} :: {p}",
-                "vars": {"prompt": case["prompt"], "case_id": case["id"]},
-                "providers": [provider_entry],
-                "metadata": {
-                    "case_id": case["id"],
-                    "kind": kind,
-                    "expected_skill": case.get("expected_skill"),
-                    "provider": p,
-                    "suite": suite,
-                },
-                "assert": [{
-                    "type": "assert-set",
-                    "threshold": threshold,
-                    "assert": test_assert,
-                }] if test_assert else [],
-            })
-
-    if stub_sut:
-        # de-dup stub provider entries by label; the label includes the
-        # fixtures subdir so each unique (target, fixtures) tuple gets
-        # its own entry with the right EVAL_FIXTURES_DIR in env.
-        seen_labels: set[str] = set()
-        prov_list: list = []
-        for case in cases:
-            sub = case.get("fixtures_subdir")
-            for p in default_providers(case):
-                entry = stub_provider_for(p, suite, sub)
-                if entry["label"] in seen_labels:
-                    continue
-                seen_labels.add(entry["label"])
-                prov_list.append(entry)
-        provider_block = prov_list
-    else:
-        provider_block = sorted({
-            provider_id(p) for case in cases for p in default_providers(case)
-        })
+    tests = [
+        _make_test(case, p, suite, judge, stub_sut, stub_judge_flag, no_rubric)
+        for case in cases
+        for p in default_providers(case)
+    ]
+    provider_block = (
+        _stub_provider_block(cases, suite) if stub_sut
+        else _live_provider_block(cases)
+    )
 
     config = {
         "description": f"jylhis-skills evals: {suite}",

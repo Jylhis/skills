@@ -90,43 +90,49 @@ def check_cross_judge(provider: str, judge: str) -> list[str]:
     return errors
 
 
-def check_cases(suite: str) -> list[str]:
+def _check_near_miss(case: dict) -> list[str]:
+    cid = case.get("id", "<unnamed>")
+    vocab = case.get("near_miss_vocabulary") or []
+    if not vocab:
+        return [f"{cid}: trigger_negative requires near_miss_vocabulary (Doc 2 §4)."]
+    prompt = (case.get("prompt") or "").lower()
+    if any(term.lower() in prompt for term in vocab):
+        return []
+    return [
+        f"{cid}: trigger_negative prompt does not contain any "
+        f"near_miss_vocabulary term {vocab!r}; this is not a near-miss, "
+        "it's an off-topic prompt."
+    ]
+
+
+def _check_trigger_providers(case: dict) -> list[str]:
+    providers = case.get("providers")
+    if not providers or all(p == "claude" for p in providers):
+        return []
+    cid = case.get("id", "<unnamed>")
+    return [
+        f"{cid}: trigger_* cases default to claude only; non-claude "
+        f"providers in {providers!r} require documented justification — "
+        "set providers: [claude] or remove the kind tag."
+    ]
+
+
+def _check_one_case(case: dict) -> list[str]:
+    kind = case.get("kind")
     errors: list[str] = []
+    if kind == "trigger_negative":
+        errors.extend(_check_near_miss(case))
+    if kind in ("trigger_positive", "trigger_negative"):
+        errors.extend(_check_trigger_providers(case))
+    return errors
+
+
+def check_cases(suite: str) -> list[str]:
     cases_path = SUITES_DIR / suite / "cases.yaml"
     if not cases_path.exists():
         return [f"missing cases file: {cases_path.relative_to(REPO_ROOT)}"]
     raw = yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}
-    for case in raw.get("cases", []):
-        cid = case.get("id", "<unnamed>")
-        kind = case.get("kind")
-
-        if kind == "trigger_negative":
-            vocab = case.get("near_miss_vocabulary") or []
-            if not vocab:
-                errors.append(
-                    f"{cid}: trigger_negative requires near_miss_vocabulary "
-                    "(Doc 2 §4)."
-                )
-            else:
-                prompt = (case.get("prompt") or "").lower()
-                if not any(term.lower() in prompt for term in vocab):
-                    errors.append(
-                        f"{cid}: trigger_negative prompt does not contain any "
-                        f"near_miss_vocabulary term {vocab!r}; this is not a "
-                        "near-miss, it's an off-topic prompt."
-                    )
-
-        if kind in ("trigger_positive", "trigger_negative"):
-            providers = case.get("providers")
-            if providers and any(p != "claude" for p in providers):
-                errors.append(
-                    f"{cid}: trigger_* cases default to claude only; "
-                    f"non-claude providers in {providers!r} require "
-                    "documented justification — set providers: [claude] or "
-                    "remove the kind tag."
-                )
-
-    return errors
+    return [msg for case in raw.get("cases", []) for msg in _check_one_case(case)]
 
 
 def check_goldens(suite: str) -> list[tuple[str, Path, list[str]]]:
