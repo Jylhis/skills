@@ -32,7 +32,6 @@ TRACE="$WORKDIR/judge-trace.jsonl"
     --output-format stream-json \
     --verbose \
     --max-turns 1 \
-    --permission-mode bypassPermissions \
     > "$TRACE" 2>"$WORKDIR/stderr.log"
 ) || {
   status=$?
