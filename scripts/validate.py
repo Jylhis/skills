@@ -5,8 +5,9 @@ Walks `skills/` at two levels deep (`skills/<category>/<name>/SKILL.md`) and
 validates every SKILL.md against the portability profile from
 docs/skills-spec-v3.md §6.
 
-Also cross-checks that every discovered skill path is listed in
-`.claude-plugin/plugin.json`.
+Also cross-checks `.claude-plugin/plugin.json` against the filesystem
+in both directions: every discovered skill path must be listed, and
+every listed path must resolve to a SKILL.md on disk.
 """
 from __future__ import annotations
 
@@ -237,7 +238,7 @@ def validate_skill(skill_md: Path) -> list[str]:
 
 
 def check_plugin_json(skill_files: list[Path]) -> list[str]:
-    """Warn about skills missing from .claude-plugin/plugin.json."""
+    """Verify .claude-plugin/plugin.json and the filesystem agree both ways."""
     if not PLUGIN_JSON.exists():
         return [f"{PLUGIN_JSON.relative_to(REPO_ROOT)}: file not found"]
 
@@ -246,19 +247,32 @@ def check_plugin_json(skill_files: list[Path]) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"{PLUGIN_JSON.relative_to(REPO_ROOT)}: invalid JSON: {exc}"]
 
-    listed = {
+    manifest_paths = manifest.get("skills", [])
+    listed_dirs = {
         (REPO_ROOT / p.lstrip("./")).resolve()
-        for p in manifest.get("skills", [])
+        for p in manifest_paths
     }
+    fs_skill_dirs = {skill_md.parent.resolve() for skill_md in skill_files}
+
     errors: list[str] = []
+
     for skill_md in skill_files:
         skill_dir = skill_md.parent.resolve()
-        if skill_dir not in listed:
+        if skill_dir not in listed_dirs:
             rel = skill_md.parent.relative_to(REPO_ROOT)
             errors.append(
                 f"{rel}: not listed in .claude-plugin/plugin.json"
                 f' (add \"./skills/{rel}\")'
             )
+
+    rel_manifest = PLUGIN_JSON.relative_to(REPO_ROOT)
+    for raw in manifest_paths:
+        target = (REPO_ROOT / raw.lstrip("./")).resolve()
+        if target not in fs_skill_dirs:
+            errors.append(
+                f"{rel_manifest}: listed skill {raw!r} has no SKILL.md on disk"
+            )
+
     return errors
 
 
