@@ -12,7 +12,7 @@ build target=default_target:
 
 # Build via flake-compat (non-flake, no experimental features)
 build-legacy target=default_target:
-    nix-build -E '(import ./default.nix).packages.${builtins.currentSystem}.{{target}}'
+    nix-build -E '(import ./default.nix).packages."${builtins.currentSystem}".{{target}}'
 
 # Run all linters and checks
 check:
