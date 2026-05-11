@@ -179,3 +179,46 @@ Claude-only files do not need to be excluded explicitly.
   `<skill>/SKILL.md` trees into `staging/` then promote individually.
   The previous URL list lives in `docs/upstream-sources.md`.
 - Portable skills must pass `scripts/validate.py`. Run on every commit.
+
+### Script language preference
+
+For new scripts, pick the lowest-numbered language that fits the task:
+
+1. **Go** — single static binary, simplest distribution, fewest runtime
+   surprises.
+2. **TypeScript with Bun** — `#!/usr/bin/env -S bun run` shebang, fast
+   startup, inline deps via Bun auto-install. Use when an ecosystem is
+   strongly TS-shaped.
+3. **Python with full type hints** — `mypy --strict` clean. Last resort,
+   when ecosystem libraries (e.g. PyYAML, jsonschema) make rewriting
+   prohibitive.
+
+Exemption: shell shebangs and `nix run` wrappers under ~5 lines may stay
+shell. The advisory pass in `scripts/validate.py` skips them.
+
+`scripts/validate.py` emits advisory warnings on `.sh` and untyped `.py`
+files under `scripts/`, `evals/scripts/`, `skills/*/*/scripts/`,
+`dev-skills/*/scripts/`, and `plugins/*/scripts/`. Promote to an error
+with `--strict-scripts`. The migration plan for existing files lives in
+`docs/script-migrations.md`.
+
+### Recording corrections
+
+When a user corrects your behaviour on something skill-related, append
+one entry to the improvement-memory JSONL:
+
+```
+${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
+```
+
+Schema reference: `dev-skills/skill-improver/references/schema.md`.
+Use `scripts/append-correction.py --json -` (one JSON object on stdin)
+to append safely under a file lock. The user can invoke the same path
+via `/remember-correction <note>`.
+
+The file lives outside the repo, in the XDG state directory — it is
+host-private, not committed, not synced. This JSONL is the machine-
+readable, agent-recorded cousin of the user-facing auto-memory at
+`~/.claude/projects/.../memory/`; it is scoped to skill iteration, not
+a general scratchpad. The `skill-improver` meta-skill reads filtered
+entries from this file when iterating on a named skill.

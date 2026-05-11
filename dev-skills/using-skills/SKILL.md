@@ -117,6 +117,17 @@ validate only at system boundaries.
   skill is fine. Skill invocation is opportunistic acceleration, not
   a hard prerequisite.
 
+## Recording corrections
+
+When the user corrects your behaviour on something skill-related, append
+one entry to the improvement-memory JSONL. The canonical reference is in
+AGENTS.md § Recording corrections; the schema is at
+`dev-skills/skill-improver/references/schema.md`; the helper is
+`scripts/append-correction.py`; the slash command is `/remember-correction`.
+
+The `skill-improver` meta-skill consumes the JSONL when iterating on a
+named skill.
+
 ## Discovering the catalogue
 
 ```bash

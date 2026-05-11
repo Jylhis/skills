@@ -487,11 +487,114 @@ def _check_one_upstream(skill_md: Path, ids: set[str], reviewed: dict[str, str])
     return 0
 
 
+# ── Optional: scripts language advisory pass ───────────────────────────
+
+
+SCRIPT_GLOBS = (
+    "scripts/*",
+    "evals/scripts/*",
+    "skills/*/*/scripts/*",
+    "dev-skills/*/scripts/*",
+    "plugins/*/scripts/*",
+)
+
+SH_WRAPPER_PREFIXES = ("nix ", "exec ", "nix run", "nix shell")
+SH_WRAPPER_MAX_BYTES = 200
+PY_TYPED_LINES = 50
+PY_RETURN_ANNOTATION_RE = re.compile(r"def\s+\w+\s*\([^)]*\)\s*->\s")
+
+
+def _is_sh_wrapper(path: Path) -> bool:
+    """Small `nix run` / `exec` shell wrappers are exempt from the bash advisory."""
+    try:
+        if path.stat().st_size >= SH_WRAPPER_MAX_BYTES:
+            return False
+        text = path.read_text(errors="replace")
+    except OSError:
+        return False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        return any(stripped.startswith(pfx) for pfx in SH_WRAPPER_PREFIXES)
+    return False
+
+
+def _is_typed_python(path: Path) -> bool:
+    try:
+        text = path.read_text(errors="replace")
+    except OSError:
+        return False
+    if "# type: validated" in text:
+        return True
+    head = text.splitlines()[:PY_TYPED_LINES]
+    has_future = any("from __future__ import annotations" in line for line in head)
+    has_return_ann = any(PY_RETURN_ANNOTATION_RE.search(line) for line in head)
+    return has_future and has_return_ann
+
+
+def _classify_script(path: Path) -> str | None:
+    """Return a warning category for unpreferred scripts, else None."""
+    suffix = path.suffix
+    if suffix in (".go", ".ts"):
+        return None
+    if suffix == ".sh":
+        return None if _is_sh_wrapper(path) else "bash"
+    if suffix == ".py":
+        return None if _is_typed_python(path) else "untyped-py"
+    return None
+
+
+def _iter_script_paths() -> list[Path]:
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for pattern in SCRIPT_GLOBS:
+        for path in sorted(REPO_ROOT.glob(pattern)):
+            if not path.is_file():
+                continue
+            resolved = path.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            out.append(path)
+    return out
+
+
+def _check_scripts_advisory(strict: bool) -> tuple[int, int]:
+    """Returns (warnings, hard_errors).
+
+    Advisory by default: emits to stderr and never raises the exit code.
+    Strict mode promotes warnings to hard errors.
+    """
+    bash_count = 0
+    untyped_py_count = 0
+    for path in _iter_script_paths():
+        category = _classify_script(path)
+        if category is None:
+            continue
+        rel = path.relative_to(REPO_ROOT)
+        if category == "bash":
+            bash_count += 1
+            print(f"{rel}: bash script; prefer Go > TS+Bun (see docs/script-migrations.md)",
+                  file=sys.stderr)
+        else:
+            untyped_py_count += 1
+            print(f"{rel}: untyped-python script; prefer Go > TS+Bun (see docs/script-migrations.md)",
+                  file=sys.stderr)
+
+    warnings = bash_count + untyped_py_count
+    if warnings:
+        print(f"validate.py: scripts: {bash_count} bash, {untyped_py_count} untyped-py (advisory)",
+              file=sys.stderr)
+    return warnings, (warnings if strict else 0)
+
+
 # ── Entry point ────────────────────────────────────────────────────────
 
 
 def main() -> int:
     strict_upstream = "--strict-upstream" in sys.argv[1:]
+    strict_scripts = "--strict-scripts" in sys.argv[1:]
 
     if not SKILLS_DIR.is_dir():
         print(f"validate.py: skills/ not found at {SKILLS_DIR}", file=sys.stderr)
@@ -510,6 +613,7 @@ def main() -> int:
     all_errors.extend(check_plugin_manifests(skill_files))
 
     upstream_warnings, upstream_hard = _check_upstream_advisory(skill_files, strict_upstream)
+    scripts_warnings, scripts_hard = _check_scripts_advisory(strict_scripts)
 
     if all_errors:
         for err in all_errors:
@@ -522,9 +626,16 @@ def main() -> int:
               file=sys.stderr)
         return 1
 
+    if scripts_hard:
+        print(f"\nvalidate.py: {scripts_hard} scripts advisory error(s) (strict mode)",
+              file=sys.stderr)
+        return 1
+
     suffix = ""
     if upstream_warnings:
-        suffix = f"; {upstream_warnings} upstream advisory warning(s)"
+        suffix += f"; {upstream_warnings} upstream advisory warning(s)"
+    if scripts_warnings:
+        suffix += f"; {scripts_warnings} scripts advisory warning(s)"
     print(f"validate.py: OK ({len(skill_files)} skill(s)){suffix}")
     return 0
 

@@ -56,6 +56,21 @@ description: <50–1024 chars; include trigger phrases for routing>
 
 <traps and safe alternatives>
 
+## Gotchas
+
+<!-- omit if not applicable -->
+<project- or skill-specific traps the agent must see before triggering; keep here, not in references/>
+
+## Templates
+
+<!-- omit if not applicable -->
+<canonical output format(s); inline if short, otherwise under assets/ with a pointer>
+
+## Validation
+
+<!-- omit if not applicable -->
+<tested validation step (script or checklist) for plan-validate-execute workflows>
+
 ## Prefer built-ins
 
 <which stdlib modules replace common third-party deps>

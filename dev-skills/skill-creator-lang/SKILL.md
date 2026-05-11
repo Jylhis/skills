@@ -136,11 +136,17 @@ skills, organised by category and grouped into a plugin under
      editor integrations are common. State explicitly if none exists.
    - **MCP servers:** the chosen MCP server(s) for this ecosystem and what
      each exposes. State explicitly if none exist.
+   - **Patterns the skill should use:** identify which of {gotchas,
+     templates, checklists, validation loops, plan-validate-execute} apply
+     and bake them into the body. See `docs/skill-authoring-guide.md`
+     § Patterns.
 
 8. **Be opinionated.** For every choice, pick one recommendation and commit.
    Do not list alternatives. If the user asks why later, the research notes
    back the choice. Hype-driven choices are out; prefer mature,
-   widely-used tools.
+   widely-used tools. For any bundled scripts, pick the language per
+   `AGENTS.md` § Script language preference (Go > TypeScript+Bun > typed
+   Python).
 
 9. **Write the files.** Generate the full scaffold — the canonical skill
    tree and the plugin that ships it — then register the plugin in the
@@ -155,7 +161,8 @@ skills, organised by category and grouped into a plugin under
      Do not split for the sake of splitting.
    - `scripts/` — optional deterministic helpers (e.g. a tool-detection
      script, a project scaffolder). Use `nix run` shebangs for runtime
-     dependencies; do not pollute `devenv.nix`.
+     dependencies; do not pollute `devenv.nix`. New scripts must follow
+     the language preference in `docs/skill-authoring-guide.md` § Scripts.
    - `assets/` — optional fixtures or templates.
 
    **Plugin** under `plugins/jylhis-<name>/`:
@@ -219,6 +226,8 @@ open standard and the local profile in `docs/skill-authoring-guide.md`.
   `references/<topic>.md`.
 - **Full template with required section order:** see
   [`references/generated-skill-template.md`](references/generated-skill-template.md).
+- The authoring guide also covers Scripts, Description triggering, and
+  Patterns sections that every generated skill should reference.
 
 ## Output
 
