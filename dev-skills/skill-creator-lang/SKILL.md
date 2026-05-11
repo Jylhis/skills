@@ -1,24 +1,28 @@
 ---
 name: skill-creator-lang
 description: >
-  Create an opinionated specialist skill for a programming language or stack
-  (e.g. Python, Ruby on Rails, ROS2). Meta skill that produces other skills.
+  Create an opinionated specialist skill for a programming language or stack. Meta skill that produces other skills.
 ---
 
 # Skill Creator: Language & Stack
 
 Generate a new specialist skill that captures expert knowledge for one programming
-language or one framework/stack on top of a language. The output is a `SKILL.md`
-plus reference docs that Claude can load when working in that ecosystem.
+language or one framework/stack on top of a language. The output is a `SKILL.md`, scripts/binaries, LSP and reference docs that Claude can load when working in that ecosystem.
 
 This is a meta skill. It does not write application code. It produces other skills.
 
+<!-- TODO: Things will be organised by category and grouped with plugins. -->
+
 ## Steps
+
+<!-- TODO: User can also provide this information directly e.g. /skill-creator-lang C++ -->
 
 1. **Identify the target.** Ask the user what language or stack they want a skill for.
    Do not guess. If the user said "Rails", confirm they mean Ruby on Rails and not
    another framework with a similar name. If they named a stack (Rails, ROS2, Next.js,
    Spring Boot, Phoenix), note both the framework and its host language.
+
+   <!-- NOTE: Do not sugest any stacks if user did not specifically provided one -->
 
 2. **Handle layering for stacks.** If the target is a framework on top of a language:
    - Check whether a base language skill already exists in the chosen output location.
@@ -27,14 +31,20 @@ This is a meta skill. It does not write application code. It produces other skil
    - The framework skill assumes the language skill is loaded. It only contains
      framework-specific guidance, not language fundamentals.
 
+<!-- NOTE: Pick a version unless user specifically provided one. Also when creating language specific plugin, remember to also create language updater command that updates the skill (this is meta skill) -->
+
 3. **Pick the version.** Find the currently common versions (latest stable, prior LTS,
    anything still widely deployed). Present them and ask which to target. Record the
    version in the skill, but write guidance that stays valid across recent releases
    unless a feature is version-gated.
 
+<!-- TODO: Remove references to jstack from the whole repo -->
+
 4. **Pick the output location.** Ask the user where to write the skill:
    - `skills/<name>/` in the jstack repo (reusable, committed back)
    - `.claude/skills/<name>/` inside the user's current project (project-scoped)
+
+<!-- This could also be other, depending one the specific agent tooling. Check if there is tool specific skill creator skill -->
 
    Do not assume.
 
@@ -98,7 +108,7 @@ This is a meta skill. It does not write application code. It produces other skil
    - **Build / lint / validate:** the exact commands to format, lint, type-check,
      compile, and run the project
    - **Package & dependency management:** the recommended package manager, lockfile,
-     virtualenv or equivalent, how to add and pin a dependency
+     virtualenv, Nix, APT or equivalent, how to add and pin a dependency
    - **Project layout:** the standard directory structure for a library and for an
      application in this ecosystem
    - **Debugging & profiling:** the standard debugger, profiler, and observability
@@ -113,6 +123,9 @@ This is a meta skill. It does not write application code. It produces other skil
 8. **Be opinionated.** For every choice, pick one recommendation and commit. Do not
    list alternatives. If the user asks why later, the research notes back the choice.
    Hype-driven choices are out; prefer mature, widely-used tools.
+
+
+<!-- Update with extended scripts/bin etc. -->
 
 9. **Write the files.** Create the skill directory with:
    - `SKILL.md` — the prompt document, structured like other jstack skills
@@ -144,6 +157,7 @@ This is a meta skill. It does not write application code. It produces other skil
 
 ## Generated skill format
 
+<!-- FIXME: Should follow https://agentskills.io -->
 Each generated `SKILL.md` follows the jstack convention:
 
 ```markdown

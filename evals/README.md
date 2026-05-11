@@ -26,6 +26,8 @@ before you run live evals. The harness itself never sees an API key.
 
 ## Install
 
+<!-- FIXME: we can assume these are installed -->
+
 ```sh
 # CLIs (npm-global; not bundled in devenv because each needs user auth)
 npm i -g @anthropic-ai/claude-code

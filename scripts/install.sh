@@ -184,7 +184,7 @@ if command -v claude >/dev/null 2>&1; then
   if [[ -n "$current_src" && "$current_src" != "$REPO_ROOT" ]]; then
     echo "claude marketplace source ($current_src) differs from $REPO_ROOT; resetting"
     if grep -q "\"${LEGACY_PLUGIN}@jylhis-skills\"" "$INSTALLED" 2>/dev/null; then
-      run claude plugin uninstall "${LEGACY_PLUGIN}@jylhis-skills" --scope user --keep-data -y || true
+      run claude plugin uninstall "${LEGACY_PLUGIN}@jylhis-skills" --scope user --keep-data || true
     fi
     run claude plugin marketplace remove jylhis-skills || true
   fi
@@ -194,7 +194,7 @@ if command -v claude >/dev/null 2>&1; then
   # double-load every skill once we install jylhis-skills-core.
   if grep -q "\"${LEGACY_PLUGIN}@jylhis-skills\"" "$INSTALLED" 2>/dev/null; then
     echo "removing legacy single-plugin install ${LEGACY_PLUGIN}@jylhis-skills"
-    run claude plugin uninstall "${LEGACY_PLUGIN}@jylhis-skills" --scope user --keep-data -y || true
+    run claude plugin uninstall "${LEGACY_PLUGIN}@jylhis-skills" --scope user --keep-data || true
   fi
 
   if ! grep -q '"jylhis-skills"' "$KNOWN" 2>/dev/null; then
