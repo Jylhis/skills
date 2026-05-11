@@ -27,8 +27,13 @@ requested target plus the stub) and a flat `tests` array. Each
 generated test carries `metadata` so promptfoo's filter logic can
 narrow down by case id, kind, or expected skill.
 
-The wrapper paths in the output are relative to the repo root so the
-generated file stays portable: `exec: ./evals/providers/run_claude.sh`.
+Wrapper paths in the output are absolute, resolved at generation time
+against REPO_ROOT. promptfoo's `getFileHashes` (in scriptCompletion.js)
+calls `fs.existsSync` from the *invocation* cwd (repo root), while its
+`execFile` uses `config.basePath` (the config file's directory,
+`evals/.generated/`). Absolute paths satisfy both. `.generated/` is
+gitignored and regenerated on every `just eval*`, so this is not a
+portability hazard.
 """
 from __future__ import annotations
 
@@ -59,11 +64,11 @@ def default_providers(case: dict) -> list[str]:
 
 
 def provider_id(name: str) -> str:
-    return f"exec:../providers/run_{name}.sh"
+    return f"exec:{EVALS_DIR / 'providers' / f'run_{name}.sh'}"
 
 
 def judge_id(name: str) -> str:
-    return f"exec:../judges/judge_{name}.sh"
+    return f"exec:{EVALS_DIR / 'judges' / f'judge_{name}.sh'}"
 
 
 def stub_provider_for(name: str, suite: str,
@@ -90,7 +95,7 @@ def stub_provider_for(name: str, suite: str,
         )
         label = f"stub:{name}:{fixtures_subdir}"
     return {
-        "id": "exec:../providers/run_stub.sh",
+        "id": f"exec:{EVALS_DIR / 'providers' / 'run_stub.sh'}",
         "label": label,
         "config": {"env": env},
     }
@@ -98,7 +103,7 @@ def stub_provider_for(name: str, suite: str,
 
 def stub_judge(name: str, suite: str) -> dict:
     return {
-        "id": "exec:../judges/judge_stub.sh",
+        "id": f"exec:{EVALS_DIR / 'judges' / 'judge_stub.sh'}",
         "label": f"judge-stub:{name}",
         "config": {
             "env": {
