@@ -39,27 +39,20 @@ sources:
   - id: trailofbits-skills-curated
     repo: "https://github.com/trailofbits/skills-curated"
     branch: main
-    subpath: .
+    subpath: plugins
     license: AGPL-3.0
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: 022fa0948818c9f2f738a428f4546cc65c427767
+    reviewed-rev: 022fa0948818c9f2f738a428f4546cc65c427767
+    last-fetched: "2026-05-12T12:01:04Z"
     skills:
-      - upstream: python-code-simplifier
-        category: languages
-        name: python
-        target-plugin: jylhis-python
-        merge-strategy: umbrella-references
-        umbrella: python
-        topic: simplification
-      - upstream: humanizer
+      - upstream: humanizer/skills/humanizer
         category: productivity
         name: humanizer
         target-plugin: jylhis-skills-core
         merge-strategy: standalone
-      - upstream: skill-extractor
+      - upstream: skill-extractor/skills/skill-extractor
         category: misc
-        name: skill-extractor-vendored
+        name: skill-extractor
         target-plugin: jylhis-skills-core
         merge-strategy: standalone
   - id: mattpocock-skills
@@ -76,9 +69,9 @@ sources:
     branch: main
     subpath: skills/.curated
     license: MIT
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: 4c4058ebf44f6734e62c70ab4a81246d4d093fc8
+    reviewed-rev: 4c4058ebf44f6734e62c70ab4a81246d4d093fc8
+    last-fetched: "2026-05-12T11:59:18Z"
     skills:
       - upstream: security-best-practices
         category: domains
@@ -156,11 +149,11 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
+    reviewed-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
+    last-fetched: "2026-05-12T12:00:05Z"
     skills:
-      - upstream: taste
+      - upstream: taste-skill
         category: domains
         name: taste
         target-plugin: jylhis-taste

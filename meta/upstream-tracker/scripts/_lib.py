@@ -240,8 +240,14 @@ class _FrontmatterParser:
         self.current_key = None
         k, _, v = body.partition(":")
         v = v.strip()
-        if v in ("|", ">"):
+        # YAML block scalar indicators: `|`, `>`, with optional chomping
+        # (`-` / `+`) suffix. `|` literal preserves newlines; `>` folded
+        # collapses them to spaces. We treat both as "consume the
+        # following indented lines" — fidelity to chomping is not
+        # required for frontmatter values.
+        if v and v[0] in ("|", ">"):
             self.current_key = k.strip()
+            self.fold_block = v[0] == ">"
         elif self.in_metadata and v == "":
             self.fm["metadata"] = self.metadata
         elif v == "":
@@ -251,8 +257,14 @@ class _FrontmatterParser:
 
     def _flush_block(self) -> None:
         if self.current_key is not None and self.block:
-            self.fm[self.current_key] = "\n".join(self.block).strip()
+            if getattr(self, "fold_block", False):
+                self.fm[self.current_key] = " ".join(
+                    line.strip() for line in self.block if line.strip()
+                )
+            else:
+                self.fm[self.current_key] = "\n".join(self.block).strip()
         self.block = []
+        self.fold_block = False
 
     def finish(self) -> dict[str, Any]:
         self._flush_block()
@@ -374,12 +386,15 @@ def fetch_origin(src: dict[str, Any]) -> Path:
     cache = ensure_clone(src)
     branch = src["branch"]
     print(f"  fetching origin/{branch}")
-    # Bare clones don't populate refs/remotes/origin/* by default.
-    # The explicit refspec form `<branch>:refs/remotes/origin/<branch>`
-    # maintains the remote-tracking ref so resolve_ref("origin/<branch>")
-    # works the same way it does in a regular working clone.
+    # Bare clones don't populate refs/remotes/origin/* by default, and
+    # the short-form `<branch>` in the source side of the refspec is
+    # ambiguous when invoked via subprocess against a partial clone
+    # (git can interpret it as the empty ref and delete the
+    # destination). Use the explicit refs/heads/<branch> form so the
+    # source ref is unambiguous and the destination ref/remotes/origin/<branch>
+    # is maintained the way a working clone would.
     git("fetch", "--quiet", "origin",
-        f"+{branch}:refs/remotes/origin/{branch}", cwd=cache)
+        f"+refs/heads/{branch}:refs/remotes/origin/{branch}", cwd=cache)
     return cache
 
 
