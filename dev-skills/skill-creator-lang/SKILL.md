@@ -1,7 +1,7 @@
 ---
 name: skill-creator-lang
 description: >
-  Create an opinionated specialist skill for a programming language or stack. Meta skill that produces other skills.
+  Scaffold a new opinionated specialist skill for a programming language or stack (one SKILL.md plus references/ tree). Use when the user says "create a skill for X", "add a python skill", "scaffold a new language plugin", "write a skill that captures expert knowledge for Y", or otherwise asks to author a new entry under skills/<category>/<name>/. Meta skill that produces other skills.
 ---
 
 # Skill Creator: Language & Stack

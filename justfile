@@ -3,7 +3,7 @@ default:
 
 # Lint shell scripts and portable skill frontmatter
 check:
-    shellcheck scripts/install.sh
+    shellcheck scripts/install.sh evals/providers/*.sh evals/judges/*.sh
     python3 scripts/validate.py
 
 # Portable skill lint only

@@ -33,8 +33,9 @@ opts in. See `docs/install.md` for install instructions.
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
 - `dev-skills/` — repo-only meta skills (`skill-creator-lang`,
-  `upstream-tracker`, `using-skills`). **Not** shipped via any plugin;
-  exposed project-locally through `.claude/skills/<name>` symlinks.
+  `skill-improver`, `upstream-tracker`, `using-skills`). **Not** shipped
+  via any plugin and not auto-loaded by any tool; only relevant when
+  developing skills inside this repo.
 - `staging/` — legacy content awaiting per-skill review. Do not edit
   unless promoting an item out of staging or removing it.
 - `upstream/sources.yaml` — manifest of tracked upstream skill repos
@@ -138,11 +139,13 @@ these files are inert in the other tools — no separate exclusion is needed.
   `name` + `description` only; per the plugin reference, plugin-shipped
   agents may not declare `mcpServers`, `hooks`, or `permissionMode`.
 - `plugins/jylhis-skills-core/commands/<name>.md` — slash commands
-  (`/explore`, `/lsp-status`). Plain markdown with optional `description`,
-  `argument-hint`, `allowed-tools` frontmatter. The body is the prompt;
-  `$ARGUMENTS` receives the user's command line. `/lsp-status` discovers
-  every installed language plugin's `.lsp.json` at runtime, so it
-  reflects only the LSPs the user has opted into.
+  (`/explore`, `/lsp-status`, `/remember-correction`). Plain markdown with
+  optional `description`, `argument-hint`, `allowed-tools` frontmatter.
+  The body is the prompt; `$ARGUMENTS` receives the user's command line.
+  `/lsp-status` discovers every installed language plugin's `.lsp.json` at
+  runtime, so it reflects only the LSPs the user has opted into.
+  `/remember-correction` appends to the improvement-memory JSONL via
+  `scripts/append-correction.py`.
 - `.mcp.json` is intentionally absent — the LSP work that would
   otherwise need an MCP bridge (e.g. `mcp-language-server`) is handled
   natively by Claude Code's `.lsp.json` integration.

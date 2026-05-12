@@ -33,15 +33,8 @@ scope for migration.
 | `dev-skills/upstream-tracker/scripts/fetch.py` | typed Python | Go | low | git fetch wrapper; trivial Go rewrite. |
 | `dev-skills/upstream-tracker/scripts/import.py` | typed Python | Go | low | Tree walk + frontmatter inject; doable in Go. |
 | `dev-skills/upstream-tracker/scripts/review.py` | typed Python | Go | low | Append-only decision log; trivial Go rewrite. |
-| `skills/gitlab/gitlab/scripts/add-inline-comment.sh` | bash | Go | medium | GitLab API call + JSON manipulation — Go is the right shape (`net/http` + `encoding/json`). |
-| `skills/gitlab/gitlab/scripts/batch-label-issues.sh` | bash | Go | medium | Same. |
-| `skills/gitlab/gitlab/scripts/ci-debug.sh` | bash | Go | medium | Same. |
-| `skills/gitlab/gitlab/scripts/create-epic-note.sh` | bash | Go | medium | Same. |
-| `skills/gitlab/gitlab/scripts/create-mr-from-issue.sh` | bash | Go | medium | Same. |
-| `skills/gitlab/gitlab/scripts/epic-notes.sh` | bash | Go | medium | Same. |
-| `skills/gitlab/gitlab/scripts/mr-review-workflow.sh` | bash | Go | medium | Same. |
+| `skills/gitlab/gitlab/scripts/ci-debug.sh` | bash | Go | medium | GitLab API call + JSON manipulation — Go is the right shape (`net/http` + `encoding/json`). |
 | `skills/gitlab/gitlab/scripts/sync-fork.sh` | bash | Go | medium | Same. |
-| `skills/gitlab/gitlab/scripts/post-inline-comment.py` | Python | Go | medium | Single GitLab API POST; Go fits. |
 
 ## Order of operations
 

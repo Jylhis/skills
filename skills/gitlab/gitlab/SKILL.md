@@ -1,22 +1,25 @@
 ---
 name: gitlab
-description: Use for GitLab work — CI/CD pipeline configuration in `.gitlab-ci.yml` (pipeline templates, downstream pipelines, Docker builds, caching strategies, CI/CD components, runner config, artifacts vs cache, pipeline inputs, duplicate pipeline traps) and the `glab` CLI for terminal-based GitLab workflows (merge requests, issues, epics, work items, comments, Quick Actions, GitLab API queries, inline review comments). Read the matching reference before editing pipelines or running glab.
+description: Use for GitLab work focused on push + merge-request creation — authoring `.gitlab-ci.yml` pipelines (templates, downstream pipelines, Docker builds, caching, runner config, artifacts vs cache, pipeline inputs, duplicate pipeline traps) and the `glab` CLI for creating MRs, syncing forks, and debugging your own CI failures. Read the matching reference before editing pipelines or running glab.
 ---
 
 # GitLab skill index
 
-Pick the topic and read its reference before editing GitLab pipelines
-or scripting against the GitLab API.
+Scope: pushing branches, creating merge requests, syncing forks, and
+authoring CI/CD pipeline configuration. This skill does **not** cover
+issue management, epics, work items, or inline review comments on
+other contributors' MRs.
+
+Pick the topic and read its reference first.
 
 | Topic | When to read | Reference |
 |---|---|---|
 | CI/CD (.gitlab-ci.yml) | pipeline templates, components, downstream pipelines, Docker builds, caching, runner config, artifacts vs cache, pipeline inputs | `references/cicd.md` (+ `cicd/pipeline-templates.md`) |
-| glab CLI | merge requests, issues, epics, work items, comments, Quick Actions, GitLab API, inline review comments | `references/glab.md` (+ `glab/work-items.md`, `glab/issue-links.md`, `glab/epics.md`, `glab/epic-comments.md`, `glab/nested-groups.md`) |
+| glab CLI | creating MRs, listing your own MRs, checking pipeline status, `glab ci` commands | `references/glab.md` |
 
-Helper scripts live under `scripts/` (sibling to `references/`):
-`add-inline-comment.sh`, `batch-label-issues.sh`, `ci-debug.sh`,
-`create-epic-note.sh`, `create-mr-from-issue.sh`, `epic-notes.sh`,
-`mr-review-workflow.sh`, `post-inline-comment.py`, `sync-fork.sh`.
-Assets (GraphQL queries) live under `assets/graphql/`.
+Helper scripts under `scripts/`:
+
+- `sync-fork.sh` — fetch upstream, fast-forward merge, push to origin.
+- `ci-debug.sh` — list failed jobs in a pipeline and tail their logs.
 
 After reading the reference, follow its guidance for the task.

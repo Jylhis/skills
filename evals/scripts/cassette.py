@@ -186,12 +186,24 @@ def record_one(suite: str, provider: str, prompt: str,
         )
 
     text = proc.stdout
-    try:
-        trace = json.loads(proc.stderr.strip().splitlines()[-1])
-    except (IndexError, json.JSONDecodeError) as exc:
+    # The wrapper contract is: the trace JSON is one line on stderr. Some
+    # wrappers also log warnings; scan from the end for the first parseable
+    # JSON object so trailing log lines don't mask the trace.
+    trace = None
+    parse_err: Exception | None = None
+    for line in reversed(proc.stderr.strip().splitlines()):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            trace = json.loads(line)
+            break
+        except json.JSONDecodeError as exc:
+            parse_err = exc
+    if trace is None:
         raise RuntimeError(
-            f"provider {provider} stderr is not single-line JSON: {exc}"
-        )
+            f"provider {provider} stderr has no JSON trace line: {parse_err}"
+        ) from parse_err
 
     envelope = {
         "text": text,
@@ -260,7 +272,7 @@ def _cmd_record(args: argparse.Namespace) -> int:
     import yaml  # imported lazily so `key` and `read` work without PyYAML
 
     cases_path = SUITES_DIR / args.suite / "cases.yaml"
-    cases = yaml.safe_load(cases_path.read_text(encoding="utf-8")).get("cases", [])
+    cases = (yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}).get("cases", [])
     fixtures_root = SUITES_DIR / args.suite / "fixtures"
 
     rubric_cases = 0

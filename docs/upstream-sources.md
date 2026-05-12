@@ -3,9 +3,9 @@
 ## Active sources
 
 Tracked upstream repositories live in `upstream/sources.yaml`. The
-`meta/upstream-tracker` skill drives import, monitoring, and per-commit
+`dev-skills/upstream-tracker` skill drives import, monitoring, and per-commit
 review. See its `SKILL.md` and the references under
-`skills/meta/upstream-tracker/references/` for the workflow, the
+`dev-skills/upstream-tracker/references/` for the workflow, the
 manifest schema, and the `metadata.upstream-*` frontmatter convention.
 
 `upstream/sources.yaml` does not exist until the first source is
@@ -21,9 +21,9 @@ include / exclude machinery) was removed in the v3 redesign in favor
 of a flat content-only layout.
 
 To re-import any of these, populate `upstream/sources.yaml` with a
-`sources[]` entry per `skills/meta/upstream-tracker/references/manifest-schema.md`,
+`sources[]` entry per `dev-skills/upstream-tracker/references/manifest-schema.md`,
 then run
-`python3 skills/meta/upstream-tracker/scripts/import.py <id>`.
+`python3 dev-skills/upstream-tracker/scripts/import.py <id>`.
 
 ### Sources
 

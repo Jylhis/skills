@@ -29,6 +29,7 @@ skills/                          ← published catalogue (jylhis-skills plugin)
 
 dev-skills/                      ← repo-only, not shipped to users
 ├── skill-creator-lang/          Authoring new language/stack skills
+├── skill-improver/              Surface improvement notes from the JSONL log
 ├── upstream-tracker/            Tracking external upstream skill repos
 └── using-skills/                This skill
 ```
@@ -63,12 +64,12 @@ task is trivial.
 
 ## Repo-only meta skills
 
-`dev-skills/` is **not** shipped via the published plugin. It's
-project-local: when working *inside* this repo, the meta skills are
-auto-loaded via `.claude/skills/` symlinks. Outside this repo (or for
-plugin consumers) they don't appear.
+`dev-skills/` is **not** shipped via any published plugin. The skills are
+repo-local and only relevant when developing skills *inside* this repo.
+They are not auto-loaded by any tool; invoke them by name when needed.
 
 - `skill-creator-lang` — authoring new language / stack skills.
+- `skill-improver` — surface improvement notes from the correction JSONL.
 - `upstream-tracker` — vendoring and reviewing upstream skill repos.
 - `using-skills` — this skill.
 

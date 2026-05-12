@@ -65,11 +65,11 @@ Iterate on an existing skill using recorded user corrections.
 
 ## Limits
 
-- This meta-skill is loaded by Claude Code and Gemini CLI via the
-  project-local `.claude/skills/skill-improver` symlink. **It is NOT
-  loaded by Codex** — Codex's recursive scan stays inside per-plugin
-  `skills/` and does not see `dev-skills/`. Codex users get the JSONL
-  workflow through `AGENTS.md § Recording corrections` only.
+- This meta-skill lives under `dev-skills/` and is **not auto-loaded by
+  any tool**. It's only relevant when developing inside this repo; invoke
+  it by name. The user-facing JSONL append path is the
+  `/remember-correction` slash command (shipped by `jylhis-skills-core`)
+  and `AGENTS.md § Recording corrections`.
 - This skill is advisory: it never edits `SKILL.md` files directly.
   The user decides which proposals to apply.
 - The JSONL is host-private. Do not paste entries into shared diffs,

@@ -85,7 +85,13 @@ def _append(path: Path, obj: dict[str, Any]) -> None:
     try:
         try:
             fcntl.flock(fd, fcntl.LOCK_EX)
-            os.write(fd, line.encode("utf-8"))
+            payload = line.encode("utf-8")
+            written = 0
+            while written < len(payload):
+                n = os.write(fd, payload[written:])
+                if n == 0:
+                    _fail(f"write stalled on {path}", EXIT_IO)
+                written += n
         except OSError as exc:
             _fail(f"write failed on {path}: {exc.strerror or exc}", EXIT_IO)
     finally:

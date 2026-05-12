@@ -106,7 +106,7 @@ sources:
         local: observability/grafana-promql
 ```
 
-After running `python3 skills/meta/upstream-tracker/scripts/import.py
+After running `python3 dev-skills/upstream-tracker/scripts/import.py
 grafana-skills`, the three auto-populated fields fill in and the
 imported skill appears at `skills/observability/grafana-promql/SKILL.md`
 with the `metadata.upstream-*` block injected.

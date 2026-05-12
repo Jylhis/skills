@@ -1,5 +1,10 @@
 # Cross-Tool Agent Skills Repository Spec — v3
 
+> **Status: forward-looking spec.** This document describes the target
+> architecture the repo is growing toward. Several paths it references
+> (e.g. `flake.nix`, `failure-log/`, `docs/operator-guide.md`) do not yet
+> exist on disk. See `AGENTS.md` for the current implemented layout.
+
 This version incorporates the latest adversarial review. The main change is that the repository spec is now explicitly separated from an engineering operating model.
 
 The repository architecture governs how skills, agents, plugins, hooks, MCP configs, and target packages are stored and validated.

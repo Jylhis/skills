@@ -44,7 +44,7 @@ upstream subdirectory names by browsing the repo or reading
 ## Step 2 — import
 
 ```bash
-python3 skills/meta/upstream-tracker/scripts/import.py grafana-skills
+python3 dev-skills/upstream-tracker/scripts/import.py grafana-skills
 ```
 
 The script:
@@ -110,7 +110,7 @@ One commit per source keeps `git log -- upstream/` and
 A week later:
 
 ```bash
-python3 skills/meta/upstream-tracker/scripts/fetch.py
+python3 dev-skills/upstream-tracker/scripts/fetch.py
 ```
 
 Sample output if upstream has had 3 commits touching `skills/`:
@@ -142,7 +142,7 @@ that skill).
 ## Step 6 — review (demonstrates §4)
 
 ```bash
-python3 skills/meta/upstream-tracker/scripts/review.py grafana-skills
+python3 dev-skills/upstream-tracker/scripts/review.py grafana-skills
 ```
 
 The script walks the pending list oldest-first. For each commit it
@@ -176,7 +176,7 @@ git commit -m "Backport grafana-skills@9b8a7c6d: improve PromQL examples"
 Confirm the cherry-pick to advance the cursor:
 
 ```bash
-python3 skills/meta/upstream-tracker/scripts/review.py grafana-skills \
+python3 dev-skills/upstream-tracker/scripts/review.py grafana-skills \
     --confirm 9b8a7c6d <local-commit-sha>
 ```
 

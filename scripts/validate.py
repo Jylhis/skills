@@ -17,6 +17,9 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / "skills"
@@ -49,8 +52,6 @@ REJECTED_BODY_PATTERNS = [
     re.compile(r"!\{[^}]*\}"),
 ]
 
-BLOCK_SCALAR_INDICATORS = ("|", ">", "")
-
 
 # ── Frontmatter parsing ────────────────────────────────────────────────
 
@@ -64,102 +65,30 @@ def _split_frontmatter(text: str) -> tuple[str, str] | None:
     return text[4:end], text[end + 5:]
 
 
-def _is_skippable(line: str) -> bool:
-    return not line.strip() or line.lstrip().startswith("#")
+def _format_yaml_error(rel: Path, exc: yaml.YAMLError) -> str:
+    if isinstance(exc, yaml.MarkedYAMLError) and exc.problem_mark is not None:
+        # +1 to make lines 1-based, +1 to account for the opening `---` line
+        line = exc.problem_mark.line + 2
+        return f"{rel}:{line}: YAML syntax error: {exc.problem or exc}"
+    return f"{rel}: YAML syntax error: {exc}"
 
 
-def _is_top_level_key(line: str) -> bool:
-    return bool(line) and line[0] not in (" ", "\t") and ":" in line
+def parse_frontmatter(text: str) -> tuple[dict[str, Any], str] | None:
+    """Split a SKILL.md into (frontmatter dict, body).
 
-
-def _flush_block(fm: dict, key: str | None, block: list[str]) -> None:
-    if key is not None and block:
-        fm[key] = "\n".join(block).strip()
-
-
-def _handle_top_level(line: str, fm: dict) -> str | None:
-    key, _, val = line.partition(":")
-    key, val = key.strip(), val.strip()
-    if val in BLOCK_SCALAR_INDICATORS:
-        if val == "":
-            fm[key] = ""
-        return key
-    fm[key] = val.strip("\"'")
-    return None
-
-
-def _parse_yaml_lines(fm_text: str) -> dict:
-    fm: dict = {}
-    current_key: str | None = None
-    block: list[str] = []
-
-    for line in fm_text.splitlines():
-        if _is_skippable(line):
-            continue
-        if _is_top_level_key(line):
-            _flush_block(fm, current_key, block)
-            block = []
-            current_key = _handle_top_level(line, fm)
-        elif current_key is not None:
-            block.append(line.lstrip())
-
-    _flush_block(fm, current_key, block)
-    return fm
-
-
-def parse_frontmatter(text: str) -> tuple[dict, str] | None:
+    Returns None if the file has no frontmatter or its YAML cannot be parsed.
+    """
     split = _split_frontmatter(text)
     if split is None:
         return None
     fm_text, body = split
-    return _parse_yaml_lines(fm_text), body
-
-
-def _quoted_scalar_end(value: str, quote: str) -> int | None:
-    """Return the closing quote offset for a simple YAML quoted scalar."""
-    i = 1
-    while i < len(value):
-        ch = value[i]
-        if quote == '"' and ch == "\\":
-            i += 2
-            continue
-        if ch == quote:
-            if quote == "'" and i + 1 < len(value) and value[i + 1] == "'":
-                i += 2
-                continue
-            return i
-        i += 1
-    return None
-
-
-def _check_frontmatter_syntax(rel: Path, fm_text: str) -> list[str]:
-    """Catch YAML syntax this repo's lightweight parser would otherwise mask."""
-    errors: list[str] = []
-
-    for lineno, line in enumerate(fm_text.splitlines(), start=2):
-        if not _is_top_level_key(line):
-            continue
-
-        key, _, val = line.partition(":")
-        val = val.strip()
-        if not val or val in BLOCK_SCALAR_INDICATORS:
-            continue
-        if val[0] not in ("'", '"'):
-            continue
-
-        end = _quoted_scalar_end(val, val[0])
-        if end is None:
-            errors.append(f"{rel}:{lineno}: unterminated quoted frontmatter value for `{key}`")
-            continue
-
-        trailing = val[end + 1:].strip()
-        if trailing and not trailing.startswith("#"):
-            errors.append(
-                f"{rel}:{lineno}: invalid trailing content after quoted "
-                f"frontmatter value for `{key}`"
-            )
-
-    return errors
+    try:
+        parsed = yaml.safe_load(fm_text) or {}
+    except yaml.YAMLError:
+        return None
+    if not isinstance(parsed, dict):
+        return None
+    return parsed, body
 
 
 # ── Per-skill checks ───────────────────────────────────────────────────
@@ -226,15 +155,22 @@ def validate_skill(skill_md: Path) -> list[str]:
 
     split = _split_frontmatter(text)
     if split is None:
-        return encoding_errors + [f"{rel}: missing or malformed YAML frontmatter (must start with `---`)"]
+        return encoding_errors + [f"{rel}: missing or malformed YAML frontmatter (must start with `---` and have a closing `---`)"]
     fm_text, body = split
-    fm = _parse_yaml_lines(fm_text)
 
+    try:
+        fm = yaml.safe_load(fm_text) or {}
+    except yaml.YAMLError as exc:
+        return encoding_errors + [_format_yaml_error(rel, exc)]
+    if not isinstance(fm, dict):
+        return encoding_errors + [f"{rel}: frontmatter must be a YAML mapping, got {type(fm).__name__}"]
+
+    name = fm.get("name", "")
+    desc = fm.get("description", "")
     return [
         *encoding_errors,
-        *_check_frontmatter_syntax(rel, fm_text),
-        *_check_name(rel, fm.get("name", ""), skill_md.parent.name),
-        *_check_description(rel, fm.get("description", "")),
+        *_check_name(rel, name if isinstance(name, str) else "", skill_md.parent.name),
+        *_check_description(rel, desc if isinstance(desc, str) else ""),
         *_check_frontmatter_keys(rel, set(fm.keys())),
         *_check_body(rel, body),
     ]
@@ -268,7 +204,7 @@ def _resolve_skill_path(plugin_manifest: Path, raw: str) -> Path:
 def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
     """Verify per-plugin manifests cover every on-disk skill exactly once."""
     if not PLUGINS_DIR.is_dir():
-        return [f"plugins/: directory not found"]
+        return ["plugins/: directory not found"]
 
     plugin_manifests = sorted(PLUGINS_DIR.glob("*/.claude-plugin/plugin.json"))
     if not plugin_manifests:
@@ -316,11 +252,11 @@ def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
             errors.append(f"{rel}: not referenced by any plugin manifest under plugins/")
         elif len(owners) > 1:
             errors.append(
-                f"{rel}: referenced by multiple plugins {sorted(owners)} — must belong to one"
+                f"{rel}: referenced by multiple plugins {sorted(owners)} — must belong to exactly one"
             )
 
     # The default plugin must cover exactly the cross-cutting set.
-    if core_seen and core_seen != CORE_PLUGIN_SKILLS:
+    if core_seen != CORE_PLUGIN_SKILLS:
         errors.append(
             f"plugins/{CORE_PLUGIN_NAME}/.claude-plugin/plugin.json: core skills "
             f"{sorted(core_seen)} do not match expected {sorted(CORE_PLUGIN_SKILLS)}"
@@ -370,76 +306,24 @@ def _check_marketplace_manifest(plugin_manifests: list[Path]) -> list[str]:
 # ── Optional: upstream-tracker advisory pass ───────────────────────────
 
 
-def _start_new_source(body: str) -> str | None:
-    inner = body[2:].lstrip()
-    if not inner.startswith("id:"):
-        return None
-    return inner.split(":", 1)[1].strip().strip('"\'')
-
-
-def _parse_field(body: str) -> tuple[str, str]:
-    k, _, v = body.partition(":")
-    return k.strip(), v.strip().strip('"\'')
-
-
-def _is_skippable_line(stripped: str, line: str) -> bool:
-    return not stripped or stripped.startswith("#") or line == "sources:"
-
-
 def _read_manifest_ids() -> tuple[set[str], dict[str, str]]:
-    """Return ({source-ids}, {id: reviewed-rev}) from upstream/sources.yaml.
-
-    Restricted parser identical in shape to skills/meta/upstream-tracker/
-    scripts/_lib.py — keeps validate.py dependency-free.
-    """
+    """Return ({source-ids}, {id: reviewed-rev}) from upstream/sources.yaml."""
+    data = yaml.safe_load(UPSTREAM_MANIFEST.read_text()) or {}
     ids: set[str] = set()
     reviewed: dict[str, str] = {}
-    state = {"current_id": None, "in_skills": False}
-
-    for raw in UPSTREAM_MANIFEST.read_text().splitlines():
-        line = raw.rstrip()
-        stripped = line.strip()
-        if _is_skippable_line(stripped, line):
+    if not isinstance(data, dict):
+        return ids, reviewed
+    for source in data.get("sources") or []:
+        if not isinstance(source, dict):
             continue
-        ind = len(line) - len(line.lstrip(" "))
-        _feed_manifest_line(ind, stripped, state, ids, reviewed)
+        sid = source.get("id")
+        if not isinstance(sid, str):
+            continue
+        ids.add(sid)
+        rev = source.get("reviewed-rev")
+        if isinstance(rev, str):
+            reviewed[sid] = rev
     return ids, reviewed
-
-
-def _feed_manifest_line(ind: int, stripped: str, state: dict,
-                        ids: set[str], reviewed: dict[str, str]) -> None:
-    if ind == 2 and stripped.startswith("- "):
-        new_id = _start_new_source(stripped)
-        state["current_id"] = new_id
-        state["in_skills"] = False
-        if new_id:
-            ids.add(new_id)
-        return
-    if state["current_id"] is None:
-        return
-    if ind == 4 and stripped == "skills:":
-        state["in_skills"] = True
-        return
-    if state["in_skills"]:
-        return
-    if ind == 4 and ":" in stripped:
-        key, value = _parse_field(stripped)
-        if key == "reviewed-rev":
-            reviewed[state["current_id"]] = value
-
-
-def _extract_metadata(fm: dict) -> dict:
-    raw = fm.get("metadata")
-    if isinstance(raw, dict):
-        return raw
-    if not isinstance(raw, str) or not raw.strip():
-        return {}
-    out: dict[str, str] = {}
-    for line in raw.splitlines():
-        if ":" in line:
-            k, _, v = line.partition(":")
-            out[k.strip()] = v.strip().strip('"\'')
-    return out
 
 
 def _check_upstream_advisory(skill_files: list[Path], strict: bool) -> tuple[int, int]:
@@ -452,7 +336,7 @@ def _check_upstream_advisory(skill_files: list[Path], strict: bool) -> tuple[int
         return 0, 0
     try:
         ids, reviewed = _read_manifest_ids()
-    except (OSError, ValueError) as exc:
+    except (OSError, yaml.YAMLError) as exc:
         print(f"validate.py: cannot parse {UPSTREAM_MANIFEST.relative_to(REPO_ROOT)}: {exc}",
               file=sys.stderr)
         return 0, (1 if strict else 0)
@@ -468,9 +352,11 @@ def _check_one_upstream(skill_md: Path, ids: set[str], reviewed: dict[str, str])
     if parsed is None:
         return 0
     fm, _ = parsed
-    meta = _extract_metadata(fm)
+    meta = fm.get("metadata")
+    if not isinstance(meta, dict):
+        return 0
     upstream_id = meta.get("upstream-id")
-    if not upstream_id:
+    if not isinstance(upstream_id, str) or not upstream_id:
         return 0
     rel = skill_md.relative_to(REPO_ROOT)
     if upstream_id not in ids:
@@ -478,6 +364,8 @@ def _check_one_upstream(skill_md: Path, ids: set[str], reviewed: dict[str, str])
               file=sys.stderr)
         return 1
     skill_rev = meta.get("upstream-rev", "")
+    if not isinstance(skill_rev, str):
+        skill_rev = ""
     cursor = reviewed.get(upstream_id, "")
     if cursor and skill_rev and not cursor.startswith(skill_rev) and not skill_rev.startswith(cursor):
         print(f"{rel}: baseline upstream-rev {skill_rev[:12]!r} differs from "
