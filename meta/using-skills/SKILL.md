@@ -27,7 +27,7 @@ skills/                          ← published catalogue (jylhis-skills plugin)
     ├── ast-grep/                ast-grep tool (standalone)
     └── offline-docs/            offline man / info / doc discovery (standalone)
 
-dev-skills/                      ← repo-only, not shipped to users
+meta/                      ← repo-only, not shipped to users
 ├── skill-creator-lang/          Authoring new language/stack skills
 ├── skill-improver/              Surface improvement notes from the JSONL log
 ├── upstream-tracker/            Tracking external upstream skill repos
@@ -64,7 +64,7 @@ task is trivial.
 
 ## Repo-only meta skills
 
-`dev-skills/` is **not** shipped via any published plugin. The skills are
+`meta/` is **not** shipped via any published plugin. The skills are
 repo-local and only relevant when developing skills *inside* this repo.
 They are not auto-loaded by any tool; invoke them by name when needed.
 
@@ -123,7 +123,7 @@ validate only at system boundaries.
 When the user corrects your behaviour on something skill-related, append
 one entry to the improvement-memory JSONL. The canonical reference is in
 AGENTS.md § Recording corrections; the schema is at
-`dev-skills/skill-improver/references/schema.md`; the helper is
+`meta/skill-improver/references/schema.md`; the helper is
 `scripts/append-correction.py`; the slash command is `/remember-correction`.
 
 The `skill-improver` meta-skill consumes the JSONL when iterating on a

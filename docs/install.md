@@ -110,11 +110,13 @@ just list          # list all SKILL.md files
 To add a skill:
 
 1. Create `skills/<category>/<name>/SKILL.md` with two-field YAML frontmatter
-   (`name`, `description`).
+   (`name`, `description`). Categories: `engineering`, `languages`,
+   `domains`, `services`, `stack`, `productivity`, `personal`, `misc`.
 2. Decide which plugin owns it. For a brand-new plugin, create
-   `plugins/jylhis-<name>/` with `.claude-plugin/plugin.json`,
+   `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json`,
    `.codex-plugin/plugin.json`, and `gemini-extension.json`, plus a
-   `skills/<name>` symlink pointing into `skills/<category>/<name>/`.
+   `skills/<name>` symlink with relative target
+   `../../../skills/<category>/<name>`.
 3. Add the plugin to `.claude-plugin/marketplace.json` and
    `.agents/plugins/marketplace.json`.
 4. Run `just validate` — the cross-check enforces that every on-disk skill is

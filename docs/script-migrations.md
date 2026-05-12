@@ -29,10 +29,10 @@ scope for migration.
 | `evals/scripts/expand.py` | Python | typed Python (exemption) | defer | Same — PyYAML-driven case expansion. |
 | `evals/scripts/invariants.py` | Python | typed Python (exemption) | defer | Same — jsonschema-driven invariants. |
 | `evals/scripts/seed_synthetic.py` | Python | typed Python (exemption) | defer | Same — synthetic cassette seeding via PyYAML. |
-| `dev-skills/upstream-tracker/scripts/_lib.py` | typed Python | Go | low | Stable; git plumbing — straightforward to port. |
-| `dev-skills/upstream-tracker/scripts/fetch.py` | typed Python | Go | low | git fetch wrapper; trivial Go rewrite. |
-| `dev-skills/upstream-tracker/scripts/import.py` | typed Python | Go | low | Tree walk + frontmatter inject; doable in Go. |
-| `dev-skills/upstream-tracker/scripts/review.py` | typed Python | Go | low | Append-only decision log; trivial Go rewrite. |
+| `meta/upstream-tracker/scripts/_lib.py` | typed Python | Go | low | Stable; git plumbing — straightforward to port. |
+| `meta/upstream-tracker/scripts/fetch.py` | typed Python | Go | low | git fetch wrapper; trivial Go rewrite. |
+| `meta/upstream-tracker/scripts/import.py` | typed Python | Go | low | Tree walk + frontmatter inject; doable in Go. |
+| `meta/upstream-tracker/scripts/review.py` | typed Python | Go | low | Append-only decision log; trivial Go rewrite. |
 | `skills/gitlab/gitlab/scripts/ci-debug.sh` | bash | Go | medium | GitLab API call + JSON manipulation — Go is the right shape (`net/http` + `encoding/json`). |
 | `skills/gitlab/gitlab/scripts/sync-fork.sh` | bash | Go | medium | Same. |
 
@@ -41,7 +41,7 @@ scope for migration.
 1. Add a Go toolchain to `devenv.nix` (separate PR).
 2. Port the smallest helper first: `scripts/append-correction.py`. Use
    it as the reference implementation for the rest.
-3. Port `dev-skills/upstream-tracker/scripts/` next — small, internal,
+3. Port `meta/upstream-tracker/scripts/` next — small, internal,
    no end-user impact.
 4. Port `skills/gitlab/gitlab/scripts/` as a group; one PR per script
    or a single PR if the diff stays reviewable.

@@ -382,7 +382,7 @@ SCRIPT_GLOBS = (
     "scripts/*",
     "evals/scripts/*",
     "skills/*/*/scripts/*",
-    "dev-skills/*/scripts/*",
+    "meta/*/scripts/*",
     "plugins/*/scripts/*",
 )
 

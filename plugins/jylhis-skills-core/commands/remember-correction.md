@@ -8,7 +8,7 @@ Record a user correction as one schema-v1 entry in the
 improvement-memory JSONL. The `skill-improver` meta-skill later reads
 this file when iterating on a named skill.
 
-Schema reference: `dev-skills/skill-improver/references/schema.md`.
+Schema reference: `meta/skill-improver/references/schema.md`.
 
 Steps:
 

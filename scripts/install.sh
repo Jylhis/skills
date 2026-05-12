@@ -33,6 +33,48 @@ OPTIN_PLUGINS=(
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 
+ALL_PLUGINS=("$DEFAULT_PLUGIN" "${OPTIN_PLUGINS[@]}")
+
+# Iterate $INSTALLED (Claude) for jylhis-* plugins currently installed in this scope.
+# Used to refresh all installed plugins, not just the default, after a structural
+# repo change (e.g. skill layout migration).
+list_installed_claude_plugins() {
+  local installed="$1"
+  [[ -f "$installed" ]] || return 0
+  python3 - "$installed" <<'PY' 2>/dev/null || true
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+except (OSError, ValueError):
+    sys.exit(0)
+keys = data.get("installedPlugins", data) if isinstance(data, dict) else {}
+if isinstance(keys, dict):
+    for k in keys:
+        if k.endswith("@jylhis-skills"):
+            print(k)
+PY
+}
+
+# Iterate ~/.codex/config.toml [plugins."<name>@jylhis-skills"] sections currently
+# enabled. Same purpose as the Claude variant — find opt-ins to refresh.
+list_enabled_codex_plugins() {
+  local config="$1"
+  [[ -f "$config" ]] || return 0
+  awk '
+    /^\[plugins\."[^"]+@jylhis-skills"\]/ {
+      match($0, /"([^"]+)"/, m)
+      current = m[1]
+      next
+    }
+    /^\[/ { current = "" }
+    current && /^enabled[[:space:]]*=[[:space:]]*true/ {
+      print current
+      current = ""
+    }
+  ' "$config"
+}
+
 link() {
   local src="$1" dst="$2"
   # Always create absolute-path symlinks. Plain `readlink` avoids
@@ -212,6 +254,16 @@ if command -v claude >/dev/null 2>&1; then
   else
     run claude plugin install "${DEFAULT_PLUGIN}@jylhis-skills" --scope "$SCOPE"
   fi
+
+  # Refresh any opt-in plugins the user has previously installed so they pick
+  # up structural changes (e.g. the skills/<category>/<name> layout migration).
+  while IFS= read -r installed_id; do
+    case "$installed_id" in
+      "${DEFAULT_PLUGIN}@jylhis-skills"|"") continue ;;
+    esac
+    echo "refresh $installed_id"
+    run claude plugin update "$installed_id" --scope "$SCOPE" || true
+  done < <(list_installed_claude_plugins "$INSTALLED")
 else
   cat <<EOF
 claude CLI not found on PATH. To finish the Claude Code install, run inside
@@ -289,6 +341,22 @@ if command -v codex >/dev/null 2>&1; then
   run codex plugin marketplace add "$REPO_ROOT"
   sync_codex_plugin_cache "$CODEX_DIR" "$DEFAULT_PLUGIN"
   enable_codex_plugin "$CODEX_DIR/config.toml" "${DEFAULT_PLUGIN}@jylhis-skills"
+
+  # Refresh any opt-in Codex plugins the user has previously enabled so they
+  # pick up structural changes (skills/<category>/<name> layout migration).
+  while IFS= read -r enabled_id; do
+    plugin_name="${enabled_id%@jylhis-skills}"
+    case "$plugin_name" in
+      "$DEFAULT_PLUGIN"|"") continue ;;
+    esac
+    is_known=0
+    for known in "${ALL_PLUGINS[@]}"; do
+      [[ "$known" == "$plugin_name" ]] && is_known=1 && break
+    done
+    [[ "$is_known" -eq 1 ]] || continue
+    echo "refresh $enabled_id"
+    sync_codex_plugin_cache "$CODEX_DIR" "$plugin_name"
+  done < <(list_enabled_codex_plugins "$CODEX_DIR/config.toml")
 else
   cat <<EOF
 codex CLI not found on PATH. To finish the Codex install, run:

@@ -47,12 +47,12 @@ Optional:
 
 ### Vendored from upstream
 
-Skills imported from an external repo via the `dev-skills/upstream-tracker`
+Skills imported from an external repo via the `meta/upstream-tracker`
 workflow include a `metadata.upstream-*` block recording the baseline
 sha and source id. The fields are advisory — `validate.py` warns on
 unknown ids when `upstream/sources.yaml` exists but doesn't error in
 default mode. See
-[dev-skills/upstream-tracker/references/frontmatter-block.md](../dev-skills/upstream-tracker/references/frontmatter-block.md)
+[meta/upstream-tracker/references/frontmatter-block.md](../meta/upstream-tracker/references/frontmatter-block.md)
 for the exact shape and the validator's strict-mode behaviour.
 
 ## Rejected fields

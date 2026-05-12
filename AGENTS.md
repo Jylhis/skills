@@ -18,12 +18,18 @@ opts in. See `docs/install.md` for install instructions.
 
 ## Layout
 
-- `skills/` — canonical SKILL.md tree, source of truth. One **umbrella**
-  skill per category (`skills/<category>/<category>/SKILL.md`) with sub-topic
-  guidance under that umbrella's `references/` directory. Standalone tool
-  skills (e.g. `unix/ast-grep`, `unix/offline-docs`) live at
-  `skills/<category>/<name>/SKILL.md`. Skill files are NEVER moved out of
-  this tree.
+- `skills/` — canonical SKILL.md tree, source of truth. Skills live at
+  `skills/<category>/<name>/SKILL.md`. Categories are
+  `engineering` (practices: tdd, code review, debug, ast-grep, semgrep,
+  offline-docs), `languages` (per-language guidance: python, typescript,
+  go, jvm, nix), `domains` (cross-cutting topic deep dives: security,
+  observability, iac, design), `services` (specific named platforms:
+  gitlab, azure, grafana), `stack` (deep dives on specific named
+  technologies: filesystems), `productivity` (non-code workflow tools),
+  `personal` (personal preferences / knowledge management), and `misc`
+  (uncategorised). Umbrella-style skills carry sub-topic guidance under
+  the skill's `references/` directory. Skill files are NEVER moved out
+  of this tree.
 - `plugins/<plugin-name>/` — one directory per published plugin, each
   containing its own `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
   `gemini-extension.json`, and a `skills/` directory of symlinks pointing
@@ -32,12 +38,10 @@ opts in. See `docs/install.md` for install instructions.
   and `GEMINI.md`. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
-- `dev-skills/` — repo-only meta skills (`skill-creator-lang`,
-  `skill-improver`, `upstream-tracker`, `using-skills`). **Not** shipped
+- `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
+  `upstream-tracker`, `using-skills`, `skill-extractor`). **Not** shipped
   via any plugin and not auto-loaded by any tool; only relevant when
   developing skills inside this repo.
-- `staging/` — legacy content awaiting per-skill review. Do not edit
-  unless promoting an item out of staging or removing it.
 - `upstream/sources.yaml` — manifest of tracked upstream skill repos
   (rev pin, review cursor, license, import paths). Created on first
   adoption; absent until then.
@@ -57,15 +61,15 @@ opts in. See `docs/install.md` for install instructions.
 - `docs/skill-authoring-guide.md` — how to write a portable SKILL.md.
 - `docs/skills-spec-v3.md` — target architecture spec we are growing toward.
 - `docs/upstream-sources.md` — list of upstream skill repos parked for later re-import.
-- `docs/history/` — archived design docs.
-- `evals/` — offline eval harness (no API keys). `cases.yaml` per
-  suite under `evals/suites/<suite>/`, deterministic-first assertions
-  driven through `promptfoo` `exec:` providers, cross-vendor
-  LLM-as-a-judge layer, hash-keyed VCR cassettes for CI replay. See
-  `evals/README.md` for recipes and the spec-v3 §10 mapping.
+- `evals/` — offline eval harness (no API keys). `cases.yaml` lives
+  next to the skill it exercises at `skills/<category>/<name>/evals/`,
+  deterministic-first assertions driven through `promptfoo` `exec:`
+  providers, optional cross-vendor LLM-as-a-judge layer, hash-keyed
+  VCR cassettes for CI replay. See `evals/README.md` for recipes and
+  the spec-v3 §10 mapping.
 
 For the workflow that operates on `upstream/`, see the
-`upstream-tracker` skill in `dev-skills/` (project-local).
+`upstream-tracker` skill in `meta/` (project-local).
 
 ## Skill format
 
@@ -162,25 +166,29 @@ Claude-only files do not need to be excluded explicitly.
   copied — each plugin has a `skills/` directory of symlinks pointing into
   the canonical `skills/<category>/<name>/` source tree.
 - Skills are two levels deep on disk: `skills/<category>/<name>/SKILL.md`.
-- The published catalogue uses an **umbrella per category**:
-  `skills/<category>/<category>/SKILL.md` is the entry point, deeper
-  guidance lives under `references/<topic>.md` (and nested
+  The eight categories are `engineering` (practices), `languages`
+  (per-language guidance), `domains` (cross-cutting topic deep dives),
+  `services` (specific named platforms), `stack` (deep dives on
+  specific named technologies), `productivity`, `personal`, and
+  `misc`. An umbrella skill (one that gathers sub-topics) keeps those
+  under its own `references/<topic>.md` (and nested
   `references/<topic>/...md` for multi-file topics).
 - When **adding a new skill**: drop it under `skills/<category>/<name>/`,
-  create or extend a `plugins/jylhis-<name>/` directory with the three
-  per-tool manifests and a `skills/<name>` symlink, and add the plugin to
+  create or extend a `plugins/jylhis-<plugin>/` directory with the three
+  per-tool manifests and a `skills/<name>` symlink (relative target
+  `../../../skills/<category>/<name>`), and add the plugin to
   `.claude-plugin/marketplace.json` (and `.agents/plugins/marketplace.json`
   for Codex). `scripts/validate.py` enforces that every on-disk skill is
   referenced by exactly one plugin manifest.
 - Codex discovers skills recursively from each plugin's local `skills/`.
-- Meta / repo-maintenance skills go in `dev-skills/` (not under
-  `skills/`), so they ship neither via the Claude plugin manifest nor
-  the Codex recursive scan.
+- Meta / repo-maintenance skills go in `meta/` (not under `skills/`), so
+  they ship neither via the Claude plugin manifest nor the Codex
+  recursive scan.
 - Skill runtime dependencies use `nix run` shebangs in `scripts/` or MCP/LSP
   config — not in `devenv.nix`.
-- No bundled upstream skill repos. To re-import, vendor selected
-  `<skill>/SKILL.md` trees into `staging/` then promote individually.
-  The previous URL list lives in `docs/upstream-sources.md`.
+- No bundled upstream skill repos. Adoption flows through
+  `meta/upstream-tracker/`. The parked URL list lives in
+  `docs/upstream-sources.md`.
 - Portable skills must pass `scripts/validate.py`. Run on every commit.
 
 ### Script language preference
@@ -201,7 +209,7 @@ shell. The advisory pass in `scripts/validate.py` skips them.
 
 `scripts/validate.py` emits advisory warnings on `.sh` and untyped `.py`
 files under `scripts/`, `evals/scripts/`, `skills/*/*/scripts/`,
-`dev-skills/*/scripts/`, and `plugins/*/scripts/`. Promote to an error
+`meta/*/scripts/`, and `plugins/*/scripts/`. Promote to an error
 with `--strict-scripts`. The migration plan for existing files lives in
 `docs/script-migrations.md`.
 
@@ -214,7 +222,7 @@ one entry to the improvement-memory JSONL:
 ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 ```
 
-Schema reference: `dev-skills/skill-improver/references/schema.md`.
+Schema reference: `meta/skill-improver/references/schema.md`.
 Use `scripts/append-correction.py --json -` (one JSON object on stdin)
 to append safely under a file lock. The user can invoke the same path
 via `/remember-correction <note>`.

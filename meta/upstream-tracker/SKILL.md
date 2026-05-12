@@ -40,7 +40,7 @@ Match the request to one of four operations:
 | "Review upstream commit `<sha>`" / "Backport `<sha>`" | §4 Review a single commit |
 
 If the user is registering a brand-new local skill not from any upstream,
-this is **not** the right skill — point at `dev-skills/skill-creator-lang`
+this is **not** the right skill — point at `meta/skill-creator-lang`
 instead.
 
 ## Tool detection
@@ -96,7 +96,7 @@ Procedure:
 
 4. **Run the import:**
    ```bash
-   python3 dev-skills/upstream-tracker/scripts/import.py <id>
+   python3 meta/upstream-tracker/scripts/import.py <id>
    ```
    The script:
    - Ensures the bare partial clone under `.cache/upstream/<id>.git`.
@@ -156,7 +156,7 @@ Procedure:
 
 1. **Run the fetch helper:**
    ```bash
-   python3 dev-skills/upstream-tracker/scripts/fetch.py
+   python3 meta/upstream-tracker/scripts/fetch.py
    ```
    For each source in the manifest, this script:
    - Ensures the bare partial clone under `.cache/upstream/<id>.git`.
@@ -187,7 +187,7 @@ Procedure:
 
 1. **Run the review helper:**
    ```bash
-   python3 dev-skills/upstream-tracker/scripts/review.py <id> [--sha <sha>]
+   python3 meta/upstream-tracker/scripts/review.py <id> [--sha <sha>]
    ```
    With no `--sha`, it walks the pending list oldest-first. With
    `--sha`, it operates on just that commit.
@@ -213,7 +213,7 @@ Procedure:
      diff, edits as needed, and commits separately. The decision log
      records `cherry-picked:<pending>`; once the user runs:
      ```bash
-     python3 dev-skills/upstream-tracker/scripts/review.py <id> \
+     python3 meta/upstream-tracker/scripts/review.py <id> \
          --confirm <upstream-sha> <local-sha>
      ```
      the row is finalized to `cherry-picked:<local-sha>` and the
