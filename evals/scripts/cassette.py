@@ -36,9 +36,10 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from _paths import resolve_suite_dir
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EVALS_DIR = REPO_ROOT / "evals"
-SUITES_DIR = EVALS_DIR / "suites"
 
 REQUIRED_PROVENANCE = {"cli", "cli_version", "model_snapshot", "temperature",
                         "host", "recorded_at"}
@@ -78,7 +79,7 @@ def compute_key(provider: str, prompt: str, model_snapshot: str,
 
 def cassette_path(suite: str, key: str, judge: bool = False) -> Path:
     suffix = ".judge.json" if judge else ".json"
-    return SUITES_DIR / suite / "golden" / f"{key}{suffix}"
+    return resolve_suite_dir(suite) / "golden" / f"{key}{suffix}"
 
 
 def read_cassette(suite: str, key: str, judge: bool = False) -> dict:
@@ -271,9 +272,10 @@ def _cmd_record(args: argparse.Namespace) -> int:
     """
     import yaml  # imported lazily so `key` and `read` work without PyYAML
 
-    cases_path = SUITES_DIR / args.suite / "cases.yaml"
+    suite_dir = resolve_suite_dir(args.suite)
+    cases_path = suite_dir / "cases.yaml"
     cases = (yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}).get("cases", [])
-    fixtures_root = SUITES_DIR / args.suite / "fixtures"
+    fixtures_root = suite_dir / "fixtures"
 
     rubric_cases = 0
     for case in cases:

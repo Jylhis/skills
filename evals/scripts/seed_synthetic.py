@@ -22,11 +22,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT / "evals" / "scripts"))
 from cassette import compute_key, write_cassette  # noqa: E402
-
-SUITES_DIR = REPO_ROOT / "evals" / "suites"
+from _paths import resolve_suite_dir  # noqa: E402
 
 # Hand-tailored synthetic outputs that pass the deterministic asserts
-# in evals/suites/ast-grep/cases.yaml. Keys are case ids.
+# in skills/engineering/ast-grep/evals/cases.yaml. Keys are case ids.
 SYNTHETIC_TEXT = {
     "trigger-pos-console-log":
         "Use ast-grep with a structural pattern:\n"
@@ -95,7 +94,7 @@ def synthetic_provenance(provider: str) -> dict:
 
 
 def seed(suite: str) -> int:
-    cases_path = SUITES_DIR / suite / "cases.yaml"
+    cases_path = resolve_suite_dir(suite) / "cases.yaml"
     raw = yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}
     written = 0
     for case in raw.get("cases", []):

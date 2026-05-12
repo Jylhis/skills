@@ -37,7 +37,8 @@ KEY="$(python3 "$REPO_ROOT/evals/scripts/cassette.py" key \
   --model "$EVAL_MODEL_SNAPSHOT" \
   ${EVAL_FIXTURES_DIR:+--fixtures "$EVAL_FIXTURES_DIR"})"
 
-CASSETTE="$REPO_ROOT/evals/suites/$EVAL_SUITE/golden/${KEY}.json"
+: "${EVAL_SUITE_DIR:?EVAL_SUITE_DIR must be set (expand.py sets this for stub providers)}"
+CASSETTE="$REPO_ROOT/$EVAL_SUITE_DIR/golden/${KEY}.json"
 
 if [[ ! -f "$CASSETTE" ]]; then
   printf 'cassette stale or missing for suite=%s provider=%s key=%s\n' \

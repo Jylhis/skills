@@ -81,7 +81,7 @@ expand.py ─► .generated/<suite>.yaml ─► [exec: providers] ─► result
                                             └── run_stub.sh   (cassette replay)
                                                         ▲
                                                         │
-                                              suites/<s>/golden/<key>.json
+                                  skills/<cat>/<name>/evals/golden/<key>.json
                                                         ▲
                                                         │
                                               cassette.py: sha256(provider+
@@ -122,9 +122,37 @@ Only `output_quality` cases run in the four-CLI matrix.
 
 ## Authoring a new suite
 
-1. `mkdir -p evals/suites/<skill>/{fixtures,golden}`
-2. Write `evals/suites/<skill>/cases.yaml` (see `suites/ast-grep/cases.yaml`).
-3. Write `evals/suites/<skill>/rubric.md` (see `suites/ast-grep/rubric.md`).
-4. `just eval-record` once locally to populate `golden/`.
-5. Commit `cases.yaml`, `rubric.md`, `fixtures/`, and the recorded
-   `golden/<key>.json` + `golden/<key>.judge.json` files.
+Eval suites live next to the skill they exercise, at
+`skills/<category>/<name>/evals/`. The suite key is the skill's `name:`
+(unique repo-wide).
+
+1. `mkdir -p skills/<category>/<name>/evals/{fixtures,golden}` (next to
+   the skill's `SKILL.md`).
+2. Write `skills/<category>/<name>/evals/cases.yaml` (see
+   `skills/engineering/ast-grep/evals/cases.yaml`).
+3. Write `skills/<category>/<name>/evals/rubric.md` (only required if
+   any case uses an LLM-judge `rubric:` block; otherwise deterministic
+   asserts are enough).
+4. `just eval-record suite=<name>` once locally to populate
+   `golden/` (only needed for live-recorded suites; for deterministic-
+   only suites this step is optional).
+5. Commit `cases.yaml`, `rubric.md` if present, `fixtures/`, and the
+   recorded `golden/<key>.json` + `golden/<key>.judge.json` files.
+
+## Running evals
+
+The default recipe is judge-free — no API keys or live judge CLIs
+required:
+
+```
+just eval suite=<name>      # deterministic asserts only (--no-rubric)
+just eval-stub suite=<name> # deterministic asserts + stubbed SUT
+```
+
+Judged runs are opt-in:
+
+```
+just eval-judged suite=<name> judge=gemini   # live four-CLI matrix
+just eval-one suite=<name> provider=claude judge=gemini
+just eval-judge suite=<name> judge=gemini    # tune the rubric only
+```

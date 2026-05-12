@@ -28,9 +28,10 @@ from pathlib import Path
 
 import yaml
 
+from _paths import resolve_suite_dir
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EVALS_DIR = REPO_ROOT / "evals"
-SUITES_DIR = EVALS_DIR / "suites"
 PROVIDERS_DIR = EVALS_DIR / "providers"
 JUDGES_DIR = EVALS_DIR / "judges"
 
@@ -128,9 +129,10 @@ def _check_one_case(case: dict) -> list[str]:
 
 
 def check_cases(suite: str) -> list[str]:
-    cases_path = SUITES_DIR / suite / "cases.yaml"
-    if not cases_path.exists():
-        return [f"missing cases file: {cases_path.relative_to(REPO_ROOT)}"]
+    try:
+        cases_path = resolve_suite_dir(suite) / "cases.yaml"
+    except FileNotFoundError as exc:
+        return [str(exc)]
     raw = yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}
     return [msg for case in raw.get("cases", []) for msg in _check_one_case(case)]
 
@@ -138,7 +140,10 @@ def check_cases(suite: str) -> list[str]:
 def check_goldens(suite: str) -> list[tuple[str, Path, list[str]]]:
     """Return a list of (severity, path, messages) tuples."""
     out: list[tuple[str, Path, list[str]]] = []
-    golden_dir = SUITES_DIR / suite / "golden"
+    try:
+        golden_dir = resolve_suite_dir(suite) / "golden"
+    except FileNotFoundError:
+        return out
     if not golden_dir.exists():
         return out
     for path in sorted(golden_dir.glob("*.json")):

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Cassette replay for the judge layer. Used by CI so g-eval assertions
 # do not require live model access. Replays
-# evals/suites/<suite>/golden/<key>.judge.json keyed on the judge prompt
-# (which promptfoo constructs deterministically from the rubric +
-# response).
+# skills/<category>/<name>/evals/golden/<key>.judge.json keyed on the
+# judge prompt (which promptfoo constructs deterministically from the
+# rubric + response).
 
 # shellcheck source=evals/providers/lib.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,7 +31,8 @@ KEY="$(python3 "$REPO_ROOT/evals/scripts/cassette.py" key \
   --prompt "$PROMPT" \
   --model "$EVAL_MODEL_SNAPSHOT")"
 
-CASSETTE="$REPO_ROOT/evals/suites/$EVAL_SUITE/golden/${KEY}.judge.json"
+: "${EVAL_SUITE_DIR:?EVAL_SUITE_DIR must be set (expand.py sets this for stub judges)}"
+CASSETTE="$REPO_ROOT/$EVAL_SUITE_DIR/golden/${KEY}.judge.json"
 
 if [[ ! -f "$CASSETTE" ]]; then
   printf 'judge cassette stale or missing for suite=%s judge=%s key=%s\n' \

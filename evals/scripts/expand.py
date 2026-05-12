@@ -43,9 +43,10 @@ from pathlib import Path
 
 import yaml
 
+from _paths import resolve_suite_dir
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EVALS_DIR = REPO_ROOT / "evals"
-SUITES_DIR = EVALS_DIR / "suites"
 GENERATED_DIR = EVALS_DIR / ".generated"
 
 ALL_PROVIDERS = ["claude", "codex", "gemini", "pi"]
@@ -83,15 +84,17 @@ def stub_provider_for(name: str, suite: str,
     fixtures dir so the de-dup in expand_suite() keeps a distinct entry
     per (target, fixtures) tuple.
     """
+    suite_dir = resolve_suite_dir(suite)
     env = {
         "EVAL_PROVIDER": name,
         "EVAL_SUITE": suite,
+        "EVAL_SUITE_DIR": str(suite_dir.relative_to(REPO_ROOT)),
         "EVAL_MODEL_SNAPSHOT": "default",
     }
     label = f"stub:{name}"
     if fixtures_subdir:
-        env["EVAL_FIXTURES_DIR"] = (
-            f"./evals/suites/{suite}/fixtures/{fixtures_subdir}"
+        env["EVAL_FIXTURES_DIR"] = str(
+            suite_dir.relative_to(REPO_ROOT) / "fixtures" / fixtures_subdir
         )
         label = f"stub:{name}:{fixtures_subdir}"
     return {
@@ -102,6 +105,7 @@ def stub_provider_for(name: str, suite: str,
 
 
 def stub_judge(name: str, suite: str) -> dict:
+    suite_dir = resolve_suite_dir(suite)
     return {
         "id": f"exec:{EVALS_DIR / 'judges' / 'judge_stub.sh'}",
         "label": f"judge-stub:{name}",
@@ -109,6 +113,7 @@ def stub_judge(name: str, suite: str) -> dict:
             "env": {
                 "EVAL_JUDGE_PROVIDER": name,
                 "EVAL_SUITE": suite,
+                "EVAL_SUITE_DIR": str(suite_dir.relative_to(REPO_ROOT)),
                 "EVAL_MODEL_SNAPSHOT": "default",
             },
         },
@@ -152,7 +157,7 @@ def _rubric_assert(case: dict, suite: str, judge: str,
     rubric = a.get("rubric")
     if not rubric or no_rubric:
         return []
-    rubric_path = SUITES_DIR / suite / "rubric.md"
+    rubric_path = resolve_suite_dir(suite) / "rubric.md"
     rubric_text = rubric_path.read_text(encoding="utf-8") if rubric_path.exists() else ""
     prompt = (rubric_text + "\n\nCriteria:\n- " + "\n- ".join(rubric)).strip()
     judge_provider: dict | str = (
@@ -282,9 +287,7 @@ def _live_provider_block(cases: list[dict]) -> list[str]:
 def expand_suite(suite: str, judge: str = "gemini",
                  stub_sut: bool = False, stub_judge_flag: bool = False,
                  no_rubric: bool = False) -> Path:
-    cases_path = SUITES_DIR / suite / "cases.yaml"
-    if not cases_path.exists():
-        raise FileNotFoundError(f"no cases.yaml at {cases_path.relative_to(REPO_ROOT)}")
+    cases_path = resolve_suite_dir(suite) / "cases.yaml"
     raw = yaml.safe_load(cases_path.read_text(encoding="utf-8")) or {}
     cases = raw.get("cases", [])
 
@@ -314,8 +317,9 @@ def expand_suite(suite: str, judge: str = "gemini",
 
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
     out = GENERATED_DIR / f"{suite}.yaml"
+    suite_rel = resolve_suite_dir(suite).relative_to(REPO_ROOT)
     out.write_text(
-        "# AUTO-GENERATED from evals/suites/{0}/cases.yaml — do not edit by hand\n".format(suite)
+        f"# AUTO-GENERATED from {suite_rel}/cases.yaml — do not edit by hand\n"
         + yaml.safe_dump(config, sort_keys=False, width=100),
         encoding="utf-8",
     )
