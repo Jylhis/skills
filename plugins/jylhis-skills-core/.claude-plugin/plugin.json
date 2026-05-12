@@ -8,10 +8,19 @@
   "repository": "https://github.com/Jylhis/skills",
   "skills": [
     "./skills/ast-grep",
+    "./skills/caveman",
+    "./skills/diagnose",
+    "./skills/grill-with-docs",
+    "./skills/handoff",
     "./skills/humanizer",
     "./skills/microsoft-docs",
     "./skills/offline-docs",
+    "./skills/prototype",
     "./skills/security",
-    "./skills/semgrep"
+    "./skills/semgrep",
+    "./skills/tdd",
+    "./skills/to-prd",
+    "./skills/triage",
+    "./skills/zoom-out"
   ]
 }

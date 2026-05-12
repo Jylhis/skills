@@ -251,6 +251,14 @@ class _FrontmatterParser:
         elif self.in_metadata and v == "":
             self.fm["metadata"] = self.metadata
         elif v == "":
+            # YAML allows a multi-line scalar by leaving the value
+            # blank on the key line and continuing on indented lines
+            # (folded). e.g.
+            #   description:
+            #     Multi-line text without a `>` indicator.
+            # Collect the continuation lines if any follow.
+            self.current_key = k.strip()
+            self.fold_block = True
             self.fm[k.strip()] = ""
         else:
             self.fm[k.strip()] = _strip_quotes(v)

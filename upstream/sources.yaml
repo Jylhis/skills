@@ -4,10 +4,66 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: 6ccf725ff46d3d2d78d7be76974ada4220c8bafd
+    reviewed-rev: 6ccf725ff46d3d2d78d7be76974ada4220c8bafd
+    last-fetched: "2026-05-12T12:06:08Z"
     skills:
+      - upstream: golang-code-style
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: code-style
+      - upstream: golang-concurrency
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: concurrency
+      - upstream: golang-context
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: context
+      - upstream: golang-error-handling
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: error-handling
+      - upstream: golang-testing
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: testing
+      - upstream: golang-performance
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: performance
+      - upstream: golang-structs-interfaces
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: structs-interfaces
+      - upstream: golang-naming
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: naming
   - id: trailofbits-skills
     repo: "https://github.com/trailofbits/skills"
     branch: main
@@ -60,10 +116,55 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    reviewed-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    last-fetched: "2026-05-12T12:06:09Z"
     skills:
+      - upstream: engineering/tdd
+        category: engineering
+        name: tdd
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: engineering/diagnose
+        category: engineering
+        name: diagnose
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: engineering/triage
+        category: engineering
+        name: triage
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: engineering/prototype
+        category: engineering
+        name: prototype
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: engineering/zoom-out
+        category: engineering
+        name: zoom-out
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: engineering/to-prd
+        category: engineering
+        name: to-prd
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: engineering/grill-with-docs
+        category: engineering
+        name: grill-with-docs
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: productivity/handoff
+        category: productivity
+        name: handoff
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: productivity/caveman
+        category: productivity
+        name: caveman
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
   - id: openai-skills
     repo: "https://github.com/openai/skills"
     branch: main
@@ -97,21 +198,71 @@ sources:
   - id: hashicorp-agent-skills
     repo: "https://github.com/hashicorp/agent-skills"
     branch: main
-    subpath: .
+    subpath: terraform
     license: MPL-2.0
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
+    reviewed-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
+    last-fetched: "2026-05-12T12:06:11Z"
     skills:
+      - upstream: code-generation/skills/terraform-test
+        category: services
+        name: terraform-test
+        target-plugin: jylhis-terraform
+        merge-strategy: standalone
+      - upstream: code-generation/skills/terraform-style-guide
+        category: services
+        name: terraform-style-guide
+        target-plugin: jylhis-terraform
+        merge-strategy: standalone
+      - upstream: module-generation/skills/refactor-module
+        category: services
+        name: terraform-refactor-module
+        target-plugin: jylhis-terraform
+        merge-strategy: standalone
+      - upstream: module-generation/skills/terraform-stacks
+        category: services
+        name: terraform-stacks
+        target-plugin: jylhis-terraform
+        merge-strategy: standalone
   - id: microsoft-azure-skills
     repo: "https://github.com/microsoft/skills"
     branch: main
     subpath: .github/plugins/azure-skills/skills
     license: MIT
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
+    reviewed-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
+    last-fetched: "2026-05-12T12:06:14Z"
     skills:
+      - upstream: azure-deploy
+        category: services
+        name: azure-deploy
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+      - upstream: azure-cost
+        category: services
+        name: azure-cost
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+      - upstream: azure-storage
+        category: services
+        name: azure-storage
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+      - upstream: azure-kubernetes
+        category: services
+        name: azure-kubernetes
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+      - upstream: azure-ai
+        category: services
+        name: azure-ai
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+      - upstream: azure-compliance
+        category: services
+        name: azure-compliance
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
   - id: microsoft-docs
     repo: "https://github.com/microsoft/skills"
     branch: main
@@ -131,19 +282,69 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
+    reviewed-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
+    last-fetched: "2026-05-12T12:06:15Z"
     skills:
+      - upstream: obsidian-markdown
+        category: personal
+        name: obsidian-markdown
+        target-plugin: jylhis-obsidian
+        merge-strategy: standalone
+      - upstream: obsidian-bases
+        category: personal
+        name: obsidian-bases
+        target-plugin: jylhis-obsidian
+        merge-strategy: standalone
+      - upstream: obsidian-cli
+        category: personal
+        name: obsidian-cli
+        target-plugin: jylhis-obsidian
+        merge-strategy: standalone
+      - upstream: json-canvas
+        category: personal
+        name: json-canvas
+        target-plugin: jylhis-obsidian
+        merge-strategy: standalone
+      - upstream: defuddle
+        category: personal
+        name: defuddle
+        target-plugin: jylhis-obsidian
+        merge-strategy: standalone
   - id: grafana-skills
     repo: "https://github.com/grafana/skills"
     branch: main
     subpath: skills
     license: AGPL-3.0
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: d124c434391b7e3d24f57c865cad3462dae596dd
+    reviewed-rev: d124c434391b7e3d24f57c865cad3462dae596dd
+    last-fetched: "2026-05-12T12:08:52Z"
     skills:
+      - upstream: grafana-core/grafana-oss
+        category: services
+        name: grafana-oss
+        target-plugin: jylhis-grafana
+        merge-strategy: standalone
+      - upstream: grafana-core/dashboarding
+        category: services
+        name: grafana-dashboarding
+        target-plugin: jylhis-grafana
+        merge-strategy: standalone
+      - upstream: grafana-core/promql
+        category: services
+        name: grafana-promql
+        target-plugin: jylhis-grafana
+        merge-strategy: standalone
+      - upstream: grafana-core/alerting-irm
+        category: services
+        name: grafana-alerting
+        target-plugin: jylhis-grafana
+        merge-strategy: standalone
+      - upstream: grafana-core/opentelemetry
+        category: services
+        name: grafana-opentelemetry
+        target-plugin: jylhis-grafana
+        merge-strategy: standalone
   - id: taste-skill
     repo: "https://github.com/Leonxlnx/taste-skill"
     branch: main

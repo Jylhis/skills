@@ -1,8 +1,16 @@
 {
   "name": "jylhis-obsidian",
-  "description": "Obsidian skill — note-taking, knowledge management, plugin workflows.",
+  "description": "Obsidian skill \u2014 note-taking, knowledge management, plugin workflows.",
   "version": "0.1.0",
-  "author": { "name": "Jylhis" },
+  "author": {
+    "name": "Jylhis"
+  },
   "repository": "https://github.com/Jylhis/skills",
-  "skills": []
+  "skills": [
+    "./skills/defuddle",
+    "./skills/json-canvas",
+    "./skills/obsidian-bases",
+    "./skills/obsidian-cli",
+    "./skills/obsidian-markdown"
+  ]
 }

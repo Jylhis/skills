@@ -1,8 +1,15 @@
 {
   "name": "jylhis-terraform",
-  "description": "Terraform skill — terraform-test framework, style guide, refactor-module workflow, terraform-stacks.",
+  "description": "Terraform skill \u2014 terraform-test framework, style guide, refactor-module workflow, terraform-stacks.",
   "version": "0.1.0",
-  "author": { "name": "Jylhis" },
+  "author": {
+    "name": "Jylhis"
+  },
   "repository": "https://github.com/Jylhis/skills",
-  "skills": []
+  "skills": [
+    "./skills/terraform-refactor-module",
+    "./skills/terraform-stacks",
+    "./skills/terraform-style-guide",
+    "./skills/terraform-test"
+  ]
 }

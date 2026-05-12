@@ -1,8 +1,16 @@
 {
   "name": "jylhis-grafana",
-  "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
+  "description": "Grafana skill \u2014 observability, dashboards, PromQL, alerts, OnCall.",
   "version": "0.1.0",
-  "author": { "name": "Jylhis" },
+  "author": {
+    "name": "Jylhis"
+  },
   "repository": "https://github.com/Jylhis/skills",
-  "skills": []
+  "skills": [
+    "./skills/grafana-alerting",
+    "./skills/grafana-dashboarding",
+    "./skills/grafana-opentelemetry",
+    "./skills/grafana-oss",
+    "./skills/grafana-promql"
+  ]
 }
