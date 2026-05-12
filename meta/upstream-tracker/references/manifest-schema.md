@@ -2,7 +2,8 @@
 
 Authoritative manifest for tracked upstream skill repositories. One file
 per repo, hand-edited; helper scripts read it and update only the
-`upstream-rev` and `last-fetched` fields automatically.
+`upstream-rev`, `reviewed-rev`, and `last-fetched` fields
+automatically.
 
 The format is a restricted YAML subset — only the shapes shown below
 parse correctly. The helper scripts use the same parsing strategy as
@@ -22,13 +23,18 @@ sources:
     last-fetched: <string>
     skills:
       - upstream: <string>
-        local: <string>
+        category: <string>
+        name: <string>
+        target-plugin: <string>
+        merge-strategy: <string>   # optional; default "standalone"
+        umbrella: <string>         # required for umbrella-references
+        topic: <string>            # required for umbrella-references
 ```
 
 Top-level has exactly one key, `sources`, whose value is a list. Each
 list entry is a mapping with the fields below.
 
-## Field reference
+## Source field reference
 
 | Field | Required | Type | Notes |
 |---|---|---|---|
@@ -47,10 +53,25 @@ list entry is a mapping with the fields below.
 | Field | Required | Type | Notes |
 |---|---|---|---|
 | `upstream` | yes | string | Subdirectory inside `<subpath>` containing the upstream skill (e.g. `grafana-promql`). The path is relative to `subpath`, not the repo root. |
-| `local` | yes | string | Local destination relative to `skills/`. Must follow the two-level convention: `<category>/<name>` (e.g. `observability/grafana-promql`). The `<name>` segment must equal the imported `SKILL.md`'s `name:` frontmatter. |
+| `category` | yes | string | One of `engineering`, `languages`, `domains`, `services`, `stack`, `productivity`, `personal`, `misc`. Sets the destination category folder. |
+| `name` | yes | string | Local skill name. Must match the destination directory basename and the imported `SKILL.md`'s `name:` frontmatter. |
+| `target-plugin` | yes (for standalone) | string | The `plugins/<name>/` directory that should expose this skill (e.g. `jylhis-skills-core`). The importer creates the `plugins/<plugin>/skills/<name>` symlink and adds `./skills/<name>` to that plugin's `.claude-plugin/plugin.json`. The plugin directory itself must already exist. |
+| `merge-strategy` | no | string | `standalone` (default): write a new SKILL.md at `skills/<category>/<name>/`. `umbrella-references`: drop the upstream SKILL.md body into `skills/<category>/<umbrella>/references/<topic>.md` instead of writing a new skill — requires `umbrella:` and `topic:`. `replace`: like `standalone` but overwrites silently. |
+| `umbrella` | yes (for umbrella-references) | string | Existing umbrella skill name under the same `category:` whose `references/` will receive the upstream content. |
+| `topic` | yes (for umbrella-references) | string | Filename stem (without `.md`) under `<umbrella>/references/`. |
 
-`local` paths must be unique across the entire manifest — multiple
-upstreams cannot target the same local skill directory.
+### Legacy `local:` field
+
+The pre-v8-category schema used a single `local: <category>/<name>`
+field instead of separate `category:` and `name:` keys. The importer
+still accepts `local:` for backwards compat, but new entries should
+use `category:` + `name:`. The category must be one of the eight
+canonical values.
+
+`name` segments must be unique across the entire manifest — multiple
+upstreams cannot target the same local skill directory under
+`standalone`. Multiple `umbrella-references` entries can target
+different `topic:` files under the same `umbrella:`.
 
 ## Lifecycle of `upstream-rev` and `reviewed-rev`
 
@@ -89,7 +110,7 @@ the import-time HEAD      │                                     │
   commit), do it explicitly in a single commit so `git log` records
   the reason.
 
-## Minimal example
+## Minimal example — standalone skill
 
 ```yaml
 sources:
@@ -103,10 +124,43 @@ sources:
     last-fetched: ""
     skills:
       - upstream: grafana-promql
-        local: observability/grafana-promql
+        category: services
+        name: grafana
+        target-plugin: jylhis-grafana
+        merge-strategy: standalone
 ```
 
 After running `python3 meta/upstream-tracker/scripts/import.py
 grafana-skills`, the three auto-populated fields fill in and the
-imported skill appears at `skills/observability/grafana-promql/SKILL.md`
-with the `metadata.upstream-*` block injected.
+imported skill appears at `skills/services/grafana/SKILL.md` with the
+`metadata.upstream-*` block injected. The importer also creates
+`plugins/jylhis-grafana/skills/grafana` (symlink) and adds
+`./skills/grafana` to `plugins/jylhis-grafana/.claude-plugin/plugin.json`.
+
+## Minimal example — umbrella-references merge
+
+```yaml
+sources:
+  - id: openai-skills
+    repo: https://github.com/openai/skills
+    branch: main
+    subpath: skills/.curated
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      - upstream: security-best-practices
+        category: domains
+        name: security-best-practices
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: security
+        topic: best-practices
+```
+
+This drops the upstream `SKILL.md` body into
+`skills/domains/security/references/best-practices.md` rather than
+creating a new top-level skill. No plugin wiring is performed for
+`umbrella-references` entries — the existing umbrella's plugin
+membership already covers the new reference.

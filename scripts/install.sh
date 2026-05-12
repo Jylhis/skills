@@ -30,6 +30,11 @@ OPTIN_PLUGINS=(
   jylhis-nix
   jylhis-filesystems
   jylhis-gitlab
+  jylhis-terraform
+  jylhis-azure
+  jylhis-obsidian
+  jylhis-grafana
+  jylhis-taste
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 

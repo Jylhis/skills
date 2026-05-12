@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-obsidian",
+  "description": "Obsidian skill — note-taking, knowledge management, plugin workflows.",
+  "version": "0.1.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": []
+}

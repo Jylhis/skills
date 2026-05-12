@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-grafana",
+  "version": "0.1.0",
+  "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "grafana", "observability", "metrics"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis-grafana",
+    "shortDescription": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
+    "longDescription": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

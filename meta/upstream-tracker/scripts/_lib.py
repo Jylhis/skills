@@ -19,10 +19,10 @@ from typing import Any
 
 
 def repo_root() -> Path:
-    """Walk up from this file until we find the repo root."""
+    """Walk up from this file until we find the marketplace root."""
     here = Path(__file__).resolve()
     for parent in here.parents:
-        if (parent / ".claude-plugin" / "plugin.json").exists():
+        if (parent / ".claude-plugin" / "marketplace.json").exists():
             return parent
     print("upstream-tracker: cannot locate repo root", file=sys.stderr)
     sys.exit(2)

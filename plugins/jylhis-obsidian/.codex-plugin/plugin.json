@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-obsidian",
+  "version": "0.1.0",
+  "description": "Obsidian skill — note-taking, knowledge management, plugin workflows.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "obsidian", "knowledge-management", "notes"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis-obsidian",
+    "shortDescription": "Obsidian skill — note-taking, knowledge management, plugin workflows.",
+    "longDescription": "Obsidian skill — note-taking, knowledge management, plugin workflows. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

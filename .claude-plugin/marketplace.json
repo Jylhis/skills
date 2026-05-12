@@ -56,6 +56,36 @@
       "source": "./plugins/jylhis-gitlab",
       "description": "GitLab CI/CD pipelines and the glab CLI for terminal-based GitLab workflows.",
       "category": "Coding"
+    },
+    {
+      "name": "jylhis-terraform",
+      "source": "./plugins/jylhis-terraform",
+      "description": "Terraform skill — terraform-test framework, style guide, refactor-module workflow, terraform-stacks.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-azure",
+      "source": "./plugins/jylhis-azure",
+      "description": "Azure cloud skill — adoption framework, well-architected, AKS, deployment patterns.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-obsidian",
+      "source": "./plugins/jylhis-obsidian",
+      "description": "Obsidian skill — note-taking, knowledge management, plugin workflows.",
+      "category": "Productivity"
+    },
+    {
+      "name": "jylhis-grafana",
+      "source": "./plugins/jylhis-grafana",
+      "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-taste",
+      "source": "./plugins/jylhis-taste",
+      "description": "Taste skill — UI/UX design taste, visual hierarchy, design critique.",
+      "category": "Design"
     }
   ]
 }

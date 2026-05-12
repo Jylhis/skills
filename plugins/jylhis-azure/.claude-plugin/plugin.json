@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-azure",
+  "description": "Azure cloud skill — adoption framework, well-architected, AKS, deployment patterns.",
+  "version": "0.1.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": []
+}

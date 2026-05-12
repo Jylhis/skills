@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-taste",
+  "version": "0.1.0",
+  "description": "Taste skill — UI/UX design taste, visual hierarchy, design critique.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "taste", "design", "ui", "ux"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis-taste",
+    "shortDescription": "Taste skill — UI/UX design taste, visual hierarchy, design critique.",
+    "longDescription": "Taste skill — UI/UX design taste, visual hierarchy, design critique. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}

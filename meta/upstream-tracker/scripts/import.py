@@ -1,19 +1,32 @@
 #!/usr/bin/env python3
-"""Vendor a manifest source's skills into skills/<local>/.
+"""Vendor a manifest source's skills into ``skills/<category>/<name>/``.
 
-Reads `upstream/sources.yaml`, fetches the source, copies each
-`skills[].upstream` directory at the resolved upstream HEAD into
-`skills/<skills[].local>/`, injects the `metadata.upstream-*` block
-into each imported SKILL.md, sets manifest `upstream-rev` and
-`reviewed-rev` to the resolved sha, appends an `accept` row to the
-decision log, and prints the lines to register in
-`.claude-plugin/plugin.json`.
+Reads ``upstream/sources.yaml``, fetches the source, and for each
+``skills[]`` mapping:
 
-Refuses to overwrite existing local skill directories without --force.
+1. Resolves the destination from ``category:`` + ``name:`` (or the
+   legacy ``local: <category>/<name>``).
+2. Applies the entry's ``merge-strategy:`` —
+   - ``standalone`` (default): copy upstream skill tree to
+     ``skills/<category>/<name>/`` as a new skill.
+   - ``umbrella-references``: copy the upstream ``SKILL.md`` body to
+     ``skills/<category>/<umbrella>/references/<topic>.md`` instead
+     of creating a new skill. Requires ``umbrella:`` and ``topic:``.
+   - ``replace``: like ``standalone`` but overwrites silently.
+3. For ``standalone`` / ``replace``: injects the ``metadata.upstream-*``
+   block into the imported SKILL.md, creates the
+   ``plugins/<target-plugin>/skills/<name>`` symlink, and adds
+   ``./skills/<name>`` to that plugin's ``.claude-plugin/plugin.json``
+   ``skills`` array.
+
+Refuses to overwrite existing destinations under ``standalone`` without
+``--force``. ``replace`` overwrites silently.
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
+import json
 import shutil
 import subprocess
 import sys
@@ -24,35 +37,61 @@ from pathlib import Path
 import _lib as L
 
 
+VALID_CATEGORIES = {
+    "engineering", "languages", "domains", "services",
+    "stack", "productivity", "personal", "misc",
+}
+
+VALID_STRATEGIES = {"standalone", "umbrella-references", "replace"}
+
+
 def _reject_symlinks(root: Path, rel_root: str) -> None:
     if root.is_symlink():
-        print(
-            f"  refusing to import symlink {rel_root}",
-            file=sys.stderr,
-        )
+        print(f"  refusing to import symlink {rel_root}", file=sys.stderr)
         sys.exit(3)
     for path in root.rglob("*"):
         if path.is_symlink():
             rel = path.relative_to(root)
-            print(
-                f"  refusing to import symlink {rel_root}/{rel}",
-                file=sys.stderr,
-            )
+            print(f"  refusing to import symlink {rel_root}/{rel}",
+                  file=sys.stderr)
             sys.exit(3)
 
 
-def import_one_skill(cache: Path, src: dict, mapping: dict, sha: str,
-                     today: str, force: bool) -> Path:
-    upstream_subdir = mapping["upstream"]
-    local_subdir = mapping["local"]
-    upstream_full = f"{src['subpath'].rstrip('/')}/{upstream_subdir}".lstrip("/")
-    dest = L.ROOT / "skills" / local_subdir
+def _resolve_dest(mapping: dict) -> tuple[str, str]:
+    """Return (category, name) from a skills[] mapping.
 
-    if dest.exists() and not force:
-        print(f"  refusing to overwrite {dest.relative_to(L.ROOT)} "
-              f"(use --force)", file=sys.stderr)
+    Accepts either ``category:`` + ``name:`` (preferred) or the legacy
+    ``local: <category>/<name>``.
+    """
+    if "category" in mapping and "name" in mapping:
+        category = mapping["category"]
+        name = mapping["name"]
+    elif "local" in mapping:
+        parts = mapping["local"].split("/")
+        if len(parts) != 2:
+            print(f"  invalid local: {mapping['local']!r} "
+                  f"(expected <category>/<name>)", file=sys.stderr)
+            sys.exit(3)
+        category, name = parts
+    else:
+        print(f"  mapping missing category+name (or legacy local): "
+              f"{mapping!r}", file=sys.stderr)
         sys.exit(3)
 
+    if category not in VALID_CATEGORIES:
+        print(f"  invalid category {category!r}; expected one of "
+              f"{sorted(VALID_CATEGORIES)}", file=sys.stderr)
+        sys.exit(3)
+    return category, name
+
+
+@contextlib.contextmanager
+def _extracted_upstream(cache: Path, sha: str, upstream_full: str):
+    """Yield Path to the extracted ``upstream_full`` tree at ``sha``.
+
+    Uses ``git archive | tar -x`` into a temporary directory that is
+    cleaned up on exit.
+    """
     with tempfile.TemporaryDirectory() as td:
         td_path = Path(td)
         archive = td_path / "upstream.tar"
@@ -72,6 +111,44 @@ def import_one_skill(cache: Path, src: dict, mapping: dict, sha: str,
             print(f"  upstream path {upstream_full} not found at {sha[:12]}",
                   file=sys.stderr)
             sys.exit(3)
+        yield upstream_tree
+
+
+def _inject_metadata(skill_md: Path, name: str, src: dict,
+                     sha: str, upstream_subdir: str, today: str) -> None:
+    text = skill_md.read_text()
+    parsed = L.parse_frontmatter(text)
+    if parsed is None:
+        print(f"  {skill_md.relative_to(L.ROOT)} has no parseable frontmatter",
+              file=sys.stderr)
+        sys.exit(3)
+    fm, body = parsed
+    fm["name"] = name
+    metadata = dict(fm.get("metadata") or {})
+    metadata.update({
+        "upstream-id": src["id"],
+        "upstream-rev": sha,
+        "upstream-path": upstream_subdir,
+        "upstream-imported": today,
+    })
+    fm["metadata"] = metadata
+    skill_md.write_text(L.emit_frontmatter(fm, body))
+
+
+def _import_standalone(cache: Path, src: dict, mapping: dict,
+                       category: str, name: str, sha: str,
+                       today: str, force: bool) -> Path:
+    upstream_subdir = mapping["upstream"]
+    upstream_full = f"{src['subpath'].rstrip('/')}/{upstream_subdir}".lstrip("/")
+    dest = L.ROOT / "skills" / category / name
+    strategy = mapping.get("merge-strategy", "standalone")
+
+    if dest.exists() and strategy == "standalone" and not force:
+        print(f"  refusing to overwrite {dest.relative_to(L.ROOT)} "
+              f"(use --force or merge-strategy: replace)", file=sys.stderr)
+        sys.exit(3)
+
+    with _extracted_upstream(cache, sha, upstream_full) as upstream_tree:
         _reject_symlinks(upstream_tree, upstream_full)
         if dest.exists():
             shutil.rmtree(dest)
@@ -83,32 +160,113 @@ def import_one_skill(cache: Path, src: dict, mapping: dict, sha: str,
         print(f"  imported {dest.relative_to(L.ROOT)} but no SKILL.md found",
               file=sys.stderr)
         sys.exit(3)
+    _inject_metadata(skill_md, name, src, sha, upstream_subdir, today)
+    return dest
 
-    text = skill_md.read_text()
-    parsed = L.parse_frontmatter(text)
-    if parsed is None:
-        print(f"  {skill_md.relative_to(L.ROOT)} has no parseable frontmatter",
+
+def _import_umbrella_reference(cache: Path, src: dict, mapping: dict,
+                                category: str, sha: str,
+                                today: str, force: bool) -> Path:
+    """Drop upstream SKILL.md body into an umbrella's references/.
+
+    Requires ``umbrella:`` (the existing umbrella skill's name) and
+    ``topic:`` (filename stem under that umbrella's references/).
+    """
+    umbrella = mapping.get("umbrella")
+    topic = mapping.get("topic")
+    if not (umbrella and topic):
+        print("  merge-strategy: umbrella-references requires "
+              "umbrella: <name> and topic: <filename-stem>", file=sys.stderr)
+        sys.exit(3)
+
+    umbrella_dir = L.ROOT / "skills" / category / umbrella
+    if not (umbrella_dir / "SKILL.md").exists():
+        print(f"  umbrella {umbrella_dir.relative_to(L.ROOT)} does not exist",
               file=sys.stderr)
         sys.exit(3)
-    fm, body = parsed
-    fm["name"] = dest.name
-    metadata = dict(fm.get("metadata") or {})
-    metadata.update({
-        "upstream-id": src["id"],
-        "upstream-rev": sha,
-        "upstream-path": upstream_subdir,
-        "upstream-imported": today,
-    })
-    fm["metadata"] = metadata
-    skill_md.write_text(L.emit_frontmatter(fm, body))
-    return dest
+
+    upstream_subdir = mapping["upstream"]
+    upstream_full = f"{src['subpath'].rstrip('/')}/{upstream_subdir}".lstrip("/")
+    dest_file = umbrella_dir / "references" / f"{topic}.md"
+    if dest_file.exists() and not force:
+        print(f"  refusing to overwrite {dest_file.relative_to(L.ROOT)} "
+              f"(use --force)", file=sys.stderr)
+        sys.exit(3)
+
+    with _extracted_upstream(cache, sha, upstream_full) as upstream_tree:
+        _reject_symlinks(upstream_tree, upstream_full)
+        src_skill = upstream_tree / "SKILL.md"
+        if not src_skill.exists():
+            print(f"  upstream SKILL.md missing under {upstream_full}",
+                  file=sys.stderr)
+            sys.exit(3)
+        parsed = L.parse_frontmatter(src_skill.read_text())
+        body = parsed[1] if parsed else src_skill.read_text()
+
+        dest_file.parent.mkdir(parents=True, exist_ok=True)
+        provenance = (
+            f"<!-- imported from {src['repo']}@{sha[:12]} "
+            f"path={upstream_full} on {today} -->\n\n"
+        )
+        dest_file.write_text(provenance + body.lstrip())
+
+    return dest_file
+
+
+def _wire_plugin(plugin: str, category: str, name: str) -> list[str]:
+    """Make ``plugins/<plugin>/skills/<name>`` resolve and listed.
+
+    Returns a list of human-readable status lines for the importer log.
+    """
+    out: list[str] = []
+    plugin_dir = L.ROOT / "plugins" / plugin
+    if not plugin_dir.exists():
+        print(f"  plugin dir {plugin_dir.relative_to(L.ROOT)} does not exist; "
+              f"create it (with the three per-tool manifests) before re-running",
+              file=sys.stderr)
+        sys.exit(3)
+
+    # Symlink.
+    skills_dir = plugin_dir / "skills"
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    link = skills_dir / name
+    target = Path("..") / ".." / ".." / "skills" / category / name
+    if link.is_symlink() or link.exists():
+        existing = link.readlink() if link.is_symlink() else None
+        if existing == target:
+            out.append(f"  symlink ok: plugins/{plugin}/skills/{name}")
+        else:
+            link.unlink()
+            link.symlink_to(target)
+            out.append(f"  symlink retargeted: plugins/{plugin}/skills/{name} -> {target}")
+    else:
+        link.symlink_to(target)
+        out.append(f"  symlink created: plugins/{plugin}/skills/{name} -> {target}")
+
+    # Claude plugin.json — add to skills[] if missing.
+    claude_manifest = plugin_dir / ".claude-plugin" / "plugin.json"
+    if claude_manifest.exists():
+        data = json.loads(claude_manifest.read_text())
+        skills = data.get("skills") or []
+        entry = f"./skills/{name}"
+        if entry not in skills:
+            skills.append(entry)
+            skills.sort()
+            data["skills"] = skills
+            claude_manifest.write_text(json.dumps(data, indent=2) + "\n")
+            out.append(f"  claude manifest: added {entry}")
+        else:
+            out.append(f"  claude manifest ok: {entry} already listed")
+
+    # Codex manifest uses recursive `skills: "./skills/"` — symlink alone is enough.
+    return out
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("source_id", help="source id in upstream/sources.yaml")
     parser.add_argument("--force", action="store_true",
-                        help="overwrite existing local skill directories")
+                        help="overwrite existing local destinations")
     parser.add_argument("--no-validate", action="store_true",
                         help="skip running scripts/validate.py afterwards")
     args = parser.parse_args()
@@ -126,11 +284,36 @@ def main() -> int:
     today = date.today().isoformat()
 
     print(f"importing {args.source_id} @ {sha[:12]}")
-    imported: list[Path] = []
+
+    imported_skills: list[tuple[str, str, str]] = []   # (category, name, target-plugin)
+    imported_refs: list[Path] = []
+
     for mapping in src.get("skills", []):
-        dest = import_one_skill(cache, src, mapping, sha, today, args.force)
-        imported.append(dest)
-        print(f"  + skills/{mapping['local']}/")
+        category, name = _resolve_dest(mapping)
+        strategy = mapping.get("merge-strategy", "standalone")
+        if strategy not in VALID_STRATEGIES:
+            print(f"  invalid merge-strategy {strategy!r}; expected one of "
+                  f"{sorted(VALID_STRATEGIES)}", file=sys.stderr)
+            return 3
+
+        target_plugin = mapping.get("target-plugin")
+
+        if strategy == "umbrella-references":
+            dest = _import_umbrella_reference(cache, src, mapping, category,
+                                               sha, today, args.force)
+            imported_refs.append(dest)
+            print(f"  + {dest.relative_to(L.ROOT)} (umbrella-ref)")
+        else:
+            dest_dir = _import_standalone(cache, src, mapping, category, name,
+                                           sha, today, args.force)
+            print(f"  + {dest_dir.relative_to(L.ROOT)}")
+            if target_plugin:
+                for line in _wire_plugin(target_plugin, category, name):
+                    print(line)
+                imported_skills.append((category, name, target_plugin))
+            else:
+                print(f"  warn: no target-plugin set; skipping plugin wiring",
+                      file=sys.stderr)
 
     src["upstream-rev"] = sha
     src["reviewed-rev"] = sha
@@ -138,13 +321,6 @@ def main() -> int:
     L.write_manifest(data)
     L.decisions_append(args.source_id, sha, "accept",
                        note=f"initial-import {today}")
-
-    print()
-    print("Add to .claude-plugin/plugin.json (alphabetical):")
-    for dest in imported:
-        rel = dest.relative_to(L.ROOT)
-        print(f'    "./{rel}",')
-    print()
 
     if not args.no_validate:
         rc = subprocess.run(

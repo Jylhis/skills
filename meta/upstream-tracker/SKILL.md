@@ -83,37 +83,49 @@ Procedure:
    - branch (default `main`)
    - subpath inside the repo where skills live (e.g. `skills/`)
    - the upstream-relative paths of each skill to import
-   - the local destination path inside `skills/<category>/<name>/`
+   - the destination `category:` + `name:` (and which `target-plugin`
+     should expose it)
    - the upstream's license (so it can be recorded; not validated)
 
 2. **Pick or confirm the source `id`.** Lowercase, hyphenated, unique
    within the manifest. Often `<org>-<repo>` (e.g. `grafana-skills`).
 
 3. **Edit `upstream/sources.yaml`.** Add a new `sources[]` entry per
-   `references/manifest-schema.md`. Set `upstream-rev` to the empty
-   string and `reviewed-rev` to the empty string — the import script
-   fills both. Save.
+   `references/manifest-schema.md`. Each `skills[]` entry needs
+   `upstream:`, `category:`, `name:`, `target-plugin:`, and
+   (optionally) `merge-strategy:`. Set `upstream-rev`, `reviewed-rev`,
+   `last-fetched` to empty strings — the import script fills them.
 
-4. **Run the import:**
+4. **Ensure the target plugin exists.** If `target-plugin:` names a
+   plugin not yet under `plugins/`, create the directory first with
+   `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+   `gemini-extension.json`, and an empty `skills/` directory, and add
+   it to `.claude-plugin/marketplace.json` +
+   `.agents/plugins/marketplace.json`.
+
+5. **Run the import:**
    ```bash
    python3 meta/upstream-tracker/scripts/import.py <id>
    ```
    The script:
    - Ensures the bare partial clone under `.cache/upstream/<id>.git`.
    - Resolves the upstream HEAD sha for `branch`.
-   - Copies each `skills[]` entry's `<subpath>/<upstream>` directory
-     into `skills/<local>/`.
+   - For each `skills[]` mapping, applies the entry's `merge-strategy:`
+     (`standalone` → copy to `skills/<category>/<name>/`;
+     `umbrella-references` → drop body into
+     `skills/<category>/<umbrella>/references/<topic>.md`).
    - Injects `metadata.upstream-id / upstream-rev / upstream-path /
      upstream-imported` into each imported `SKILL.md`.
+   - For `standalone` entries: creates the
+     `plugins/<target-plugin>/skills/<name>` symlink **and** adds
+     `./skills/<name>` to that plugin's `.claude-plugin/plugin.json`
+     `skills` array (idempotent).
    - Sets manifest `upstream-rev` and `reviewed-rev` to the resolved sha.
    - Appends an `accept` row to `upstream/decisions/<id>.log` for the
      resolved sha.
-   - Refuses to overwrite an existing local skill without `--force`.
+   - Refuses to overwrite an existing local skill under `standalone`
+     without `--force`; `merge-strategy: replace` overwrites silently.
    - Re-runs `scripts/validate.py` afterwards.
-
-5. **Register imported paths.** Add each `skills/<local>/` to the
-   `skills` array in `.claude-plugin/plugin.json` (alphabetical inside
-   the category). The import script prints the exact lines to paste.
 
 6. **Verify.** From the repo root:
    ```bash
@@ -122,8 +134,8 @@ Procedure:
    Investigate any failures before committing.
 
 7. **Commit** the manifest entry, the decision log line, the imported
-   skill directories, and the `plugin.json` update together. One commit
-   per adoption keeps `git log` readable.
+   skill directories, the symlinks, and the plugin.json update
+   together. One commit per adoption keeps `git log` readable.
 
 ## §2 — Local modifications
 

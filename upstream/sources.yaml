@@ -1,0 +1,212 @@
+# Upstream skill repositories tracked by meta/upstream-tracker.
+#
+# Each entry records: the source URL + branch + license + import
+# mappings, and the rev cursors that fetch.py / import.py / review.py
+# maintain. Hand-edit the source + skills[] blocks; never hand-edit
+# the *-rev / last-fetched fields.
+#
+# See meta/upstream-tracker/references/manifest-schema.md for the full
+# schema. Run python3 meta/upstream-tracker/scripts/import.py <id> to
+# adopt a source after editing.
+
+sources:
+  # ── Language-specific umbrellas (umbrella-references merges) ──────────
+  - id: cc-skills-golang
+    repo: https://github.com/samber/cc-skills-golang
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      # Curated topic list — populate once fetch.py shows the upstream
+      # tree. Each entry should specify topic: as the filename stem.
+      []
+
+  - id: trailofbits-skills
+    repo: https://github.com/trailofbits/skills
+    branch: main
+    subpath: .
+    license: AGPL-3.0
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      - upstream: modern-python
+        category: languages
+        name: python
+        target-plugin: jylhis-python
+        merge-strategy: umbrella-references
+        umbrella: python
+        topic: modern-python
+      - upstream: static-analysis
+        category: domains
+        name: security
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: security
+        topic: static-analysis
+      - upstream: semgrep-rule-creator
+        category: engineering
+        name: semgrep
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+
+  - id: trailofbits-skills-curated
+    repo: https://github.com/trailofbits/skills-curated
+    branch: main
+    subpath: .
+    license: AGPL-3.0
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      - upstream: python-code-simplifier
+        category: languages
+        name: python
+        target-plugin: jylhis-python
+        merge-strategy: umbrella-references
+        umbrella: python
+        topic: simplification
+      - upstream: humanizer
+        category: productivity
+        name: humanizer
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: skill-extractor
+        category: misc
+        name: skill-extractor-vendored
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+        # NOTE: skill-extractor as a meta-skill goes under meta/, not
+        # skills/. This entry is a placeholder — manual `git mv` to
+        # meta/skill-extractor/ after import is required. The importer
+        # does not yet route to meta/.
+
+  - id: mattpocock-skills
+    repo: https://github.com/mattpocock/skills
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      # Populate once fetch.py surfaces the per-skill upstream tree.
+      # TypeScript items merge into languages/typescript/references/;
+      # practice items (engineering/<practice>) get separate
+      # standalone entries.
+      []
+
+  - id: openai-skills
+    repo: https://github.com/openai/skills
+    branch: main
+    subpath: skills/.curated
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      - upstream: security-best-practices
+        category: domains
+        name: security
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: security
+        topic: best-practices
+      - upstream: security-ownership-map
+        category: domains
+        name: security
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: security
+        topic: ownership-map
+      - upstream: security-threat-model
+        category: domains
+        name: security
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: security
+        topic: threat-model
+
+  # ── Standalone skills (new plugins) ───────────────────────────────────
+  - id: hashicorp-agent-skills
+    repo: https://github.com/hashicorp/agent-skills
+    branch: main
+    subpath: .
+    license: MPL-2.0
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      # IaC umbrella under domains/. The 4 hashicorp skills land as
+      # references/ under skills/domains/iac/. Populate topic: per
+      # upstream once fetch.py confirms paths.
+      []
+
+  - id: microsoft-azure-skills
+    repo: https://github.com/microsoft/skills
+    branch: main
+    subpath: .github/plugins/azure-skills/skills
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      # Azure umbrella under services/. Populate after fetch.py.
+      []
+
+  - id: microsoft-docs
+    repo: https://github.com/microsoft/skills
+    branch: main
+    subpath: .github/skills
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      - upstream: microsoft-docs
+        category: engineering
+        name: microsoft-docs
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+
+  - id: obsidian-skills
+    repo: https://github.com/kepano/obsidian-skills
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      # Obsidian umbrella under personal/. Populate after fetch.py.
+      []
+
+  - id: grafana-skills
+    repo: https://github.com/grafana/skills
+    branch: main
+    subpath: skills
+    license: AGPL-3.0
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      # Grafana umbrella under services/. Populate after fetch.py.
+      []
+
+  - id: taste-skill
+    repo: https://github.com/Leonxlnx/taste-skill
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: ""
+    reviewed-rev: ""
+    last-fetched: ""
+    skills:
+      - upstream: taste
+        category: domains
+        name: taste
+        target-plugin: jylhis-taste
+        merge-strategy: standalone
