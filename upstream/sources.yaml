@@ -11,27 +11,27 @@ sources:
   - id: trailofbits-skills
     repo: "https://github.com/trailofbits/skills"
     branch: main
-    subpath: .
+    subpath: plugins
     license: AGPL-3.0
-    upstream-rev: ""
-    reviewed-rev: ""
-    last-fetched: ""
+    upstream-rev: a56045e9ae00b3506cacefea0f672aab0a1a6e3c
+    reviewed-rev: a56045e9ae00b3506cacefea0f672aab0a1a6e3c
+    last-fetched: "2026-05-12T11:56:49Z"
     skills:
-      - upstream: modern-python
+      - upstream: modern-python/skills/modern-python
         category: languages
         name: python
         target-plugin: jylhis-python
         merge-strategy: umbrella-references
         umbrella: python
         topic: modern-python
-      - upstream: static-analysis
+      - upstream: static-analysis/skills/codeql
         category: domains
         name: security
         target-plugin: jylhis-skills-core
         merge-strategy: umbrella-references
         umbrella: security
-        topic: static-analysis
-      - upstream: semgrep-rule-creator
+        topic: static-analysis-codeql
+      - upstream: semgrep-rule-creator/skills/semgrep-rule-creator
         category: engineering
         name: semgrep
         target-plugin: jylhis-skills-core

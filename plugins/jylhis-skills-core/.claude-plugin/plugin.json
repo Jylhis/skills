@@ -10,6 +10,7 @@
     "./skills/ast-grep",
     "./skills/microsoft-docs",
     "./skills/offline-docs",
-    "./skills/security"
+    "./skills/security",
+    "./skills/semgrep"
   ]
 }

@@ -45,6 +45,19 @@ VALID_CATEGORIES = {
 VALID_STRATEGIES = {"standalone", "umbrella-references", "replace"}
 
 
+def _upstream_path(subpath: str, upstream_subdir: str) -> str:
+    """Join manifest ``subpath`` + ``upstream`` into a repo-relative path.
+
+    Handles ``subpath: "."`` (repo root) cleanly so the result is just
+    ``<upstream_subdir>`` rather than ``./<upstream_subdir>`` — git
+    archive does not accept the leading ``./`` form.
+    """
+    base = subpath.strip().rstrip("/")
+    if base in ("", "."):
+        return upstream_subdir
+    return f"{base}/{upstream_subdir}"
+
+
 def _reject_symlinks(root: Path, rel_root: str) -> None:
     if root.is_symlink():
         print(f"  refusing to import symlink {rel_root}", file=sys.stderr)
@@ -139,7 +152,7 @@ def _import_standalone(cache: Path, src: dict, mapping: dict,
                        category: str, name: str, sha: str,
                        today: str, force: bool) -> Path:
     upstream_subdir = mapping["upstream"]
-    upstream_full = f"{src['subpath'].rstrip('/')}/{upstream_subdir}".lstrip("/")
+    upstream_full = _upstream_path(src['subpath'], upstream_subdir)
     dest = L.ROOT / "skills" / category / name
     strategy = mapping.get("merge-strategy", "standalone")
 
@@ -186,7 +199,7 @@ def _import_umbrella_reference(cache: Path, src: dict, mapping: dict,
         sys.exit(3)
 
     upstream_subdir = mapping["upstream"]
-    upstream_full = f"{src['subpath'].rstrip('/')}/{upstream_subdir}".lstrip("/")
+    upstream_full = _upstream_path(src['subpath'], upstream_subdir)
     dest_file = umbrella_dir / "references" / f"{topic}.md"
     if dest_file.exists() and not force:
         print(f"  refusing to overwrite {dest_file.relative_to(L.ROOT)} "
