@@ -91,7 +91,11 @@ def _resolve_dest(mapping: dict) -> tuple[str, str]:
         category = mapping["category"]
         name = _require_safe_segment("name", mapping["name"])
     elif "local" in mapping:
-        parts = mapping["local"].split("/")
+        local_val = mapping["local"]
+        if not isinstance(local_val, str):
+            print(f"  invalid local: {local_val!r} (expected string)", file=sys.stderr)
+            sys.exit(3)
+        parts = local_val.split("/")
         if len(parts) != 2:
             print(f"  invalid local: {mapping['local']!r} "
                   f"(expected <category>/<name>)", file=sys.stderr)
