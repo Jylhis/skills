@@ -13,8 +13,10 @@ Grant Azure managed identities database permissions on Azure SQL with Entra auth
 ## Quick Grant
 
 ```bash
-eval $(azd env get-values)
-APP_NAME=$(echo "$SERVICE_API_NAME")  # or SERVICE_WEB_NAME
+while IFS='=' read -r name value; do
+  export "$name=$value"
+done < <(azd env get-values)
+APP_NAME=$SERVICE_API_NAME  # or SERVICE_WEB_NAME
 
 az sql db query \
   --server "$SQL_SERVER" \
@@ -80,7 +82,9 @@ hooks:
 ```bash
 #!/bin/bash
 set -e
-eval $(azd env get-values)
+while IFS='=' read -r name value; do
+  export "$name=$value"
+done < <(azd env get-values)
 
 az sql db query \
   --server "$SQL_SERVER" \
@@ -168,7 +172,9 @@ az sql db query `
 ## Verification
 
 ```bash
-eval $(azd env get-values)
+while IFS='=' read -r name value; do
+  export "$name=$value"
+done < <(azd env get-values)
 APP_NAME=$SERVICE_API_NAME  # or SERVICE_WEB_NAME
 
 az sql db query --server "$SQL_SERVER" --database "$SQL_DATABASE" \
