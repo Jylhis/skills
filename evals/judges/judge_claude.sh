@@ -32,7 +32,7 @@ TRACE="$WORKDIR/judge-trace.jsonl"
     --output-format stream-json \
     --verbose \
     --max-turns 1 \
-    > "$TRACE" 2>"$WORKDIR/stderr.log"
+    < /dev/null > "$TRACE" 2>"$WORKDIR/stderr.log"
 ) || {
   status=$?
   cat "$WORKDIR/stderr.log" >&2
