@@ -1,7 +1,7 @@
 ---
 description: Append a correction note to the improvement-memory JSONL.
 argument-hint: <short note describing the correction>
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.py:*), Bash(date:*), Read
+allowed-tools: Bash(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.py":*), Bash(date:*), Read
 ---
 
 Record a user correction as one schema-v1 entry in the
