@@ -9,6 +9,7 @@
   "skills": [
     "./skills/ast-grep",
     "./skills/caveman",
+    "./skills/commit-stories",
     "./skills/diagnose",
     "./skills/grill-with-docs",
     "./skills/handoff",
