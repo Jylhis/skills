@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: Use for TypeScript 5.9+ on Node 22 LTS — code style (naming, ESM-first, import order, readonly), type system depth (generics, conditional types, infer, narrowing, satisfies, branded types), async (Promise, AbortController, async iterators, structured concurrency), error handling (Error subclassing, Result types, AggregateError), Node patterns (fs/promises, child_process, streams, workers, pino, graceful shutdown), Prettier formatting, ESLint 9 flat config, packaging (pnpm workspaces, exports), and Vitest testing. Read the matching reference before acting.
+description: Use for TypeScript 5.9+ on Node 22 LTS — code style (naming, ESM-first, import order, readonly), type system depth (generics, conditional types, infer, narrowing, satisfies, branded types), async (Promise, AbortController, async iterators, structured concurrency), error handling (Error subclassing, Result types, AggregateError), Node patterns (fs/promises, child_process, streams, workers, pino, graceful shutdown), Zod runtime validation at trust boundaries (safeParse, z.infer, refinements, discriminated unions), Prettier formatting, ESLint 9 flat config, packaging (pnpm workspaces, exports), and Vitest testing. Read the matching reference before acting.
 ---
 
 # TypeScript skill index
@@ -14,6 +14,7 @@ TypeScript / Node.js code.
 | Type system | generics with extends, conditional types, infer, satisfies, branded/opaque types, NoInfer, mapped types | `references/type-system.md` |
 | Async | Promise, async/await, AbortController, Promise.all/allSettled, async iterators, p-limit, AbortSignal.timeout | `references/async.md` |
 | Error handling | Error subclassing with prototype chain, cause, Result/neverthrow, AggregateError, narrowing unknown in catch | `references/error-handling.md` |
+| Zod validation | runtime validation at trust boundaries (HTTP, env, config), `safeParse`, `z.infer`, refinements, discriminated unions, coercion | `references/zod.md` |
 | Node patterns | node:fs/promises, child_process spawn/execFile, streams pipeline, worker_threads, pino logging, graceful shutdown | `references/nodejs-patterns.md` |
 | Formatting (Prettier) | .prettierrc, --check in CI, eslint-config-prettier, husky + lint-staged, Prettier 3 defaults | `references/formatting.md` |
 | Linting (ESLint 9) | flat config (eslint.config.js), tseslint.config helper, typed linting (project: true), ignores, glob overrides | `references/linting.md` |
