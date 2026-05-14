@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-duckdb",
+  "version": "0.1.0",
+  "description": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "duckdb", "ducklake", "sql", "parquet", "data-exploration"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis-duckdb",
+    "shortDescription": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
+    "longDescription": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}
