@@ -127,7 +127,7 @@ jobs:
         emacs_version: ['29.4', '30.1', 'snapshot']
     steps:
       - uses: actions/checkout@v4
-      - uses: purcell/setup-emacs@master
+      - uses: purcell/setup-emacs@<FULL_LENGTH_COMMIT_SHA> # pin to a reviewed commit
         with:
           version: ${{ matrix.emacs_version }}
       - run: |
