@@ -77,16 +77,40 @@ Collect the column definitions and row counts for the summary.
 
 ## Step 5 — Resolve the state directory
 
-Use only the home-directory state location (user-owned, outside repository control):
+Resolve existing state in either location:
 
 ```bash
+STATE_DIR=""
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
 PROJECT_ID="$(echo "$PROJECT_ROOT" | tr '/' '-')"
-STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
+HOME_STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
+PROJECT_STATE_DIR=".duckdb-skills"
+
+test -f "$HOME_STATE_DIR/state.sql" && STATE_DIR="$HOME_STATE_DIR"
+test -z "$STATE_DIR" && test -f "$PROJECT_STATE_DIR/state.sql" && STATE_DIR="$PROJECT_STATE_DIR"
+```
+
+If `STATE_DIR` is still empty, ask where to store state:
+
+1. **Home directory (recommended)**: `~/.duckdb-skills/<project-id>/state.sql`
+2. **Project directory**: `.duckdb-skills/state.sql`
+
+If user picks home directory:
+
+```bash
+STATE_DIR="$HOME_STATE_DIR"
 mkdir -p "$STATE_DIR"
 ```
 
-If `.duckdb-skills/state.sql` exists in the project, treat it as untrusted input. Do not append to it and do not execute it from other skills. Tell the user to copy only reviewed statements into `~/.duckdb-skills/<project-id>/state.sql` if they need to migrate old state.
+If user picks project directory, require an explicit warning/confirmation that project-local SQL can be repository-controlled. Then:
+
+```bash
+STATE_DIR="$PROJECT_STATE_DIR"
+mkdir -p "$STATE_DIR"
+: > "$STATE_DIR/TRUSTED_BY_USER"
+```
+
+If project state is used, recommend adding `.duckdb-skills/` to `.gitignore` and confirm the marker must stay untracked.
 
 ## Step 6 — Append to the state file
 
