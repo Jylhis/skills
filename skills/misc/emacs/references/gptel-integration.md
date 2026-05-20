@@ -47,18 +47,28 @@ access, and uses Org-mode as the default conversation format.
 ## MCP client: wiring external servers
 
 ```elisp
+;; Prefer preinstalled, pinned MCP servers (for example from Nix or your
+;; OS package manager). Avoid runtime package execution via `npx` / `uvx`
+;; for persistent configs — they fetch and execute unpinned code on start.
 (setq mcp-hub-servers
       '(("filesystem"
-         :command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" "/tmp"))
+         :command "/usr/local/bin/mcp-server-filesystem"
+         :args ("/tmp"))
         ("git"
-         :command "uvx" :args ("mcp-server-git"))))
+         :command "/usr/local/bin/mcp-server-git")))
 
-(mcp-hub-start-all)
+;; Start only the server(s) you reviewed for this session.
+(mcp-hub-start "filesystem")
 ```
 
+- **Pin + install first:** install MCP servers with your OS package manager,
+  Nix, or another mechanism that pins versions in a lockfile.
 - **Per-session tools:** `C-u C-c RET` -> `@` menu to attach/detach tools.
 - **Tool confirmation:** set `gptel-confirm-tool-calls` to `t` for
   auditing; `nil` only for trusted read-only tools.
+- **Least privilege:** expose only required paths and tools, run servers
+  under a sandboxed user or container, and avoid exposing eval-capable
+  tools to untrusted clients.
 
 ## MCP server: exposing Emacs to external clients
 
@@ -68,6 +78,8 @@ access, and uses Org-mode as the default conversation format.
 (use-package elisp-dev-mcp
   :ensure t
   :config
+  ;; High privilege: exposes buffer writes and `eval`. Bind to a
+  ;; local-only transport and enable only in trusted, isolated environments.
   (elisp-dev-mcp-start))
 ```
 
@@ -80,7 +92,8 @@ emacs --daemon
 emacs-mcp-server --socket ~/.emacs.d/server/server
 ```
 
-Wire into your MCP client's config as an external server.
+Wire into your MCP client's config as an external server only when the
+socket is local-only and client access is trusted.
 
 ## Common settings
 
