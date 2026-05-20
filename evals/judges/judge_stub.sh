@@ -21,7 +21,7 @@ WORKDIR="${EVAL_WORKDIR:-$(mktemp -d -t judge-stub-XXXXXX)}"
 mkdir -p "$WORKDIR"
 
 EVAL_SUITE="${EVAL_SUITE:?EVAL_SUITE env var required}"
-EVAL_JUDGE_PROVIDER="${EVAL_JUDGE_PROVIDER:-gemini}"
+EVAL_JUDGE_PROVIDER="${EVAL_JUDGE_PROVIDER:-stub}"
 EVAL_MODEL_SNAPSHOT="${EVAL_MODEL_SNAPSHOT:-default}"
 
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"

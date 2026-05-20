@@ -49,7 +49,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EVALS_DIR = REPO_ROOT / "evals"
 GENERATED_DIR = EVALS_DIR / ".generated"
 
-ALL_PROVIDERS = ["claude", "codex", "gemini", "pi"]
+ALL_PROVIDERS = ["claude", "codex", "antigravity", "pi"]
 
 
 def default_providers(case: dict) -> list[str]:
@@ -151,11 +151,11 @@ def _latency_assert(a: dict) -> list[dict]:
     return [{"type": "latency", "threshold": a["max_latency_ms"]}]
 
 
-def _rubric_assert(case: dict, suite: str, judge: str,
+def _rubric_assert(case: dict, suite: str, judge: str | None,
                     stub_judge_flag: bool, no_rubric: bool) -> list[dict]:
     a = case.get("assert") or {}
     rubric = a.get("rubric")
-    if not rubric or no_rubric:
+    if not rubric or no_rubric or judge is None:
         return []
     rubric_path = resolve_suite_dir(suite) / "rubric.md"
     rubric_text = rubric_path.read_text(encoding="utf-8") if rubric_path.exists() else ""
@@ -171,7 +171,7 @@ def _rubric_assert(case: dict, suite: str, judge: str,
     }]
 
 
-def build_assertions(case: dict, suite: str, judge: str,
+def build_assertions(case: dict, suite: str, judge: str | None,
                       stub_judge_flag: bool = False,
                       no_rubric: bool = False) -> list[dict]:
     a = case.get("assert") or {}
@@ -230,7 +230,7 @@ def _provider_label(name: str, stub_sut: bool,
     return provider_id(name)
 
 
-def _make_test(case: dict, provider: str, suite: str, judge: str,
+def _make_test(case: dict, provider: str, suite: str, judge: str | None,
                 stub_sut: bool, stub_judge_flag: bool, no_rubric: bool) -> dict:
     test_assert = build_assertions(case, suite, judge,
                                     stub_judge_flag=stub_judge_flag,
@@ -284,7 +284,7 @@ def _live_provider_block(cases: list[dict]) -> list[str]:
     })
 
 
-def expand_suite(suite: str, judge: str = "gemini",
+def expand_suite(suite: str, judge: str | None = None,
                  stub_sut: bool = False, stub_judge_flag: bool = False,
                  no_rubric: bool = False) -> Path:
     cases_path = resolve_suite_dir(suite) / "cases.yaml"
@@ -329,8 +329,9 @@ def expand_suite(suite: str, judge: str = "gemini",
 def main() -> int:
     parser = argparse.ArgumentParser(prog="expand.py")
     parser.add_argument("suite", help="suite name under evals/suites/")
-    parser.add_argument("--judge", default="gemini",
-                        help="judge wrapper name for g-eval assertions")
+    parser.add_argument("--judge", default=None,
+                        help="judge wrapper name for g-eval assertions "
+                             "(omit to skip rubric assertions entirely)")
     parser.add_argument("--stub-sut", action="store_true",
                         help="rewrite SUT providers to run_stub.sh "
                              "(per-test EVAL_PROVIDER carries the original)")

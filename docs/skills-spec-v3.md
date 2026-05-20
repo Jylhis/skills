@@ -4,6 +4,17 @@
 > architecture the repo is growing toward. Several paths it references
 > (e.g. `flake.nix`, `failure-log/`, `docs/operator-guide.md`) do not yet
 > exist on disk. See `AGENTS.md` for the current implemented layout.
+>
+> **Antigravity migration note (2026-05-20).** Gemini CLI has been
+> replaced by Google Antigravity as this marketplace's third target.
+> Antigravity discovers skills via flat directory scan at
+> `~/.gemini/antigravity/skills/<name>/` and has no equivalent of
+> Gemini CLI's `gemini-extension.json` manifest, `GEMINI.md` context
+> file, TOML custom commands, or hook system. Sections below that
+> describe those Gemini-only mechanisms are retained as historical
+> design context — they no longer reflect any shipped per-plugin
+> file in this repo. Wherever the doc reads "Gemini" or "Gemini CLI"
+> as a generic target name, read "Antigravity".
 
 This version incorporates the latest adversarial review. The main change is that the repository spec is now explicitly separated from an engineering operating model.
 
@@ -58,7 +69,7 @@ The repository must support:
 ```text
 Claude Code
 OpenAI Codex
-Gemini CLI
+Google Antigravity
 ```
 
 It must support:
@@ -78,7 +89,7 @@ operator guidance for day-to-day use
 
 It must not claim identical behavior across tools.
 
-It must not encode Claude-only, Gemini-only, or Codex-only behavior in portable skills.
+It must not encode Claude-only, Antigravity-only, or Codex-only behavior in portable skills.
 
 ## 3. Non-goals
 
@@ -820,7 +831,7 @@ Evaluation levels:
 Level 0: Human review of SKILL.md
 Level 1: Static lint and frontmatter validation
 Level 2: Fixture-based prompt tests
-Level 3: Target smoke tests in Claude, Codex, and Gemini
+Level 3: Target smoke tests in Claude, Codex, and Antigravity
 Level 4: Regression suite from historical failures
 Level 5: External benchmark integration if needed
 ```
@@ -1503,7 +1514,7 @@ Only automate the pain observed in this manual spike.
 ## 25. Implementation order
 
 ```text
-1. Hand-author engineering-workflows for Claude, Codex, Gemini.
+1. Hand-author engineering-workflows for Claude, Codex, Antigravity.
 2. Install and smoke-test all three.
 3. Add strict portable skill lint.
 4. Add target-specific skill fork support.
@@ -1580,9 +1591,6 @@ Rejected:
 - Codex skills: https://developers.openai.com/codex/skills
 - Codex subagents: https://developers.openai.com/codex/subagents
 - Codex AGENTS.md: https://developers.openai.com/codex/guides/agents-md
-- Gemini CLI extensions: https://google-gemini.github.io/gemini-cli/docs/extensions/
-- Gemini CLI extension reference: https://geminicli.com/docs/extensions/reference/
-- Gemini CLI custom commands: https://google-gemini.github.io/gemini-cli/docs/cli/custom-commands.html
-- Gemini CLI context files: https://geminicli.com/docs/cli/gemini-md/
-- Gemini CLI hooks reference: https://geminicli.com/docs/hooks/reference/
-- Gemini CLI subagents announcement: https://developers.googleblog.com/subagents-have-arrived-in-gemini-cli/
+- Google Antigravity (IDE + CLI + SDK): https://antigravity.google
+- Antigravity documentation: https://antigravity.google/docs
+- Antigravity skills authoring (codelab): https://codelabs.developers.google.com/getting-started-with-antigravity-skills
