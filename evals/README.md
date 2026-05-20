@@ -1,10 +1,10 @@
 # Skill evaluations
 
 Offline, no-API-key evaluation harness for the `jylhis-skills` catalogue.
-Drives the four agent-skill CLIs (Claude Code, Codex, Gemini CLI, and
-`pi-coding-agent`) through `promptfoo` `exec:` providers, with
-deterministic assertions as the merge gate and an LLM-as-a-judge layer
-for rubric-style checks. See `docs/skills-spec-v3.md` §10 for the
+Drives the four agent-skill CLIs (Claude Code, Codex, Google Antigravity,
+and `pi-coding-agent`) through `promptfoo` `exec:` providers, with
+deterministic assertions as the merge gate and an optional LLM-as-a-judge
+layer for rubric-style checks. See `docs/skills-spec-v3.md` §10 for the
 overall design and `cases.yaml` schema; see this README for how to
 actually run anything.
 
@@ -14,7 +14,7 @@ actually run anything.
 | --- | --- | --- |
 | Claude Code | OAuth from `claude login` (kept in keychain) | `claude -p` |
 | Codex CLI | `~/.codex/auth.json` from `codex login` | `codex exec --json` |
-| Gemini CLI | `~/.gemini/oauth_creds.json` (free Code Assist tier) | `gemini -p` |
+| Antigravity | `~/.gemini/oauth_creds.json` (Google account; Antigravity reuses the Gemini auth path) | `antigravity -p` (verify against https://antigravity.google docs) |
 | Pi (`pi-coding-agent`) | `pi login` against existing Claude Pro / ChatGPT / Copilot subscription | `pi -p` |
 
 `pi` here means `@earendil-works/pi-coding-agent`
@@ -30,13 +30,14 @@ before you run live evals. The harness itself never sees an API key.
 # CLIs (npm-global; not bundled in devenv because each needs user auth)
 npm i -g @anthropic-ai/claude-code
 npm i -g @openai/codex
-npm i -g @google/gemini-cli
 npm i -g @earendil-works/pi-coding-agent
+# Antigravity: install per https://antigravity.google (CLI install vector
+# is npm/brew/curl depending on platform; confirm against current docs)
 
 # Then log each one in once:
-claude   # OAuth in browser
+claude        # OAuth in browser
 codex login
-gemini   # OAuth in browser
+antigravity   # OAuth in browser (Google account)
 pi login
 ```
 
@@ -61,8 +62,8 @@ This harness covers spec-v3 §10 levels 2–3:
 
 ```sh
 just eval-stub      # CI-safe: stubbed SUT + stubbed judge, replays from golden/
-just eval           # Live: real Claude SUT + live Gemini judge
-just eval-judge     # Half-live: stubbed SUT, live Gemini judge (rubric tuning)
+just eval           # Live: real Claude SUT, deterministic asserts only
+just eval-judge     # Half-live: stubbed SUT, live judge (rubric tuning; opt-in via judge=…)
 just eval-record    # Record fresh goldens against a real CLI
 ```
 
@@ -76,7 +77,7 @@ expand.py ─► .generated/<suite>.yaml ─► [exec: providers] ─► result
                                             │
                                             ├── run_claude.sh
                                             ├── run_codex.sh
-                                            ├── run_gemini.sh
+                                            ├── run_antigravity.sh
                                             ├── run_pi.sh
                                             └── run_stub.sh   (cassette replay)
                                                         ▲
@@ -101,7 +102,8 @@ expand.py ─► .generated/<suite>.yaml ─► [exec: providers] ─► result
 
 Trigger-accuracy metrics are reported **per provider only** and never
 aggregated. Doc 2 §6 anti-pattern: Claude has an explicit `Skill` tool
-event, Gemini has `activate_skill`, Codex infers triggering
+event, Antigravity emits an `activate_skill` tool event (inherited from
+the Gemini CLI ergonomics it grew out of), Codex infers triggering
 heuristically from `command_execution`, and Pi inlines into the system
 prompt. These are different denominators.
 
@@ -152,7 +154,7 @@ just eval-stub suite=<name> # deterministic asserts + stubbed SUT
 Judged runs are opt-in:
 
 ```
-just eval-judged suite=<name> judge=gemini   # live four-CLI matrix
-just eval-one suite=<name> provider=claude judge=gemini
-just eval-judge suite=<name> judge=gemini    # tune the rubric only
+just eval-judged suite=<name> judge=antigravity   # live four-CLI matrix
+just eval-one suite=<name> provider=claude judge=antigravity
+just eval-judge suite=<name> judge=antigravity    # tune the rubric only
 ```

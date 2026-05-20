@@ -1,14 +1,16 @@
 # AGENTS.md
 
 Always-loaded project context for AI coding agents (Claude Code, Codex,
-Gemini CLI, etc.). Tool-specific wrappers (`CLAUDE.md`, `GEMINI.md`)
-extend this file via their respective import mechanisms.
+Google Antigravity, etc.). The tool-specific wrapper `CLAUDE.md` extends
+this file via Claude Code's import mechanism. Antigravity discovers
+skills directly from `~/.gemini/antigravity/skills/<name>/` and has no
+project-context-file equivalent.
 
 ## What this repo is
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis
 that publishes one default plugin and several opt-in plugins to Claude Code,
-Gemini CLI, and Codex. The default plugin (`jylhis-skills-core`) ships
+Codex, and Google Antigravity. The default plugin (`jylhis-skills-core`) ships
 cross-cutting engineering and productivity skills (security, ast-grep,
 offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
@@ -35,10 +37,12 @@ only when the user opts in. See `docs/install.md` for install instructions.
   are NEVER moved out of this tree.
 - `plugins/<plugin-name>/` — one directory per published plugin, each
   containing its own `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
-  `gemini-extension.json`, and a `skills/` directory of symlinks pointing
-  back into `skills/<category>/<name>`. The default plugin
-  `plugins/jylhis-skills-core/` additionally ships `agents/`, `commands/`,
-  and `GEMINI.md`. Language plugins ship their own per-language `.lsp.json`
+  and a `skills/` directory of symlinks pointing back into
+  `skills/<category>/<name>`. The default plugin
+  `plugins/jylhis-skills-core/` additionally ships `agents/` and
+  `commands/`. Antigravity reads the per-skill symlinks directly from
+  `~/.gemini/antigravity/skills/` (set up by `scripts/install.sh`), so
+  no per-plugin manifest is needed for it. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
 - `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
@@ -118,7 +122,7 @@ tool plugin from the same marketplace:
 |-------------|------------------------------------------------------------------------|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills`                          |
 | Codex       | `codex plugin install jylhis-python@jylhis-skills` (then enable in `~/.codex/config.toml`) |
-| Gemini CLI  | `ln -s <repo>/plugins/jylhis-python ~/.gemini/extensions/jylhis-python` |
+| Antigravity | `for s in <repo>/plugins/jylhis-python/skills/*; do ln -s "$s" ~/.gemini/antigravity/skills/$(basename "$s"); done` |
 
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
@@ -135,8 +139,9 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 
 Claude-only plugin artefacts ship inside per-plugin directories, not at the
 repo root. Codex's recursive scan stays scoped to each plugin's local
-`./skills/` and Gemini's extension only declares `contextFileName`, so
-these files are inert in the other tools — no separate exclusion is needed.
+`./skills/`, and Antigravity reads only its own `~/.gemini/antigravity/skills/`
+tree, so these files are inert in the other tools — no separate exclusion is
+needed.
 
 - `plugins/jylhis-<lang>/.lsp.json` — native LSP plugin format (Claude
   Code spawns each entry on demand for matching file extensions). One file
@@ -170,8 +175,8 @@ Claude-only files do not need to be excluded explicitly.
 
 - The repo root is the **marketplace**, not a plugin. The default plugin is
   `plugins/jylhis-skills-core/`; opt-in plugins are siblings under `plugins/`.
-- Each `plugins/<name>/` directory contains its own `.claude-plugin/plugin.json`,
-  `.codex-plugin/plugin.json`, and `gemini-extension.json`. Skills are not
+- Each `plugins/<name>/` directory contains its own `.claude-plugin/plugin.json`
+  and `.codex-plugin/plugin.json`. Skills are not
   copied — each plugin has a `skills/` directory of symlinks pointing into
   the canonical `skills/<category>/<name>/` source tree.
 - Skills are two levels deep on disk: `skills/<category>/<name>/SKILL.md`.

@@ -71,7 +71,7 @@ SYNTHETIC_TRIGGERED = {
 FAMILY_BY_PROVIDER = {
     "claude": "anthropic",
     "codex": "openai",
-    "gemini": "google",
+    "antigravity": "google",
     "pi": "unknown",
 }
 
@@ -109,7 +109,7 @@ def seed(suite: str) -> int:
         # Always seed all four providers so the promptfoo matrix has a
         # cassette for every cell.  The cases.yaml ``providers`` field is
         # a recording hint, not a matrix restriction.
-        providers = ["claude", "codex", "gemini", "pi"]
+        providers = ["claude", "codex", "antigravity", "pi"]
 
         for p in providers:
             key = compute_key(p, prompt, "default", None)

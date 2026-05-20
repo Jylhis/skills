@@ -98,10 +98,10 @@ Procedure:
 
 4. **Ensure the target plugin exists.** If `target-plugin:` names a
    plugin not yet under `plugins/`, create the directory first with
-   `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
-   `gemini-extension.json`, and an empty `skills/` directory, and add
-   it to `.claude-plugin/marketplace.json` +
-   `.agents/plugins/marketplace.json`.
+   `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and an
+   empty `skills/` directory, and add it to
+   `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`.
+   (Antigravity needs no per-plugin manifest.)
 
 5. **Run the import:**
    ```bash
