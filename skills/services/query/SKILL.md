@@ -16,17 +16,35 @@ Follow these steps in order.
 
 ## Step 1 — Resolve state and determine the mode
 
-Look for an existing state file in either location:
+Resolve state in this order:
+
+1. Prefer the **user-owned** home state file (`~/.duckdb-skills/<project-id>/state.sql`).
+2. Only if no home state exists, consider project-local `.duckdb-skills/state.sql` as **untrusted by default**.
 
 ```bash
 STATE_DIR=""
-test -f .duckdb-skills/state.sql && STATE_DIR=".duckdb-skills"
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
 PROJECT_ID="$(echo "$PROJECT_ROOT" | tr '/' '-')"
-test -f "$HOME/.duckdb-skills/$PROJECT_ID/state.sql" && STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
+HOME_STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
+PROJECT_STATE_DIR=".duckdb-skills"
+
+test -f "$HOME_STATE_DIR/state.sql" && STATE_DIR="$HOME_STATE_DIR"
 ```
 
-If found, verify the databases it references are still accessible:
+If no home state exists but `.duckdb-skills/state.sql` exists, do **not** auto-execute it.
+Require explicit user confirmation before one-off execution, and only proceed when both checks pass:
+
+```bash
+# Trust marker must exist
+test -f "$PROJECT_STATE_DIR/TRUSTED_BY_USER"
+
+# Marker must be local-only (not tracked in git)
+! git ls-files --error-unmatch "$PROJECT_STATE_DIR/TRUSTED_BY_USER" >/dev/null 2>&1
+```
+
+If either check fails, refuse to execute project-local state and ask the user to migrate reviewed statements into `~/.duckdb-skills/<project-id>/state.sql` using `/duckdb-skills:attach-db`.
+
+If a selected state file is found, verify the databases it references are still accessible:
 
 ```bash
 duckdb -init "$STATE_DIR/state.sql" -c "SHOW DATABASES;"

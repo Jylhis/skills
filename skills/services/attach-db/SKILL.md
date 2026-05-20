@@ -77,44 +77,40 @@ Collect the column definitions and row counts for the summary.
 
 ## Step 5 — Resolve the state directory
 
-Check if a state file already exists in either location:
+Resolve existing state in either location:
 
 ```bash
-# Option 1: in the project directory
-test -f .duckdb-skills/state.sql && STATE_DIR=".duckdb-skills"
-
-# Option 2: in the home directory, scoped by project root path
+STATE_DIR=""
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
 PROJECT_ID="$(echo "$PROJECT_ROOT" | tr '/' '-')"
-test -f "$HOME/.duckdb-skills/$PROJECT_ID/state.sql" && STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
+HOME_STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
+PROJECT_STATE_DIR=".duckdb-skills"
+
+test -f "$HOME_STATE_DIR/state.sql" && STATE_DIR="$HOME_STATE_DIR"
+test -z "$STATE_DIR" && test -f "$PROJECT_STATE_DIR/state.sql" && STATE_DIR="$PROJECT_STATE_DIR"
 ```
 
-If **neither exists**, ask the user:
+If `STATE_DIR` is still empty, ask where to store state:
 
-> Where would you like to store the DuckDB session state for this project?
->
-> 1. **In the project directory** (`.duckdb-skills/state.sql`) — colocated with the project, easy to find. You can choose to gitignore it.
-> 2. **In your home directory** (`~/.duckdb-skills/<project-id>/state.sql`) — keeps the project directory clean.
+1. **Home directory (recommended)**: `~/.duckdb-skills/<project-id>/state.sql`
+2. **Project directory**: `.duckdb-skills/state.sql`
 
-Based on their choice:
+If user picks home directory:
 
-**Option 1:**
 ```bash
-STATE_DIR=".duckdb-skills"
+STATE_DIR="$HOME_STATE_DIR"
 mkdir -p "$STATE_DIR"
 ```
-Then ask: *"Would you like to gitignore `.duckdb-skills/`?"* If yes:
+
+If user picks project directory, require an explicit warning/confirmation that project-local SQL can be repository-controlled. Then:
+
 ```bash
-echo '.duckdb-skills/' >> .gitignore
+STATE_DIR="$PROJECT_STATE_DIR"
+mkdir -p "$STATE_DIR"
+: > "$STATE_DIR/TRUSTED_BY_USER"
 ```
 
-**Option 2:**
-```bash
-PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
-PROJECT_ID="$(echo "$PROJECT_ROOT" | tr '/' '-')"
-STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
-mkdir -p "$STATE_DIR"
-```
+If project state is used, recommend adding `.duckdb-skills/` to `.gitignore` and confirm the marker must stay untracked.
 
 ## Step 6 — Append to the state file
 
