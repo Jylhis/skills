@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a problem with a skill, plugin, script, or workflow.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Steps, commands, or prompt that reproduce the issue.
+    validations:
+      required: true
+  - type: input
+    id: path
+    attributes:
+      label: Affected path
+      placeholder: skills/engineering/example/SKILL.md
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Tool, OS, shell, and relevant version information.
