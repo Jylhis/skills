@@ -56,6 +56,40 @@ marketplace and enables `jylhis-skills-core@jylhis-skills` in
 `~/.codex/config.toml`. Older raw symlinks at `~/.codex/plugins/jylhis-skills`
 and the pre-split monolithic plugin install are migrated aside on first run.
 
+## Nix users
+
+This repo also ships a `flake.nix` with a custom `aiTooling` output that exposes
+every skill, agent, slash command, MCP server, LSP server, and plugin as a
+structured Nix attribute. Downstream NixOS / home-manager / devenv configs can
+consume the catalogue directly instead of running `scripts/install.sh`.
+
+```bash
+nix run github:Jylhis/skills#install                   # = bash scripts/install.sh
+nix run github:Jylhis/skills#list                      # dump the catalogue as JSON
+nix run github:Jylhis/skills#list -- --kind skills     # filter by kind
+nix run github:Jylhis/skills#show -- ast-grep          # one artefact
+nix run github:Jylhis/skills#show -- --kind lspServers python
+```
+
+From a flake consumer:
+
+```nix
+inputs.jylhis-skills.url = "github:Jylhis/skills";
+
+# anywhere a path is accepted:
+home.file.".claude/plugins/jylhis-python".source =
+  inputs.jylhis-skills.aiTooling.${system}.plugins.jylhis-python.path;
+```
+
+Catalogue shape per kind: `{ skills, agents, commands, lspServers, mcpServers, plugins }`.
+Each entry carries `{ type, name, description, path, frontmatter }` plus
+kind-specific fields (skills add `category`, lspServers add `command`/`args`/
+`packageName`, plugins add `version` and reference-back lists into the other
+kinds). The MCP slot is reserved and currently empty.
+
+The bash installer remains the supported on-ramp for users without Nix; the
+flake is additive.
+
 ## Opt-in plugins
 
 The marketplace publishes these language and tool plugins; none are installed

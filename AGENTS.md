@@ -45,6 +45,13 @@ only when the user opts in. See `docs/install.md` for install instructions.
   no per-plugin manifest is needed for it. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
+- `flake.nix` + `nix/` — custom `aiTooling.<system>` flake output that
+  exposes every skill, agent, slash command, MCP server, LSP server, and
+  plugin as a structured Nix attribute, plus CLI packages (`skills-list`,
+  `skills-show`, `skills-install`) reachable via `nix run .#list / .#show
+  / .#install`. `nix/catalogue.nix` walks the canonical `skills/` and
+  `plugins/` trees at flake-eval time (IFD via `yq-go` for SKILL.md YAML
+  frontmatter). See `docs/install.md` for downstream consumption.
 - `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
   `upstream-tracker`, `using-skills`, `skill-extractor`). **Not** shipped
   via any plugin and not auto-loaded by any tool; only relevant when
