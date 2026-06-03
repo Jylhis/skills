@@ -72,15 +72,30 @@ pnpm dedupe                    # collapse duplicates
 ## Prototype pollution
 
 `Object.assign({}, userInput)` and `lodash.merge` can walk prototype
-chains if `__proto__` is set. Use:
+chains if `__proto__` is set.
 
 ```ts
-const safe = structuredClone(userInput);
-// or
-Object.assign(Object.create(null), userInput);
+const blocked = new Set(['__proto__', 'prototype', 'constructor']);
+
+function stripDangerousKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stripDangerousKeys);
+  if (value && typeof value === 'object') {
+    const out = Object.create(null) as Record<string, unknown>;
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (!blocked.has(k)) out[k] = stripDangerousKeys(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+const safe = stripDangerousKeys(userInput);
 ```
 
-Validate with Zod before merging — it strips unknown keys by default.
+`structuredClone` and `JSON.parse(JSON.stringify(...))` are cloning
+operations, not sanitizers, and can preserve attacker-controlled keys.
+Validate with Zod (or equivalent) against the exact expected shape
+before any merge.
 
 ## Cookies and sessions
 
