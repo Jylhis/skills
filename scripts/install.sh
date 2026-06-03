@@ -122,6 +122,7 @@ fi
 
 KNOWN="$CLAUDE_DIR/plugins/known_marketplaces.json"
 INSTALLED="$CLAUDE_DIR/plugins/installed_plugins.json"
+EXPECTED_MARKETPLACE_SOURCE="$REPO_ROOT"
 
 # --scope user writes enabledPlugins to ~/.claude/settings.json. If that
 # file is owned by home-manager / read-only, fall back to --scope project,
@@ -137,10 +138,44 @@ if [[ -z "$SCOPE" ]]; then
 fi
 
 if command -v claude >/dev/null 2>&1; then
-  if ! grep -q '"jylhis-skills"' "$KNOWN" 2>/dev/null; then
+  KNOWN_SOURCE="$(
+    python3 - "$KNOWN" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+except Exception:
+    print("")
+    raise SystemExit(0)
+
+if isinstance(data, dict):
+    entries = data.get("marketplaces", [])
+else:
+    entries = data
+
+if not isinstance(entries, list):
+    print("")
+    raise SystemExit(0)
+
+for entry in entries:
+    if isinstance(entry, dict) and entry.get("name") == "jylhis-skills":
+        print(entry.get("source", ""))
+        raise SystemExit(0)
+
+print("")
+PY
+  )"
+
+  if [[ -z "$KNOWN_SOURCE" ]]; then
     run claude plugin marketplace add "$REPO_ROOT" --scope user
+  elif [[ "$KNOWN_SOURCE" != "$EXPECTED_MARKETPLACE_SOURCE" ]]; then
+    echo "error: marketplace jylhis-skills already exists with source: $KNOWN_SOURCE"
+    echo "expected source: $EXPECTED_MARKETPLACE_SOURCE"
+    echo "refusing to install from ambiguous marketplace entry"
+    exit 1
   else
-    echo "skip marketplace add (jylhis-skills already in $KNOWN)"
+    echo "skip marketplace add (jylhis-skills already points to $EXPECTED_MARKETPLACE_SOURCE)"
   fi
   if ! grep -q '"jylhis-skills@jylhis-skills"' "$INSTALLED" 2>/dev/null; then
     run claude plugin install jylhis-skills@jylhis-skills --scope "$SCOPE"
