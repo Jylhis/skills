@@ -70,7 +70,7 @@ If not, split. If two commits would have the same subject, squash. Exploratory c
 
 Commits are the daily journal. Tags are the chapter markers.
 
-- Use file/HEREDOC input for tag text (for example: `git tag -a v1.2.0 -F tag-message.txt`) for releases, deprecation boundaries, and breaking-change points.
+- Use file/HEREDOC input for tag text via a temp file in a trusted temp dir (for example: `tag_message="$(mktemp)"`, `cat > "$tag_message" <<'EOF' ... EOF`, `git tag -a v1.2.0 -F "$tag_message"`, `rm -f "$tag_message"`).
 - Annotated tags (`-a`) only — they carry a message and author. Lightweight tags are silent.
 - Don't try to make a commit subject carry the weight of a release note. That's what the tag's message and the changelog are for.
 
@@ -79,10 +79,12 @@ Commits are the daily journal. Tags are the chapter markers.
 Once a commit is published, the message is frozen. New context that surfaces later — review feedback that didn't make it in, a postmortem link, perf numbers from staging — goes in a git note, not a rewrite.
 
 ```
-cat > note-message.txt <<'EOF'
+note_message="$(mktemp)"
+cat > "$note_message" <<'EOF'
 Reverted in <sha>; root cause was config drift, not this commit.
 EOF
-git notes add -F note-message.txt <sha>
+git notes add -F "$note_message" <sha>
+rm -f "$note_message"
 git notes show <sha>
 ```
 
