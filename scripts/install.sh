@@ -362,31 +362,42 @@ if [[ -d "$GEMINI_EXT_DIR" ]]; then
   done
 fi
 
-# For each entry under plugins/<plugin>/skills/, resolve the symlink target
-# to its canonical absolute path and link it into Antigravity's skills dir.
+# Install Antigravity skills from the plugin's validated Claude manifest.
+# This avoids trusting a flat scan of plugins/<plugin>/skills, which could
+# include unmanifested local directories.
 install_antigravity_skills_from_plugin() {
-  local plugin_dir="$REPO_ROOT/plugins/$1"
-  [[ -d "$plugin_dir/skills" ]] || return 0
-  local entry name raw_target target
-  for entry in "$plugin_dir/skills"/*; do
-    [[ -L "$entry" || -d "$entry" ]] || continue
-    name="$(basename "$entry")"
-    if [[ -L "$entry" ]]; then
-      # readlink (no -f) returns the symlink's literal target. Resolve
-      # relative targets to absolute paths without GNU readlink -f
-      # (macOS-safe).
-      raw_target="$(readlink "$entry")"
-      if [[ "$raw_target" = /* ]]; then
-        target="$raw_target"
-      else
-        target="$(cd "$(dirname "$entry")" && cd "$(dirname "$raw_target")" \
-          && pwd)/$(basename "$raw_target")"
-      fi
-    else
-      target="$entry"
-    fi
+  local plugin="$1"
+  local plugin_dir="$REPO_ROOT/plugins/$plugin"
+  local manifest="$plugin_dir/.claude-plugin/plugin.json"
+  [[ -f "$manifest" ]] || return 0
+
+  local name target
+  while IFS=$'\t' read -r name target; do
+    [[ -n "$name" && -n "$target" ]] || continue
     link "$target" "$ANTIGRAVITY_DIR/skills/$name"
-  done
+  done < <(
+    python3 - "$REPO_ROOT" "$manifest" <<'PY'
+import json
+import pathlib
+import sys
+
+repo = pathlib.Path(sys.argv[1]).resolve()
+manifest = pathlib.Path(sys.argv[2]).resolve()
+plugin_dir = manifest.parent.parent
+skills_root = (repo / "skills").resolve()
+
+data = json.loads(manifest.read_text(encoding="utf-8"))
+for raw in data.get("skills", []):
+    path = (manifest.parent / raw).resolve()
+    try:
+        path.relative_to(skills_root)
+    except ValueError:
+        continue
+    if not (path.is_dir() and (path / "SKILL.md").is_file()):
+        continue
+    print(f"{path.name}\t{path}")
+PY
+  )
 }
 
 install_antigravity_skills_from_plugin "$DEFAULT_PLUGIN"
