@@ -35,6 +35,7 @@ OPTIN_PLUGINS=(
   jylhis-obsidian
   jylhis-grafana
   jylhis-taste
+  jylhis-reverse-engineering
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 

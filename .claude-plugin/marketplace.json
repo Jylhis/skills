@@ -92,6 +92,12 @@
       "source": "./plugins/jylhis-duckdb",
       "description": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
       "category": "Coding"
+    },
+    {
+      "name": "jylhis-reverse-engineering",
+      "source": "./plugins/jylhis-reverse-engineering",
+      "description": "Binary reverse engineering — triage, disassembly/decompilation, ELF/PE/Mach-O, static & dynamic analysis (radare2/rizin, Ghidra, gdb, Frida, binwalk), CTF, malware safety, MCP-assisted RE.",
+      "category": "Coding"
     }
   ]
 }

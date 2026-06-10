@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-reverse-engineering",
+  "version": "1.0.0",
+  "description": "Binary reverse-engineering skill — disassembly, decompilation, dynamic analysis, malware safety, MCP-assisted RE.",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "keywords": ["agent-skills", "codex", "reverse-engineering", "ghidra", "radare2", "frida", "malware-analysis"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Jylhis Reverse Engineering",
+    "shortDescription": "Binary RE skill — Ghidra / radare2 / Frida",
+    "longDescription": "Binary reverse engineering — triage, disassembly and decompilation, ELF/PE/Mach-O internals, static and dynamic analysis with radare2/rizin, Ghidra headless, gdb/pwndbg, Frida and binwalk, CTF crackmes, and malware-analysis safety. Includes AI-assisted RE via MCP servers (GhidraMCP, radare2-mcp, frida-mcp, CutterMCP).",
+    "developerName": "Jylhis",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/Jylhis/skills"
+  }
+}
