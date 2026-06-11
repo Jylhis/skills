@@ -48,15 +48,15 @@ ELAPSED=$(( $(millis_now) - START ))
 
 # Final assistant text comes from the last `result` event, falling back
 # to concatenated `assistant.content[].text` if `result` is absent.
-TEXT="$(jq -r '
-  select(.type == "result") | .result
-' "$TRACE_FILE" | tail -n1)"
+TEXT="$(jq -rs '
+  map(select(.type == "result")) | last | (.result // empty)
+' "$TRACE_FILE")"
 
 if [[ -z "$TEXT" ]]; then
   TEXT="$(jq -r '
     select(.type == "assistant") | .message.content[]?
     | select(.type == "text") | .text
-  ' "$TRACE_FILE" | paste -sd '\n' -)"
+  ' "$TRACE_FILE")"
 fi
 
 # Triggered skill: any `tool_use` with name=="Skill" exposes the skill

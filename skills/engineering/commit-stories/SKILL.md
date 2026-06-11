@@ -64,7 +64,7 @@ The 50–500-line range is a common rhythm, not a rule. The real test:
 
 > Can you write a single honest subject for everything in this commit?
 
-If not, split. If two commits would have the same subject, squash. Exploratory commits ("typo", "try harder", "fix fix") get squashed into the decision commit **before** you push — `git rebase -i`, or `git commit --fixup=<sha>` while working and `git rebase --autosquash` at the end.
+If not, split. If two commits would have the same subject, squash. Exploratory commits ("typo", "try harder", "fix fix") get squashed into the decision commit **before** you push — mark each with `git commit --fixup=<sha>` while working, then fold them in non-interactively at the end with `git -c sequence.editor=: rebase --autosquash <base>` (`GIT_SEQUENCE_EDITOR=:` works too).
 
 ## Step 5 — Milestones use tags, not commits
 
@@ -104,12 +104,12 @@ Hand it to a teammate cold (or imagine doing so). Can they tell:
 - Which commit is the core change vs. setup vs. cleanup?
 - Where the hard part was?
 
-If not, fix it before review:
+If not, fix it before review (interactive rebase is unavailable in agent
+harnesses, so use the non-interactive forms):
 
-- `git rebase -i <base>` to reorder, squash, or reword.
-- `git commit --fixup=<sha>` during work, then `git rebase -i --autosquash <base>` to fold "fixup!" commits into their targets.
-- Reword vague subjects (`r` in interactive rebase) with the specific change.
-- Drop `Address review comments` / `Apply suggestions from code review` — fold them into the commit they relate to.
+- `git commit --fixup=<sha>` during work, then `git -c sequence.editor=: rebase --autosquash <base>` to fold "fixup!" commits into their targets without opening an editor.
+- To reword a vague subject, target it with `git commit --fixup=reword:<sha>` (or `--squash=<sha>` to merge content), then autosquash as above.
+- Drop `Address review comments` / `Apply suggestions from code review` — fold them into the commit they relate to with a fixup.
 
 Only rewrite history that is **local or on your own feature branch**. Don't rewrite shared branches or anything others have pulled.
 

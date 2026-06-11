@@ -34,13 +34,13 @@ ELAPSED=$(( $(millis_now) - START ))
 
 # Codex's JSON event stream uses `item.kind` to mark assistant text
 # items; the final assistant message is the latest one.
-TEXT="$(jq -r '
-  select(.type == "item" and .item.kind == "agent_message")
-  | .item.text // empty
-' "$TRACE_FILE" | tail -n1)"
+TEXT="$(jq -rs '
+  map(select(.type == "item" and .item.kind == "agent_message"))
+  | last | (.item.text // empty)
+' "$TRACE_FILE")"
 
 if [[ -z "$TEXT" ]]; then
-  TEXT="$(jq -r 'select(.type == "result") | .text // empty' "$TRACE_FILE" | tail -n1)"
+  TEXT="$(jq -rs 'map(select(.type == "result")) | last | (.text // empty)' "$TRACE_FILE")"
 fi
 
 # Best-effort heuristic skill detection: a `command_execution` item

@@ -14,6 +14,15 @@ code that handles untrusted input or external services.
 | TypeScript / Node | child_process exec, prototype pollution, XSS, SSRF, secrets, Zod validation, npm audit, Helmet, CSP / HSTS | `references/typescript.md` |
 | JVM (Java / Kotlin) | JNDI / Log4Shell-class, Java serialization, XXE, SSRF, SQL injection, secrets, crypto APIs | `references/jvm.md` |
 
+Cross-cutting references (not language-specific):
+
+| Topic | When to read | Reference |
+|---|---|---|
+| Best practices | general secure-coding checklist applicable across stacks | `references/best-practices.md` |
+| Threat modeling | enumerating assets, trust boundaries, attacker capabilities before a review or design | `references/threat-model.md` |
+| Ownership map | who owns which security-sensitive area; routing findings and escalations | `references/ownership-map.md` |
+| Static analysis (CodeQL) | running CodeQL: database build, data extensions, suite selection, result triage | `references/static-analysis-codeql.md` |
+
 Common rules across all stacks:
 
 - Validate untrusted input at system boundaries (HTTP handlers,

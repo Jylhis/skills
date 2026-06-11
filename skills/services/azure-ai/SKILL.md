@@ -35,7 +35,7 @@ When Azure MCP is enabled:
 - `azure__speech` with command `speech_transcribe` - Speech to text
 - `azure__speech` with command `speech_synthesize` - Text to speech
 
-**If Azure MCP is not enabled:** Run `/azure:setup` or enable via `/mcp`.
+**If Azure MCP is not enabled:** Enable the Azure MCP server in your client (e.g. via `/mcp`).
 
 ## AI Search Capabilities
 

@@ -1,6 +1,6 @@
 ---
 name: azure-deploy
-description: "Execute Azure deployments for ALREADY-PREPARED applications that have existing .azure/deployment-plan.md and infrastructure files. DO NOT use this skill when the user asks to CREATE a new application — use azure-prepare instead. This skill runs azd up, azd deploy, terraform apply, and az deployment commands with built-in error recovery. Requires .azure/deployment-plan.md from azure-prepare and validated status from azure-validate. WHEN: \"run azd up\", \"run azd deploy\", \"execute deployment\", \"push to production\", \"push to cloud\", \"go live\", \"ship it\", \"bicep deploy\", \"terraform apply\", \"publish to Azure\", \"launch on Azure\". DO NOT USE WHEN: \"create and deploy\", \"build and deploy\", \"create a new app\", \"set up infrastructure\", \"create and deploy to Azure using Terraform\" — use azure-prepare for these."
+description: "Execute Azure deployments for ALREADY-PREPARED applications that have existing infrastructure files (azure.yaml, infra/) and, ideally, an .azure/deployment-plan.md. This skill runs azd up, azd deploy, terraform apply, and az deployment commands with built-in error recovery. Confirm infrastructure is generated and validated before running. WHEN: \"run azd up\", \"run azd deploy\", \"execute deployment\", \"push to production\", \"push to cloud\", \"go live\", \"ship it\", \"bicep deploy\", \"terraform apply\", \"publish to Azure\", \"launch on Azure\". DO NOT USE WHEN: the app or its infrastructure has not been created yet — scaffold and generate infrastructure first, then return here to deploy."
 license: MIT
 metadata:
   author: Microsoft
@@ -15,25 +15,23 @@ metadata:
 
 > **AUTHORITATIVE GUIDANCE — MANDATORY COMPLIANCE**
 >
-> **PREREQUISITE**: The **azure-validate** skill **MUST** be invoked and completed with status `Validated` BEFORE executing this skill.
+> **PREREQUISITE**: Deployable, validated infrastructure must exist BEFORE executing this skill. This skill deploys; it does not scaffold an app or generate infrastructure.
 
-> **⛔ STOP — PREREQUISITE CHECK REQUIRED**
-> Before proceeding, verify BOTH prerequisites are met:
+> **⛔ PREREQUISITE CHECK REQUIRED**
+> Before proceeding, ensure the prerequisites are met. Verify them inline — this skill is self-contained and does not depend on a separate preparation skill:
 >
-> 1. **azure-prepare** was invoked and completed → `.azure/deployment-plan.md` exists
-> 2. **azure-validate** was invoked and passed → plan status = `Validated`
+> 1. **Infrastructure is generated** → `azure.yaml` and `infra/` (Bicep or Terraform) exist for the project. If they do not, scaffold and generate them first, then return here.
+> 2. **Configuration is validated** → infrastructure has been checked (e.g. `azd provision --preview`, `bicep build`, `terraform validate`/`terraform plan`), required environment values are set, and RBAC role assignments are present in the IaC. If an `.azure/deployment-plan.md` exists, confirm its status reads `Validated` and its **Validation Proof** section (Section 7) contains real command output with timestamps.
 >
-> If EITHER is missing, **STOP IMMEDIATELY**:
-> - No plan? → Invoke **azure-prepare** skill first
-> - Status not `Validated`? → Invoke **azure-validate** skill first
+> If validation has NOT been performed, run the validation checks above first — do not deploy unvalidated infrastructure.
 >
-> **⛔ DO NOT MANUALLY UPDATE THE PLAN STATUS**
+> **⛔ DO NOT FABRICATE VALIDATION RESULTS**
 >
-> You are **FORBIDDEN** from changing the plan status to `Validated` yourself. Only the **azure-validate** skill is authorized to set this status after running actual validation checks. If you update the status without running validation, deployments will fail.
+> Do not mark a plan `Validated` or fill in a Validation Proof section without actually running the validation commands. If you record a status without running the checks, deployments will fail.
 >
-> **DO NOT ASSUME** the app is ready. **DO NOT SKIP** validation to save time. Skipping steps causes deployment failures. The complete workflow ensures success:
+> **DO NOT ASSUME** the app is ready. **DO NOT SKIP** validation to save time. Skipping steps causes deployment failures. The complete workflow is:
 >
-> `azure-prepare` → `azure-validate` → `azure-deploy`
+> generate infrastructure → validate → deploy (this skill)
 
 ## Triggers
 
@@ -44,14 +42,14 @@ Activate this skill when user wants to:
 - Ship already-built code to production
 - Deploy an application that already includes API Management (APIM) gateway infrastructure
 
-> **Scope**: This skill executes deployments. It does not create applications, generate infrastructure code, or scaffold projects. For those tasks, use **azure-prepare**.
+> **Scope**: This skill executes deployments. It does not create applications, generate infrastructure code, or scaffold projects — generate those first, then return here to deploy.
 
-> **APIM / AI Gateway**: Use this skill to deploy applications whose APIM/AI gateway infrastructure was already created during **azure-prepare**. For creating or changing APIM resources, see [APIM deployment guide](https://learn.microsoft.com/azure/api-management/get-started-create-service-instance). For AI governance policies, invoke **azure-aigateway** skill.
+> **APIM / AI Gateway**: Use this skill to deploy applications whose APIM/AI gateway infrastructure was already generated. For creating or changing APIM resources, see [APIM deployment guide](https://learn.microsoft.com/azure/api-management/get-started-create-service-instance). For AI governance policies on API Management, see the [APIM policies for AI workloads guide](https://learn.microsoft.com/azure/api-management/genai-gateway-capabilities).
 
 ## Rules
 
-1. Run after azure-prepare and azure-validate
-2. `.azure/deployment-plan.md` must exist with status `Validated`
+1. Run only after infrastructure has been generated and validated
+2. If an `.azure/deployment-plan.md` is in use, it must exist with status `Validated`
 3. **Pre-deploy checklist required** — [Pre-Deploy Checklist](references/pre-deploy-checklist.md)
 4. ⛔ **Destructive actions require `ask_user`** — [global-rules](references/global-rules.md)
 5. **Scope: deployment execution only** — This skill owns execution of `azd up`, `azd deploy`, `terraform apply`, and `az deployment` commands. These commands are run through this skill's error recovery and verification pipeline.
@@ -79,7 +77,7 @@ Activate this skill when user wants to:
 
 > **⛔ VALIDATION PROOF CHECK**
 >
-> When checking the plan, verify the **Validation Proof** section (Section 7) contains actual validation results with commands run and timestamps. If this section is empty, validation was bypassed — invoke **azure-validate** skill first.
+> When checking the plan, verify the **Validation Proof** section (Section 7) contains actual validation results with commands run and timestamps. If this section is empty, validation was bypassed — run the validation checks (see the Prerequisite Check above) before deploying.
 
 ## SDK Quick References
 

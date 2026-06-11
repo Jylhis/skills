@@ -1,7 +1,7 @@
 # improvement-memory JSONL schema
 
 This file is the single source of truth for the schema written by
-`scripts/append-correction.py` and the `/remember-correction` slash
+`plugins/jylhis-skills-core/scripts/append-correction.go` and the `/remember-correction` slash
 command. The JSONL lives at
 `${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl`
 — deliberately outside the repo, so machine-private corrections never
@@ -39,7 +39,7 @@ Each line is one JSON object with exactly these keys:
 
 ## Validation
 
-`scripts/append-correction.py` validates strictly: missing keys, wrong
+`plugins/jylhis-skills-core/scripts/append-correction.go` validates strictly: missing keys, wrong
 types, unknown `category`, or a non-RFC-3339 `timestamp` cause exit
 code `3` with a clear stderr message. Exit codes: `0` OK, `2` usage,
 `3` validation, `4` IO.

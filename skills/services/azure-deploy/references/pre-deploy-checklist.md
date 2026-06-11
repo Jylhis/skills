@@ -193,7 +193,7 @@ See [Region Availability](region-availability.md) for service-specific limitatio
 
 > ⚠️ **Set ALL variables BEFORE running `azd up`** — not during error recovery.
 
-Environment should already be configured during **azure-validate**. Run `azd env get-values` to confirm.
+Environment should already be configured during validation. Run `azd env get-values` to confirm.
 
 Verify settings:
 ```bash
@@ -233,7 +233,7 @@ fi
 **If either check fails:**
 1. Fix `main.tfvars.json` syntax: replace `{{ .Env.VAR }}` with `${VAR}` (e.g., `${AZURE_ENV_NAME}`)
 2. For variables not in `main.tfvars.json`, use `TF_VAR_*` environment variables
-3. Re-run `azure-validate` before proceeding
+3. Re-run validation (e.g. `azd provision --preview` / `terraform validate`) before proceeding
 
 ---
 
@@ -489,7 +489,7 @@ Check that `infra/` Bicep files contain:
 - `Durable Task Data Contributor` RBAC role assignment
 - `DURABLE_TASK_SCHEDULER_CONNECTION_STRING` app setting
 
-If any are missing, **STOP** and invoke **azure-prepare** to regenerate with the durable recipe.
+If any are missing, **STOP** and regenerate the infrastructure with the durable recipe before deploying.
 
 ---
 

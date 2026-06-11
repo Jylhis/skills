@@ -47,6 +47,19 @@ if [ -z "$APP_NAME" ]; then
   exit 1
 fi
 
+# Validate the identity name against a strict allowlist before it is ever
+# interpolated into T-SQL. T-SQL identifiers and string literals cannot be
+# parameterized like values, so the only safe approach is to (1) reject any
+# name outside [A-Za-z][A-Za-z0-9_-]{0,62} and (2) escape embedded single
+# quotes by doubling them in the string-literal comparisons below.
+if ! printf '%s' "$APP_NAME" | grep -Eq '^[A-Za-z][A-Za-z0-9_-]{0,62}$'; then
+  echo "ERROR: app identity name '$APP_NAME' is not a valid SQL principal name (expected ^[A-Za-z][A-Za-z0-9_-]{0,62}\$)." >&2
+  exit 1
+fi
+
+# Double single quotes for safe use inside T-SQL string literals ('...').
+APP_NAME_SQL=${APP_NAME//\'/\'\'}
+
 # ─── Step 1: Grant SQL data-plane access ────────────────────────────────────
 echo "Granting SQL data-plane access to managed identity: $APP_NAME"
 
@@ -65,14 +78,14 @@ az sql db query \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --auth-mode ActiveDirectoryDefault \
   --queries "
-    IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '$APP_NAME')
+    IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '$APP_NAME_SQL')
       CREATE USER [$APP_NAME] FROM EXTERNAL PROVIDER;
 
     IF NOT EXISTS (
       SELECT 1 FROM sys.database_role_members drm
       JOIN sys.database_principals r ON drm.role_principal_id = r.principal_id
       JOIN sys.database_principals m ON drm.member_principal_id = m.principal_id
-      WHERE r.name = 'db_datareader' AND m.name = '$APP_NAME'
+      WHERE r.name = 'db_datareader' AND m.name = '$APP_NAME_SQL'
     )
       ALTER ROLE db_datareader ADD MEMBER [$APP_NAME];
 
@@ -80,7 +93,7 @@ az sql db query \
       SELECT 1 FROM sys.database_role_members drm
       JOIN sys.database_principals r ON drm.role_principal_id = r.principal_id
       JOIN sys.database_principals m ON drm.member_principal_id = m.principal_id
-      WHERE r.name = 'db_datawriter' AND m.name = '$APP_NAME'
+      WHERE r.name = 'db_datawriter' AND m.name = '$APP_NAME_SQL'
     )
       ALTER ROLE db_datawriter ADD MEMBER [$APP_NAME];
 
@@ -88,7 +101,7 @@ az sql db query \
       SELECT 1 FROM sys.database_role_members drm
       JOIN sys.database_principals r ON drm.role_principal_id = r.principal_id
       JOIN sys.database_principals m ON drm.member_principal_id = m.principal_id
-      WHERE r.name = 'db_ddladmin' AND m.name = '$APP_NAME'
+      WHERE r.name = 'db_ddladmin' AND m.name = '$APP_NAME_SQL'
     )
       ALTER ROLE db_ddladmin ADD MEMBER [$APP_NAME];
   "

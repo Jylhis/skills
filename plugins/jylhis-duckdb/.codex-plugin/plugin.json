@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Jylhis-duckdb",
     "shortDescription": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
-    "longDescription": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "longDescription": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
     "developerName": "Jylhis",
     "category": "Coding",
     "capabilities": ["Read", "Write"],

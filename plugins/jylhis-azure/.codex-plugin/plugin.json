@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Jylhis-azure",
     "shortDescription": "Azure cloud skill — adoption framework, well-architected, AKS, deployment patterns.",
-    "longDescription": "Azure cloud skill — adoption framework, well-architected, AKS, deployment patterns. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "longDescription": "Azure cloud skills — AI services, compliance, cost management, deployment patterns, AKS and AKS Automatic readiness, and storage.",
     "developerName": "Jylhis",
     "category": "Coding",
     "capabilities": ["Read", "Write"],

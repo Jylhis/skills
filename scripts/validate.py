@@ -14,6 +14,7 @@ top-level `.claude-plugin/marketplace.json` must list each plugin directory.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -201,7 +202,7 @@ def _resolve_skill_path(plugin_manifest: Path, raw: str) -> Path:
     skill directory.
     """
     plugin_root = plugin_manifest.parent.parent  # plugins/<name>/
-    return (plugin_root / raw.lstrip("./")).resolve()
+    return (plugin_root / raw.removeprefix("./")).resolve()
 
 
 def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
@@ -233,18 +234,62 @@ def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
                 f"{rel}: name {manifest.get('name')!r} does not match plugin dir {plugin_name!r}"
             )
 
-        for raw in manifest.get("skills", []):
+        raw_skills = manifest.get("skills", [])
+        if not isinstance(raw_skills, list):
+            # Codex-style recursive `"skills": "./skills/"` is a string; the
+            # Claude manifest must list entries explicitly.
+            errors.append(
+                f"{rel}: 'skills' must be a list of './skills/<name>' entries, "
+                f"got {type(raw_skills).__name__}"
+            )
+            raw_skills = []
+
+        listed_basenames: set[str] = set()
+        for raw in raw_skills:
+            listed_basenames.add(Path(raw).name)
+            entry_link = manifest_path.parent.parent / raw.removeprefix("./")
             target = _resolve_skill_path(manifest_path, raw)
             if target not in fs_skill_dirs:
-                errors.append(
-                    f"{rel}: listed skill {raw!r} resolves to {target} which has no SKILL.md"
-                )
+                if (target / "SKILL.md").exists():
+                    errors.append(
+                        f"{rel}: listed skill {raw!r} is a real directory outside the "
+                        f"canonical skills/<category>/<name>/ tree — must be a symlink into it"
+                    )
+                else:
+                    errors.append(
+                        f"{rel}: listed skill {raw!r} resolves to {target} "
+                        f"which is not a canonical skill (no SKILL.md)"
+                    )
                 continue
+            # Each plugin's skills/ entry must be a relative symlink into the tree.
+            if entry_link.is_symlink():
+                link = os.readlink(entry_link)
+                if os.path.isabs(link):
+                    errors.append(
+                        f"{rel}: skill entry {raw!r} is an absolute symlink {link!r} — "
+                        f"must be relative (../../../skills/<category>/<name>)"
+                    )
+            elif entry_link.is_dir():
+                errors.append(
+                    f"{rel}: skill entry {raw!r} is a real directory — must be a "
+                    f"relative symlink into skills/<category>/<name>/"
+                )
             coverage.setdefault(target, []).append(plugin_name)
             if plugin_name == CORE_PLUGIN_NAME:
                 # Each entry is "./skills/<basename>"; collect basenames for the
                 # CORE_PLUGIN_SKILLS contract check.
                 core_seen.add(Path(raw).name)
+
+        # Reverse check: every entry physically present under the plugin's
+        # skills/ dir must be listed in the manifest (no orphan symlinks/dirs).
+        plugin_skills_dir = manifest_path.parent.parent / "skills"
+        if plugin_skills_dir.is_dir():
+            for child in sorted(plugin_skills_dir.iterdir()):
+                if child.name not in listed_basenames:
+                    errors.append(
+                        f"{rel}: skills/{child.name} present on disk but not listed "
+                        f"in the manifest's 'skills' array"
+                    )
 
     # Every on-disk skill must be referenced by exactly one plugin manifest.
     for skill_md in skill_files:
@@ -286,9 +331,9 @@ def _check_marketplace_manifest(plugin_manifests: list[Path]) -> list[str]:
         src = entry.get("source")
         # marketplace.json supports either a relative-path string or a source object.
         if isinstance(src, str):
-            target = (REPO_ROOT / src.lstrip("./")).resolve()
+            target = (REPO_ROOT / src.removeprefix("./")).resolve()
         elif isinstance(src, dict) and src.get("source") == "local":
-            target = (REPO_ROOT / src.get("path", "").lstrip("./")).resolve()
+            target = (REPO_ROOT / src.get("path", "").removeprefix("./")).resolve()
         else:
             continue  # external sources (github/url/npm) — out of scope
         listed_sources.add(target)
@@ -392,7 +437,6 @@ SCRIPT_GLOBS = (
 
 SH_WRAPPER_PREFIXES = ("nix ", "exec ", "nix run", "nix shell")
 SH_WRAPPER_MAX_BYTES = 200
-PY_TYPED_LINES = 50
 PY_RETURN_ANNOTATION_RE = re.compile(r"def\s+\w+\s*\([^)]*\)\s*->\s")
 
 
@@ -419,9 +463,10 @@ def _is_typed_python(path: Path) -> bool:
         return False
     if "# type: validated" in text:
         return True
-    head = text.splitlines()[:PY_TYPED_LINES]
-    has_future = any("from __future__ import annotations" in line for line in head)
-    has_return_ann = any(PY_RETURN_ANNOTATION_RE.search(line) for line in head)
+    # Scan the whole file, not just a head window: `from __future__` and the
+    # first annotated def can legitimately sit beyond any fixed line cutoff.
+    has_future = "from __future__ import annotations" in text
+    has_return_ann = bool(PY_RETURN_ANNOTATION_RE.search(text))
     return has_future and has_return_ann
 
 

@@ -1,12 +1,12 @@
 # Live Role Verification
 
-Query Azure to confirm that provisioned RBAC role assignments are correct and sufficient for the application to function. This complements the static role check in azure-validate by validating **live Azure state**.
+Query Azure to confirm that provisioned RBAC role assignments are correct and sufficient for the application to function. This complements the static role check performed during validation by validating **live Azure state**.
 
-## How It Differs from azure-validate's Role Check
+## How It Differs from the Static (Pre-Deploy) Role Check
 
-| Check | Skill | What It Verifies |
+| Check | When | What It Verifies |
 |-------|-------|-----------------|
-| **Static** | azure-validate | Generated Bicep/Terraform has correct role assignments in code |
+| **Static** | During validation (pre-deploy) | Generated Bicep/Terraform has correct role assignments in code |
 | **Live** | azure-deploy (this) | Provisioned Azure resources actually have the right roles assigned |
 
 Both checks are needed because:

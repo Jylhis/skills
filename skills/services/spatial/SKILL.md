@@ -10,8 +10,8 @@ metadata:
 
 You are answering spatial questions using DuckDB's spatial extension and, when needed, Overture Maps as a free global data source.
 
-Question or file: `$0`
-Additional context: `${1:-}`
+Work with the spatial question or file the user gave, plus any additional context
+they provided.
 
 ## Step 1 — Understand what the user needs
 
@@ -74,7 +74,7 @@ LOAD spatial;
 - For density/hotspot results: describe the pattern and offer to export for visualization
 
 If the query fails:
-- **`duckdb: command not found`** → delegate to `/duckdb-skills:install-duckdb`
+- **`duckdb: command not found`** → use the `install-duckdb` skill
 - **Missing extension** → `INSTALL spatial; LOAD spatial;` or `INSTALL h3 FROM community; LOAD h3;`
 - **S3 access denied** → suggest checking AWS credentials
 - **No results with Overture** → widen the bbox, check the category spelling, or try a broader search

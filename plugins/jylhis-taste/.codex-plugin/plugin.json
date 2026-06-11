@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Jylhis-taste",
     "shortDescription": "Taste skill — UI/UX design taste, visual hierarchy, design critique.",
-    "longDescription": "Taste skill — UI/UX design taste, visual hierarchy, design critique. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "longDescription": "Taste skill — UI/UX design taste, visual hierarchy, and design critique.",
     "developerName": "Jylhis",
     "category": "Coding",
     "capabilities": ["Read", "Write"],

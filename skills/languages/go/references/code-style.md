@@ -112,7 +112,7 @@ if debug {
 
 ### Complex Conditions & Init Scope
 
-When an `if` condition has 3+ operands, MUST extract into named booleans — a wall of `||` is unreadable and hides business logic. Keep expensive checks inline for short-circuit benefit. [Details](./references/details.md)
+When an `if` condition has 3+ operands, MUST extract into named booleans — a wall of `||` is unreadable and hides business logic. Keep expensive checks inline for short-circuit benefit.
 
 ```go
 // Good — named booleans make intent clear
@@ -171,7 +171,7 @@ for _, user := range users {
 
 ## Value vs Pointer Arguments
 
-Pass small types (`string`, `int`, `bool`, `time.Time`) by value. Use pointers when mutating, for large structs (~128+ bytes), or when nil is meaningful. [Details](./references/details.md)
+Pass small types (`string`, `int`, `bool`, `time.Time`) by value. Use pointers when mutating, for large structs (~128+ bytes), or when nil is meaningful.
 
 ## Code Organization Within Files
 

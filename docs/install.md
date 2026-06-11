@@ -69,13 +69,15 @@ by default.
 | `jylhis-jvm` | Java/Kotlin skill |
 | `jylhis-emacs` | Emacs Lisp skill |
 | `jylhis-nix` | Nix skill + `nixd` LSP |
-| `jylhis-filesystems` | DuckDB / filesystem tooling skill |
-| `jylhis-gitlab` | GitLab push + MR-create skill |
+| `jylhis-filesystems` | APFS / Btrfs / ZFS filesystem internals skill |
+| `jylhis-gitlab` | GitLab CI/CD pipeline debugging + `glab` CLI skill |
 | `jylhis-terraform` | Terraform skill |
 | `jylhis-azure` | Azure cloud skill |
 | `jylhis-obsidian` | Obsidian note-taking and knowledge management skill |
 | `jylhis-grafana` | Grafana observability skill |
 | `jylhis-taste` | UI/UX design taste and critique skill |
+| `jylhis-duckdb` | DuckDB query / attach / file-conversion skill suite |
+| `jylhis-reverse-engineering` | Binary reverse-engineering skill (radare2 / Ghidra / Frida) |
 
 Install one in each tool (example: `jylhis-python`):
 

@@ -26,8 +26,6 @@ Go's concurrency model is built on goroutines and channels. Goroutines are cheap
 8. **Never use `time.After` in loops** — each call creates a timer that lives until it fires, accumulating memory. Use `time.NewTimer` + `Reset`
 9. **Track goroutine leaks in tests** with `go.uber.org/goleak`
 
-For detailed channel/select code examples, see [Channels and Select Patterns](references/channels-and-select.md).
-
 ## Channel vs Mutex vs Atomic
 
 | Scenario | Use | Why |
@@ -62,8 +60,6 @@ For detailed channel/select code examples, see [Channels and Select Patterns](re
 | `x/sync/singleflight` | Deduplicate concurrent calls | Cache stampede prevention |
 | `x/sync/errgroup` | Goroutine group + errors | `SetLimit(n)` replaces hand-rolled worker pools |
 
-For detailed examples and anti-patterns, see [Sync Primitives Deep Dive](references/sync-primitives.md).
-
 ## Concurrency Checklist
 
 Before spawning a goroutine, answer:
@@ -76,7 +72,7 @@ Before spawning a goroutine, answer:
 
 ## Pipelines and Worker Pools
 
-For pipeline patterns (fan-out/fan-in, bounded workers, generator chains, Go 1.23+ iterators, `samber/ro`), see [Pipelines and Worker Pools](references/pipelines.md).
+For pipeline work, prefer fan-out/fan-in with bounded workers, generator chains, Go 1.23+ iterators, and `samber/ro` helpers.
 
 ## Parallelizing Concurrency Audits
 

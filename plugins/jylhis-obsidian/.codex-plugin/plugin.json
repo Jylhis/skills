@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Jylhis-obsidian",
     "shortDescription": "Obsidian skill — note-taking, knowledge management, plugin workflows.",
-    "longDescription": "Obsidian skill — note-taking, knowledge management, plugin workflows. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "longDescription": "Obsidian and knowledge-management workflows — Defuddle web-content extraction, JSON Canvas, Obsidian Bases, the Obsidian CLI, and Obsidian-flavoured Markdown.",
     "developerName": "Jylhis",
     "category": "Coding",
     "capabilities": ["Read", "Write"],

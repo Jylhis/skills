@@ -211,7 +211,8 @@ Before reporting done:
 
 - Run `just validate` from the repo root. The portable frontmatter lint
   (`scripts/validate.py`) must pass for the new skill.
-- Run `just check` for the full lint pass (shellcheck, markdown, nix).
+- Run `just check` for the full lint pass (shellcheck + the portable
+  skill lint, `scripts/validate.py`).
 - Confirm the plugin appears in both `marketplace.json` files and the
   symlink under `plugins/jylhis-<name>/skills/<name>` resolves into the
   canonical tree.

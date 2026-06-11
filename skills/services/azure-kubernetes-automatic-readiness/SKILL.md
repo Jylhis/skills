@@ -24,7 +24,7 @@ AKS Automatic enforces **Deployment Safeguards** (25 active Deny policies), **Po
 |----------|-------|
 | Best for | AKS Automatic migration readiness and manifest validation |
 | MCP Tools | `mcp_azure_mcp_aks` |
-| Related skills | azure-kubernetes (cluster creation), azure-diagnostics (live troubleshooting), azure-validate (readiness checks) |
+| Related skills | azure-kubernetes (cluster creation and planning) |
 
 ## When to Use This Skill
 - "Can I migrate to AKS Automatic?"
@@ -40,16 +40,16 @@ AKS Automatic enforces **Deployment Safeguards** (25 active Deny policies), **Po
 - "Create an AKS cluster" / "What are AKS best practices?" / "How do I deploy to AKS?"
 - General cluster creation, configuration, scaling, or AKS operations
 
-### Route to `azure-diagnostics` instead:
+### Out of scope — live troubleshooting:
 - "My pod is crashing" / "Debug my AKS cluster" / "Why is my deployment failing?"
-- Live troubleshooting, debugging, error diagnosis on a running cluster
+- This skill is read-only migration assessment, not live debugging. For live troubleshooting, use `kubectl describe`/`kubectl logs`, `kubectl get events`, and `az aks` diagnostics directly against the running cluster.
 
 ## Guardrails — READ FIRST
 
 1. **Read-only**: NEVER modify cluster state. Assessment is read-only. Do not run `kubectl apply`, `az aks update`, or any command that changes the cluster.
 2. **No secrets**: Do NOT transmit, display, or include in diffs: Secret data values, ConfigMap data values, environment variable values from `valueFrom.secretKeyRef`, service account tokens, or connection strings.
 3. **User approval for file changes**: Present every fix as a diff. The user must explicitly accept before you write to any file.
-4. **Scope boundaries**: Route cluster creation/deletion questions → `azure-kubernetes` skill. Route live troubleshooting → `azure-diagnostics` skill.
+4. **Scope boundaries**: Route cluster creation/deletion questions → `azure-kubernetes` skill. Live troubleshooting is out of scope — handle it directly with `kubectl` and `az aks` diagnostics against the running cluster.
 
 ## MCP Tools
 | Tool | Purpose | Key Parameters |

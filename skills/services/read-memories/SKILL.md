@@ -31,7 +31,7 @@ LIMIT 40;
 
 Search paths:
 - All projects: `$HOME/.claude/projects/*/*.jsonl`
-- Current only (`--here`): `$HOME/.claude/projects/$(echo "$PWD" | sed 's|[/_]|-|g')/*.jsonl`
+- Current only (`--here`): `$HOME/.claude/projects/$(echo "$PWD" | sed 's|[/_.]|-|g')/*.jsonl`
 
 Replace `<SEARCH_PATH>` and `<KEYWORD>` before running.
 

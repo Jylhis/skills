@@ -30,10 +30,10 @@ TRACE="$WORKDIR/judge-trace.jsonl"
 
 ELAPSED=$(( $(millis_now) - START ))
 
-TEXT="$(jq -r '
-  select(.type == "item" and .item.kind == "agent_message")
-  | .item.text // empty
-' "$TRACE" | tail -n1)"
+TEXT="$(jq -rs '
+  map(select(.type == "item" and .item.kind == "agent_message"))
+  | last | (.item.text // empty)
+' "$TRACE")"
 
 printf '%s' "$TEXT"
 

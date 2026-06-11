@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile evals/suites/<suite>/cases.yaml -> evals/.generated/<suite>.yaml.
+"""Compile skills/<category>/<name>/evals/cases.yaml -> evals/.generated/<suite>.yaml.
 
 Input shape (canonical, per spec-v3 §10 + this plan's extensions):
 
@@ -55,12 +55,22 @@ ALL_PROVIDERS = ["claude", "codex", "antigravity", "pi"]
 def default_providers(case: dict) -> list[str]:
     """Return the provider list for a case.
 
-    The cases.yaml field ``providers`` is purely a recording hint (which
-    CLIs to *record* against); it does not restrict which providers
-    appear in the promptfoo matrix.  We always expand to all four
-    providers so that promptfoo's top-level × test cross-product has a
-    cassette for every cell.
+    An explicit ``providers:`` field on the case scopes it to exactly
+    those CLIs (and is honoured verbatim, preserving order). When the
+    field is absent we fall back to the kind-based default matrix:
+    ``trigger_*`` cases run against Claude only (trigger-accuracy is
+    reported per provider and the README's four-CLI matrix is reserved
+    for ``output_quality``; see invariants.py `_check_trigger_providers`),
+    while ``output_quality`` and untagged cases expand to all four
+    providers so promptfoo's top-level × test cross-product has a cell
+    for each.
     """
+    explicit = case.get("providers")
+    if explicit:
+        return list(explicit)
+    kind = case.get("kind", "output_quality")
+    if kind in ("trigger_positive", "trigger_negative"):
+        return ["claude"]
     return list(ALL_PROVIDERS)
 
 
@@ -328,7 +338,8 @@ def expand_suite(suite: str, judge: str | None = None,
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="expand.py")
-    parser.add_argument("suite", help="suite name under evals/suites/")
+    parser.add_argument("suite", help="suite name (the skill's name:; "
+                        "resolves to skills/<category>/<name>/evals/)")
     parser.add_argument("--judge", default=None,
                         help="judge wrapper name for g-eval assertions "
                              "(omit to skip rubric assertions entirely)")

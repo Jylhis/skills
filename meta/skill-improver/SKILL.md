@@ -56,7 +56,8 @@ Iterate on an existing skill using recorded user corrections.
 
 5. **If proposed edits change the trigger surface** (the
    `description:` block, or new trigger phrases in the body), suggest
-   re-running `evals/suites/<skill>/` if it exists, and link
+   re-running the skill's eval suite at
+   `skills/<category>/<name>/evals/` if it exists, and link
    `evals/README.md` for the harness recipe.
 
 6. **Output.** Emit an edit plan as a numbered list, each item

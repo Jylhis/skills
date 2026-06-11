@@ -10,12 +10,12 @@ metadata:
 
 You are helping the user read and analyze a data file using DuckDB.
 
-Filename given: `$0`
-Question: `${1:-describe the data}`
+Work with the file the user referenced. If the user also asked a specific
+question about it, answer that; otherwise default to describing the data.
 
 ## Step 1 — Read it
 
-`RESOLVED_PATH` is `$0`. If the user gave a bare filename (no `/`), resolve it to a full path with `find` first.
+`RESOLVED_PATH` is the file the user referenced. If the user gave a bare filename (no `/`), resolve it to a full path with `find` first.
 
 Run a single DuckDB command that defines the `read_any` macro inline and reads the file.
 
@@ -70,12 +70,12 @@ FROM read_any('RESOLVED_PATH') LIMIT 20;
 ```
 
 **If this fails:**
-- **`duckdb: command not found`** → invoke `/duckdb-skills:install-duckdb` and retry.
+- **`duckdb: command not found`** → use the `install-duckdb` skill and retry.
 - **Missing extension** (e.g. spatial files, xlsx, sqlite) → retry with `INSTALL spatial; LOAD spatial;` or `INSTALL sqlite_scanner; LOAD sqlite_scanner;` prepended before the macro.
 - **Wrong reader / parse error** → use the correct `read_*` function directly instead of `read_any`.
 
 ## Step 2 — Answer
 
-Using the schema, row count, and sample rows, answer:
-
-`${1:-describe the data: summarize column types, row count, and any notable patterns.}`
+Using the schema, row count, and sample rows, answer the user's question. If the
+user did not ask anything specific, describe the data: summarize column types,
+row count, and any notable patterns.

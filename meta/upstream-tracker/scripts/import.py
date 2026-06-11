@@ -257,7 +257,7 @@ def _wire_plugin(plugin: str, category: str, name: str) -> list[str]:
     plugin_dir = L.ROOT / "plugins" / plugin
     if not plugin_dir.exists():
         print(f"  plugin dir {plugin_dir.relative_to(L.ROOT)} does not exist; "
-              f"create it (with the three per-tool manifests) before re-running",
+              f"create it (with the two per-tool manifests) before re-running",
               file=sys.stderr)
         sys.exit(3)
 

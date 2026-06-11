@@ -1,6 +1,6 @@
 ---
 name: taste
-description: Senior UI/UX Engineer. Architect digital interfaces overriding default LLM biases. Enforces metric-based rules, strict component architecture, CSS hardware acceleration, and balanced design engineering.
+description: Use when designing, reviewing, or critiquing UI/UX, visual design, or frontend interfaces. Senior UI/UX Engineer that architects digital interfaces overriding default LLM biases. Enforces metric-based rules, strict component architecture, CSS hardware acceleration, and balanced design engineering.
 metadata:
   upstream-id: taste-skill
   upstream-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
@@ -52,7 +52,7 @@ LLMs have statistical biases toward specific UI cliché patterns. Proactively co
 * **COLOR CONSISTENCY:** Stick to one palette for the entire output. Do not fluctuate between warm and cool grays within the same project.
 
 **Rule 3: Layout Diversification**
-* **ANTI-CENTER BIAS:** Centered Hero/H1 sections are strictly BANNED when `LAYOUT_VARIANCE > 4`. Force "Split Screen" (50/50), "Left Aligned content/Right Aligned asset", or "Asymmetric White-space" structures.
+* **ANTI-CENTER BIAS:** Centered Hero/H1 sections are strictly BANNED when `DESIGN_VARIANCE > 4`. Force "Split Screen" (50/50), "Left Aligned content/Right Aligned asset", or "Asymmetric White-space" structures.
 
 **Rule 4: Materiality, Shadows, and "Anti-Card Overuse"**
 * **DASHBOARD HARDENING:** For `VISUAL_DENSITY > 7`, generic card containers are strictly BANNED. Use logic-grouping via `border-t`, `divide-y`, or purely negative space. Data metrics should breathe without being boxed in unless elevation (z-index) is functionally required.
@@ -136,7 +136,7 @@ Do not default to generic UI. Pull from this library of advanced concepts to ens
 ### The Standard Hero Paradigm
 * Stop doing centered text over a dark image. Try asymmetric Hero sections: Text cleanly aligned to the left or right. The background should feature a high-quality, relevant image with a subtle stylistic fade (darkening or lightening gracefully into the background color depending on if it is Light or Dark mode).
 
-### Navigation & Menüs
+### Navigation & Menus
 * **Mac OS Dock Magnification:** Nav-bar at the edge; icons scale fluidly on hover.
 * **Magnetic Button:** Buttons that physically pull toward the cursor.
 * **Gooey Menu:** Sub-items detach from the main button like a viscous liquid.

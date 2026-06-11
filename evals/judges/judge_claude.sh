@@ -41,9 +41,9 @@ TRACE="$WORKDIR/judge-trace.jsonl"
 
 ELAPSED=$(( $(millis_now) - START ))
 
-TEXT="$(jq -r 'select(.type == "result") | .result' "$TRACE" | tail -n1)"
+TEXT="$(jq -rs 'map(select(.type == "result")) | last | (.result // empty)' "$TRACE")"
 if [[ -z "$TEXT" ]]; then
-  TEXT="$(jq -r 'select(.type == "assistant") | .message.content[]? | select(.type=="text") | .text' "$TRACE" | paste -sd '\n' -)"
+  TEXT="$(jq -r 'select(.type == "assistant") | .message.content[]? | select(.type=="text") | .text' "$TRACE")"
 fi
 
 printf '%s' "$TEXT"

@@ -1,25 +1,45 @@
 # Skill authoring guide
 
-A skill is a directory under `skills/` containing a `SKILL.md` and
-optional helper material. This repo follows the
+A skill is a directory under `skills/<category>/<name>/` containing a
+`SKILL.md` and optional helper material. This repo follows the
 [Agent Skills](https://agentskills.io) open standard with a strict
 portability profile (see [`skills-spec-v3.md`](skills-spec-v3.md)).
 
 ## Directory shape
 
+Skills are **two levels deep** on disk — a category, then the skill name:
+
 ```
-skills/<skill-name>/
+skills/<category>/<name>/
 ├── SKILL.md           # required
 ├── references/        # optional — task-specific reference docs
 ├── scripts/           # optional — deterministic helper scripts
 └── assets/            # optional — fixtures, templates
 ```
 
-`<skill-name>` must:
+`scripts/validate.py` enforces this two-level layout. The eight
+categories are:
+
+- `engineering` — practices and workflows (ast-grep, semgrep, tdd,
+  diagnose, prototype, triage, microsoft-docs, …)
+- `languages` — per-language guidance (python, typescript, go, jvm, nix)
+- `domains` — cross-cutting topic deep dives (security, taste)
+- `services` — specific named platforms (gitlab, azure, grafana, terraform)
+- `stack` — deep dives on specific named technologies (filesystems)
+- `productivity` — handoff, humanizer, caveman, …
+- `personal` — Obsidian and knowledge-management workflows
+- `misc` — uncategorised
+
+`<name>` (the skill directory basename) must:
 
 - match the `name:` in frontmatter (verified by `scripts/validate.py`)
 - be lowercase letters, numbers, and hyphens only
 - have no leading/trailing hyphen and no consecutive hyphens
+
+The canonical `skills/<category>/<name>/` tree is the source of truth.
+Each published plugin under `plugins/<name>/` references skills via
+`skills/` symlinks pointing back into this tree — skill directories are
+never moved out of `skills/` or copied into a plugin.
 
 ## Frontmatter
 
@@ -94,12 +114,12 @@ worked examples into `references/`.
 Before opening a PR:
 
 ```
-just validate    # portable skill lint
-just check       # full validation (lint + nix + markdown + shellcheck)
+just validate    # portable skill lint (scripts/validate.py)
+just check       # shellcheck + portable skill lint
 ```
 
-`scripts/validate.py` ignores `staging/` — only catalogue skills under
-`skills/` are linted.
+`scripts/validate.py` only lints `SKILL.md` files under `skills/` and
+enforces the `skills/<category>/<name>/SKILL.md` layout.
 
 ## Evals
 

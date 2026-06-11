@@ -1,1 +1,0 @@
-- [ ] Package `mslearn` (`@microsoft/learn-cli`) in nixpkgs (or a maintained overlay) so microsoft-docs skill can use a Nix-only CLI fallback.

@@ -24,7 +24,7 @@ Before optimizing Go code, verify the bottleneck is in your process — if 90% o
 
 **Diagnose:** 1- `fgprof` — captures on-CPU and off-CPU (I/O wait) time; if off-CPU dominates, the bottleneck is external 2- `go tool pprof` (goroutine profile) — many goroutines blocked in `net.(*conn).Read` or `database/sql` = external wait 3- Distributed tracing (OpenTelemetry) — span breakdown shows which upstream is slow
 
-**When external:** optimize that component instead — query tuning, caching, connection pools, circuit breakers (→ See `samber/cc-skills-golang@golang-database` skill, [Caching Patterns](references/caching.md)).
+**When external:** optimize that component instead — query tuning, caching, connection pools, circuit breakers (see the Caching Patterns deep dive below).
 
 ## Iterative Optimization Methodology
 
@@ -45,12 +45,12 @@ Refer to library documentation for known patterns before inventing custom soluti
 
 | Bottleneck | Signal (from pprof) | Action |
 | --- | --- | --- |
-| Too many allocations | `alloc_objects` high in heap profile | [Memory optimization](references/memory.md) |
-| CPU-bound hot loop | function dominates CPU profile | [CPU optimization](references/cpu.md) |
-| GC pauses / OOM | high GC%, container limits | [Runtime tuning](references/runtime.md) |
-| Network / I/O latency | goroutines blocked on I/O | [I/O & networking](references/io-networking.md) |
-| Repeated expensive work | same computation/fetch multiple times | [Caching patterns](references/caching.md) |
-| Wrong algorithm | O(n²) where O(n) exists | [Algorithmic complexity](references/caching.md#algorithmic-complexity) |
+| Too many allocations | `alloc_objects` high in heap profile | Memory optimization (see Deep Dives) |
+| CPU-bound hot loop | function dominates CPU profile | CPU optimization (see Deep Dives) |
+| GC pauses / OOM | high GC%, container limits | Runtime tuning (see Deep Dives) |
+| Network / I/O latency | goroutines blocked on I/O | I/O & networking (see Deep Dives) |
+| Repeated expensive work | same computation/fetch multiple times | Caching patterns (see Deep Dives) |
+| Wrong algorithm | O(n²) where O(n) exists | Fix algorithmic complexity (see Deep Dives) |
 | Lock contention | mutex/block profile hot | → See `samber/cc-skills-golang@golang-concurrency` skill |
 | Slow queries | DB time dominates traces | → See `samber/cc-skills-golang@golang-database` skill |
 
@@ -68,12 +68,12 @@ Refer to library documentation for known patterns before inventing custom soluti
 
 ## Deep Dives
 
-- [Memory Optimization](references/memory.md) — allocation patterns, backing array leaks, sync.Pool, struct alignment
-- [CPU Optimization](references/cpu.md) — inlining, cache locality, false sharing, ILP, reflection avoidance
-- [I/O & Networking](references/io-networking.md) — HTTP transport config, streaming, JSON performance, cgo, batch operations
-- [Runtime Tuning](references/runtime.md) — GOGC, GOMEMLIMIT, GC diagnostics, GOMAXPROCS, PGO
-- [Caching Patterns](references/caching.md) — algorithmic complexity, compiled patterns, singleflight, work avoidance
-- [Production Observability](references/observability.md) — Prometheus metrics, PromQL queries, continuous profiling, alerting rules
+- **Memory Optimization** — allocation patterns, backing array leaks, sync.Pool, struct alignment
+- **CPU Optimization** — inlining, cache locality, false sharing, ILP, reflection avoidance
+- **I/O & Networking** — HTTP transport config, streaming, JSON performance, cgo, batch operations
+- **Runtime Tuning** — GOGC, GOMEMLIMIT, GC diagnostics, GOMAXPROCS, PGO
+- **Caching Patterns** — algorithmic complexity, compiled patterns, singleflight, work avoidance
+- **Production Observability** — Prometheus metrics, PromQL queries, continuous profiling, alerting rules
 
 ## CI Regression Detection
 

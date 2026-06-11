@@ -24,7 +24,7 @@ Create production-quality Semgrep rules with proper testing and validation.
 
 Do NOT use this skill for:
 - Running existing Semgrep rulesets
-- General static analysis without custom rules (use `static-analysis` skill)
+- General static analysis without custom rules (run an off-the-shelf Semgrep ruleset, e.g. `semgrep --config auto`, or use a dedicated CodeQL/security workflow)
 
 ## Rationalizations to Reject
 
@@ -138,8 +138,8 @@ Run tests (from rule directory): `semgrep --test --config <rule-id>.yaml <rule-i
 
 ## Quick Reference
 
-- For commands, pattern operators, and taint mode syntax, see [quick-reference.md]({baseDir}/references/quick-reference.md).
-- For detailed workflow and examples, you MUST see [workflow.md]({baseDir}/references/workflow.md)
+- For commands, pattern operators, and taint mode syntax, see [quick-reference.md](references/quick-reference.md).
+- For detailed workflow and examples, you MUST see [workflow.md](references/workflow.md)
 
 ## Workflow
 

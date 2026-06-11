@@ -51,7 +51,7 @@ only when the user opts in. See `docs/install.md` for install instructions.
   developing skills inside this repo.
 - `upstream/sources.yaml` — manifest of tracked upstream skill repos
   (rev pin, review cursor, license, import paths). Created on first
-  adoption; absent until then.
+  adoption; populated once adoption begins.
 - `upstream/decisions/<id>.log` — per-source append-only review log
   (one row per upstream commit decided via `upstream-tracker`).
 - `.claude-plugin/marketplace.json` — Claude Code marketplace manifest;
@@ -238,9 +238,10 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 ```
 
 Schema reference: `meta/skill-improver/references/schema.md`.
-Use `go run scripts/append-correction.go --json -` (one JSON object on
-stdin) to append safely under a file lock. The user can invoke the same
-path via `/remember-correction <note>`.
+Use `go run plugins/jylhis-skills-core/scripts/append-correction.go --json -`
+(one JSON object on stdin) to append safely under a file lock. The user can
+invoke the same path via `/remember-correction <note>` (which resolves the
+script via `${CLAUDE_PLUGIN_ROOT}`).
 
 The file lives outside the repo, in the XDG state directory — it is
 host-private, not committed, not synced. This JSONL is the machine-

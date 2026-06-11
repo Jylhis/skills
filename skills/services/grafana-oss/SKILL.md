@@ -124,9 +124,6 @@ Use variables in queries: `rate(http_requests_total{namespace="$namespace"}[$int
 ## Alerting Configuration (grafana.ini)
 
 ```ini
-[alerting]
-enabled = true
-
 [unified_alerting]
 enabled = true
 
@@ -304,3 +301,10 @@ GET /api/org/users
 # Create service account token
 POST /api/serviceaccounts/{id}/tokens
 ```
+
+## References
+
+- [references/datasources.md](references/datasources.md) — read when connecting Grafana to a backend (Prometheus, Loki, etc.), choosing data source types, or provisioning data sources.
+- [references/dashboards.md](references/dashboards.md) — read when building or provisioning dashboards, organizing panels into rows, or wiring up template variables.
+- [references/panels.md](references/panels.md) — read when picking a visualization type, configuring panel queries, or tuning field options and thresholds.
+- [references/alerting.md](references/alerting.md) — read when setting up alert rules, contact points, notification policies, or troubleshooting unified alerting.

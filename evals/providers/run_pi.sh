@@ -44,12 +44,12 @@ ELAPSED=$(( $(millis_now) - START ))
 
 # Pi's RPC stream uses event-typed records; the last assistant message
 # is the canonical text.
-TEXT="$(jq -r '
-  select(.type == "assistant_message") | .text // empty
-' "$TRACE_FILE" 2>/dev/null | tail -n1)"
+TEXT="$(jq -rs '
+  map(select(.type == "assistant_message")) | last | (.text // empty)
+' "$TRACE_FILE" 2>/dev/null)"
 
 if [[ -z "$TEXT" ]]; then
-  TEXT="$(jq -r 'select(.type == "result") | .text // empty' "$TRACE_FILE" 2>/dev/null | tail -n1)"
+  TEXT="$(jq -rs 'map(select(.type == "result")) | last | (.text // empty)' "$TRACE_FILE" 2>/dev/null)"
 fi
 
 # Sentinel-marker fallback (the default for Pi because telemetry is

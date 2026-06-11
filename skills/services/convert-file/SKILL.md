@@ -10,14 +10,14 @@ metadata:
 
 You are helping the user convert a data file from one format to another using DuckDB.
 
-Input file: `$0`
-Output file: `${1:-}`
+Work with the input file the user gave. If the user specified an output path,
+use it; otherwise pick a sensible default (see Step 1).
 
 ## Step 1 — Resolve input and output
 
-**Input**: `$0`. If it's a bare filename (no `/`), resolve to a full path with `find "$PWD" -name "$0" -not -path '*/.git/*' 2>/dev/null | head -1`.
+**Input**: the file the user gave. If it's a bare filename (no `/`), resolve to a full path with `find "$PWD" -name "<input filename>" -not -path '*/.git/*' 2>/dev/null | head -1`.
 
-**Output**: If `$1` is provided, use it as the output path. If not, default to the same stem as the input with a `.parquet` extension (e.g., `data.csv` → `data.parquet`).
+**Output**: If the user specified an output path, use it. If not, default to the same stem as the input with a `.parquet` extension (e.g., `data.csv` → `data.parquet`).
 
 Infer the output format from the output file extension:
 
@@ -64,6 +64,6 @@ On success, report:
 - Row count if quick to compute
 
 On failure:
-- **`duckdb: command not found`** → delegate to `/duckdb-skills:install-duckdb`
+- **`duckdb: command not found`** → use the `install-duckdb` skill
 - **Missing extension** → install it and retry
-- **Input parse error** → suggest the user check the input format or try `/duckdb-skills:read-file` first to inspect it
+- **Input parse error** → suggest the user check the input format or use the `read-file` skill first to inspect it

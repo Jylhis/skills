@@ -10,7 +10,8 @@ metadata:
 
 You are helping the user find relevant DuckDB or DuckLake documentation.
 
-Query: `$@`
+The query is whatever question, keyword, or error message the user wants to look
+up in the docs.
 
 Follow these steps in order.
 
@@ -20,7 +21,7 @@ Follow these steps in order.
 command -v duckdb
 ```
 
-If not found, delegate to `/duckdb-skills:install-duckdb` and then continue.
+If not found, use the `install-duckdb` skill and then continue.
 
 ## Step 2 — Ensure required extensions are installed
 
@@ -32,7 +33,7 @@ If this fails, report the error and stop.
 
 ## Step 3 — Choose the data source and extract search terms
 
-The query is: `$@`
+Take the user's query (their question, keyword, or error message).
 
 ### Data source selection
 
@@ -127,7 +128,7 @@ LIMIT 8;
 
 Replace `CACHE_FILENAME`, `SEARCH_QUERY`, and `VERSION` per Step 3. Remove the `AND version = 'VERSION'` line if searching across all versions.
 
-If the user's question could benefit from both DuckDB docs and blog results, run two queries (one with `version = 'stable'`, one with `version = 'blog'`) or omit the version filter entirely.
+If the user's question could benefit from both DuckDB docs and blog results, run two queries against the DuckDB docs index (one with `version = 'lts'`, one with `version = 'blog'`) or omit the version filter entirely.
 
 ## Step 6 — Handle errors
 
@@ -148,4 +149,4 @@ For each result chunk returned (ordered by score descending), format as:
 ---
 ```
 
-After presenting all chunks, synthesize a concise answer to the user's original question (`$@`) based on the retrieved documentation. If the chunks directly answer the question, lead with the answer before showing the sources.
+After presenting all chunks, synthesize a concise answer to the user's original question based on the retrieved documentation. If the chunks directly answer the question, lead with the answer before showing the sources.

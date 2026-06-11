@@ -56,10 +56,11 @@ are required.
 
 ## State files
 
-This skill operates on three repo-root paths. None of them ships
-populated; they are created when the user adopts the first upstream.
+This skill operates on three repo-root paths.
 
 - `upstream/sources.yaml` — manifest. Authoritative for source state.
+  It already exists and is populated with tracked sources; adopting a
+  new upstream (§1) appends to it rather than creating it.
   See `references/manifest-schema.md` for the field reference.
 - `upstream/decisions/<id>.log` — append-only TSV. One row per reviewed
   upstream commit. Format: `<sha>\t<decision>\t<iso-date>\t<note>`,

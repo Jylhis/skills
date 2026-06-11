@@ -62,13 +62,18 @@ def cherry_pick_apply(cache: Path, src: dict, sha: str) -> str | None:
             check=False,
         )
         if check.returncode == 0:
-            skill_local = mapping["local"]
-            target_dir = L.ROOT / "skills" / mapping["local"]
+            local_path = L.skill_local_path(mapping)
+            if local_path is None:
+                print(f"  mapping missing category+name (or legacy local): "
+                      f"{mapping!r}", file=sys.stderr)
+                return None
+            skill_local = local_path
+            target_dir = L.ROOT / "skills" / local_path
             depth = upstream_full.count("/") + 1
             apply_rc = subprocess.run(
                 ["git", "apply",
                  f"-p{depth}",
-                 f"--directory=skills/{mapping['local']}",
+                 f"--directory=skills/{local_path}",
                  str(patch_path)],
                 cwd=str(L.ROOT), check=False,
             ).returncode

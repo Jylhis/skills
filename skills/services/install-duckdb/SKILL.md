@@ -1,6 +1,6 @@
 ---
 name: install-duckdb
-description: "Install or update DuckDB extensions. Each argument is either a plain extension name (installs from core) or name@repo (e.g. magic@community). Pass --update to update extensions instead of installing."
+description: "Install or update DuckDB extensions (not the DuckDB binary itself). Each requested extension is either a plain name (installed from core) or name@repo (e.g. magic@community). Use to install or update extensions, or to update the DuckDB CLI. If DuckDB itself is absent, this prints platform install instructions and stops."
 metadata:
   upstream-id: duckdb-skills
   upstream-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
@@ -8,9 +8,12 @@ metadata:
   upstream-imported: 2026-05-14
 ---
 
-Arguments: `$@`
+This skill installs or updates DuckDB **extensions** — it does not install the
+DuckDB binary itself. If DuckDB is missing, it prints platform install
+instructions (Step 1) and stops.
 
-Each extension argument has the form `name` or `name@repo`.
+Work out which extensions the user wants. Each requested extension is named as
+`name` or `name@repo`:
 - `name` → `INSTALL name;`
 - `name@repo` → `INSTALL name FROM repo;`
 
@@ -27,20 +30,20 @@ If not found, tell the user:
 > - Linux:   `curl -fsSL https://install.duckdb.org | sh`
 > - Windows: `winget install DuckDB.cli`
 >
-> Then re-run `/duckdb-skills:install-duckdb`.
+> Then ask to run this skill again.
 
 Stop if DuckDB is not found.
 
-## Step 2 — Check for --update flag
+## Step 2 — Determine the mode
 
-If `--update` is present in `$@`, remove it from the argument list and set mode to **update**.
-Otherwise mode is **install**.
+If the user asked to **update** extensions (or the DuckDB CLI), set mode to
+**update**. Otherwise mode is **install**.
 
 ## Step 3 — Build and run statements
 
 **Install mode:**
 
-Parse each remaining argument:
+For each extension the user requested:
 - If it contains `@`, split on `@` → `INSTALL <name> FROM <repo>;`
 - Otherwise → `INSTALL <name>;`
 

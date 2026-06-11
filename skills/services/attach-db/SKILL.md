@@ -1,6 +1,6 @@
 ---
 name: attach-db
-description: "Attach a DuckDB database file for use with /duckdb-skills:query. Explores the schema (tables, columns, row counts) and writes a SQL state file so subsequent queries can restore this session automatically via duckdb -init."
+description: "Attach a DuckDB database file so the query skill can use it. Explores the schema (tables, columns, row counts) and writes a SQL state file so subsequent queries can restore this session automatically via duckdb -init."
 metadata:
   upstream-id: duckdb-skills
   upstream-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
@@ -10,7 +10,7 @@ metadata:
 
 You are helping the user attach a DuckDB database file for interactive querying.
 
-Database path given: `$0`
+Work with the database path the user specified (call it `RAW_PATH`).
 
 Follow these steps in order, stopping and reporting clearly if any step fails.
 
@@ -18,10 +18,11 @@ Follow these steps in order, stopping and reporting clearly if any step fails.
 
 ## Step 1 — Resolve the database path
 
-If `$0` is a relative path, resolve it against `$PWD` to get an absolute path (`RESOLVED_PATH`).
+If the path is relative, resolve it against `$PWD` to get an absolute path (`RESOLVED_PATH`). Substitute the user's path for `RAW_PATH` below.
 
 ```bash
-RESOLVED_PATH="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
+RAW_PATH="<the path the user specified>"
+RESOLVED_PATH="$(cd "$(dirname "$RAW_PATH")" 2>/dev/null && pwd)/$(basename "$RAW_PATH")"
 ```
 
 Check the file exists:
@@ -39,7 +40,7 @@ test -f "$RESOLVED_PATH"
 command -v duckdb
 ```
 
-If not found, delegate to `/duckdb-skills:install-duckdb` and then continue.
+If not found, use the `install-duckdb` skill and then continue.
 
 ## Step 3 — Validate the database
 
@@ -149,6 +150,6 @@ Summarize for the user:
 - **Alias**: the database alias used in the state file
 - **State file**: the resolved `STATE_DIR/state.sql` path
 - **Tables**: name, column count, row count for each table (or note the DB is empty)
-- Confirm the database is now active for `/duckdb-skills:query`
+- Confirm the database is now active for the `query` skill
 
 If the database is empty, suggest creating tables or importing data.

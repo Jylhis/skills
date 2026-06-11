@@ -1,7 +1,7 @@
 ---
 name: microsoft-docs
 description: Understand Microsoft technologies by querying official documentation. Use whenever the user asks how something works, wants tutorials, needs configuration options, limits, quotas, or best practices for any Microsoft technology (Azure, .NET, M365, Windows, Power Platform, etc.)—even if they don't mention "docs." If the question is about understanding a concept rather than writing code, this is the right skill.
-compatibility: "Primarily uses the Microsoft Learn MCP Server (https://learn.microsoft.com/api/mcp). If unavailable, use a Nix-provided mslearn CLI only (no npm fallback)."
+compatibility: "Primarily uses the Microsoft Learn MCP Server (https://learn.microsoft.com/api/mcp). If unavailable, fall back to fetching the public Microsoft Learn web docs directly."
 metadata:
   upstream-id: microsoft-docs
   upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
@@ -60,20 +60,19 @@ Fetch after search when:
 - **Completeness** — tutorials have all steps, not fragments
 - **Authority** — official Microsoft documentation
 
-## CLI Alternative (Nix only)
+## Fallback when the MCP server is unavailable
 
-If the Learn MCP server is not available, use a Nix-provided `mslearn` CLI only (do not use npm):
+The Microsoft Learn MCP Server (`microsoft_docs_search`,
+`microsoft_docs_fetch`) is the primary path. If it is not available,
+fetch the public Microsoft Learn web docs directly:
 
-```sh
-# Example (once packaged in nixpkgs)
-nix run nixpkgs#mslearn -- search "azure functions timeout"
-```
+- **Search** — query `https://learn.microsoft.com/search/?terms=<query>`
+  (or a normal web search scoped to `site:learn.microsoft.com`) to find
+  the relevant page URLs.
+- **Fetch** — retrieve the page at its `https://learn.microsoft.com/...`
+  URL and read the rendered content. Narrow to the heading you need and
+  skip navigation chrome.
 
-If `mslearn` is not yet available in nixpkgs, do not fall back to npm; report the limitation and track packaging work in `./Todo`.
-
-| MCP Tool | CLI Command |
-|----------|-------------|
-| `microsoft_docs_search(query: "...")` | `mslearn search "..."` |
-| `microsoft_docs_fetch(url: "...")` | `mslearn fetch "..."` |
-
-The `fetch` command also supports `--section <heading>` to extract a single section and `--max-chars <number>` to truncate output.
+Keep the same query-effectiveness rules above (be specific, include
+version/task/platform context). The web fallback is lower-fidelity than
+the MCP tools — prefer the MCP server whenever it is reachable.

@@ -41,14 +41,17 @@ ELAPSED=$(( $(millis_now) - START ))
 # is the concatenation of `text` events, with a non-stream-final
 # `response` event as the canonical fallback. (Inherited from the
 # Gemini CLI format.)
-TEXT="$(jq -r '
-  select(.type == "response") | .response // empty
-' "$TRACE_FILE" 2>/dev/null | tail -n1)"
+TEXT="$(jq -rs '
+  map(select(.type == "response")) | last | (.response // empty)
+' "$TRACE_FILE" 2>/dev/null)"
 
 if [[ -z "$TEXT" ]]; then
+  # Streamed `text` chunks concatenate with nothing between them.
+  # `tr -d '\n'` is the portable equivalent of `paste -sd '' -`
+  # (GNU paste rejects an empty delimiter list).
   TEXT="$(jq -r '
     select(.type == "text") | .text // empty
-  ' "$TRACE_FILE" 2>/dev/null | paste -sd '' -)"
+  ' "$TRACE_FILE" 2>/dev/null | tr -d '\n')"
 fi
 
 # `activate_skill` is the explicit skill-load tool event Antigravity

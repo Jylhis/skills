@@ -261,13 +261,21 @@ count(count by (user_id)(http_requests_total))
 - Group URLs into route patterns: `/api/users/123` → `/api/users/{id}`
 - Use `relabel_configs` to drop labels before ingestion
 
-```yaml
-# Drop a high-cardinality label during scrape (in Alloy or Prometheus scrape config)
+```alloy
+// Drop a high-cardinality label before ingestion (Alloy/River config).
+// Relabeling lives in a prometheus.relabel component, not in prometheus.scrape.
 prometheus.scrape "api" {
-  targets = [...]
+  targets    = [...]
+  forward_to = [prometheus.relabel.drop_user_id.receiver]
+}
+
+prometheus.relabel "drop_user_id" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  // labeldrop matches label names via regex, not source_labels.
   rule {
-    source_labels = ["user_id"]
-    action        = "labeldrop"
+    action = "labeldrop"
+    regex  = "user_id"
   }
 }
 ```

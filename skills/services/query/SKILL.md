@@ -10,7 +10,8 @@ metadata:
 
 You are helping the user query data using DuckDB.
 
-Input: `$@`
+The input is whatever the user asked — raw SQL, a natural-language question, or a
+`--file` reference.
 
 Follow these steps in order.
 
@@ -42,7 +43,7 @@ test -f "$PROJECT_STATE_DIR/TRUSTED_BY_USER"
 ! git ls-files --error-unmatch "$PROJECT_STATE_DIR/TRUSTED_BY_USER" >/dev/null 2>&1
 ```
 
-If either check fails, refuse to execute project-local state and ask the user to migrate reviewed statements into `~/.duckdb-skills/<project-id>/state.sql` using `/duckdb-skills:attach-db`.
+If either check fails, refuse to execute project-local state and ask the user to migrate reviewed statements into `~/.duckdb-skills/<project-id>/state.sql` using the `attach-db` skill.
 
 If a selected state file is found, verify the databases it references are still accessible:
 
@@ -65,7 +66,7 @@ If the state file exists but any ATTACH in it fails, warn the user and fall back
 command -v duckdb
 ```
 
-If not found, delegate to `/duckdb-skills:install-duckdb` and then continue.
+If not found, use the `install-duckdb` skill and then continue.
 
 ## Step 3 — Generate SQL if needed
 
@@ -161,10 +162,10 @@ Always use heredocs (`<<'SQL'`) for multi-line queries to avoid shell quoting is
 ## Step 6 — Handle errors
 
 - **Syntax error**: show the error, suggest a corrected query, and re-run.
-- **Missing extension** (e.g. `Extension "X" not loaded`): delegate to `/duckdb-skills:install-duckdb <ext>`, then retry.
+- **Missing extension** (e.g. `Extension "X" not loaded`): use the `install-duckdb` skill to install the named extension, then retry.
 - **Table not found** (session mode): list available tables with `FROM duckdb_tables()` and suggest corrections.
 - **File not found** (ad-hoc mode): use `find "$PWD" -name "<filename>" 2>/dev/null` to locate the file and suggest the corrected path.
-- **Persistent or unclear DuckDB error**: use `/duckdb-skills:duckdb-docs <error message or relevant keywords>` to search the documentation for guidance, then apply the fix and retry.
+- **Persistent or unclear DuckDB error**: use the `duckdb-docs` skill with the error message or relevant keywords to search the documentation for guidance, then apply the fix and retry.
 
 ## Step 7 — Present results
 

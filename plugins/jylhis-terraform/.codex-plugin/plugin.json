@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Jylhis-terraform",
     "shortDescription": "Terraform skill — terraform-test framework, style guide, refactor-module workflow, terraform-stacks.",
-    "longDescription": "Terraform skill — terraform-test framework, style guide, refactor-module workflow, terraform-stacks. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "longDescription": "Terraform skills — the terraform-test framework, refactor-module workflow, style guide, and Terraform Stacks.",
     "developerName": "Jylhis",
     "category": "Coding",
     "capabilities": ["Read", "Write"],

@@ -103,7 +103,7 @@ Unit tests should be fast (< 1ms), isolated (no external dependencies), and dete
 
 ## Testing HTTP Handlers
 
-Use `httptest` for handler tests with table-driven patterns. See [HTTP Testing](./references/http-testing.md) for examples with request/response bodies, query parameters, headers, and status code assertions.
+Use `httptest` for handler tests with table-driven patterns covering request/response bodies, query parameters, headers, and status code assertions.
 
 ## Goroutine Leak Detection with goleak
 
@@ -141,7 +141,7 @@ func TestWorkerPool(t *testing.T) {
 
 ## testing/synctest for Deterministic Goroutine Testing
 
-> **Experimental:** `testing/synctest` is not yet covered by Go's compatibility guarantee. Its API may change in future releases. For stable alternatives, use `clockwork` (see [Mocking](./references/mocking.md)).
+> **Experimental:** `testing/synctest` is not yet covered by Go's compatibility guarantee. Its API may change in future releases. For a stable alternative, use `clockwork` (see the Mocking section below).
 
 `testing/synctest` (Go 1.24+) provides deterministic time for concurrent code testing. Time advances only when all goroutines are blocked, making ordering predictable.
 
@@ -188,7 +188,7 @@ Key differences in `synctest`:
 
 ## Test Timeouts
 
-For tests that may hang, use a timeout helper that panics with caller location. See [Helpers](./references/helpers.md).
+For tests that may hang, use a timeout helper that panics with caller location.
 
 ## Benchmarks
 
@@ -339,13 +339,13 @@ Run integration tests separately:
 go test -tags=integration ./...
 ```
 
-For Docker Compose fixtures, SQL schemas, and integration test suites, see [Integration Testing](./references/integration-testing.md).
+Use Docker Compose fixtures, SQL schemas, and dedicated integration test suites for these.
 
 ## Mocking
 
 Mock interfaces, not concrete types. Define interfaces where consumed, then create mock implementations.
 
-For mock patterns, test fixtures, and time mocking, see [Mocking](./references/mocking.md).
+Use focused mock patterns, test fixtures, and time mocking (e.g. `clockwork`) as needed.
 
 ## Enforce with Linters
 

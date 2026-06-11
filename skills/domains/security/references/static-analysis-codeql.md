@@ -4,7 +4,7 @@
 
 Supported languages: Python, JavaScript/TypeScript, Go, Java/Kotlin, C/C++, C#, Ruby, Swift.
 
-**Skill resources:** Reference files and templates are located at `{baseDir}/references/` and `{baseDir}/workflows/`.
+**Note:** This is a condensed, self-contained reference. The deep-dive workflow and reference files described below (build-database, create-data-extensions, run-analysis, per-language details, suite templates, etc.) are summarized here but not bundled as separate files — apply the principles and the inline pipeline directly.
 
 ## Essential Principles
 
@@ -137,7 +137,7 @@ These shortcuts lead to missed findings. Do not accept them:
 - **"The database built, so it's good"** - A database that builds does not mean it extracted well. Always run quality assessment and check file counts against expected source files.
 - **"Data extensions aren't needed for standard frameworks"** - Even Django/Spring apps have custom wrappers that CodeQL does not model. Skipping extensions means missing vulnerabilities.
 - **"build-mode=none is fine for compiled languages"** - It produces severely incomplete analysis. Only use as an absolute last resort. On macOS, try the arm64 toolchain workaround or Rosetta first.
-- **"The build fails on macOS, just use build-mode=none"** - Exit code 137 is caused by `arm64e`/`arm64` mismatch, not a fundamental build failure. See [macos-arm64e-workaround.md](references/macos-arm64e-workaround.md).
+- **"The build fails on macOS, just use build-mode=none"** - Exit code 137 is caused by `arm64e`/`arm64` mismatch, not a fundamental build failure. Try the arm64 Homebrew toolchain or Rosetta before falling back.
 - **"No findings means the code is secure"** - Zero findings can indicate poor database quality, missing models, or wrong query packs. Investigate before reporting clean results.
 - **"I'll just run the default suite"** / **"I'll just pass the pack names directly"** - Each pack's `defaultSuiteFile` applies hidden filters and can produce zero results. Always use an explicit suite reference.
 - **"I'll put files in the current directory"** - All generated files must go in `$OUTPUT_DIR`. Scattering files in the working directory makes cleanup impossible and risks overwriting previous runs.
@@ -152,9 +152,9 @@ This skill has three workflows. **Once a workflow is selected, execute it step b
 
 | Workflow | Purpose |
 |----------|---------|
-| [build-database](workflows/build-database.md) | Create CodeQL database using build methods in sequence |
-| [create-data-extensions](workflows/create-data-extensions.md) | Detect or generate data extension models for project APIs |
-| [run-analysis](workflows/run-analysis.md) | Select rulesets, execute queries, process results |
+| build-database | Create CodeQL database using build methods in sequence |
+| create-data-extensions | Detect or generate data extension models for project APIs |
+| run-analysis | Select rulesets, execute queries, process results |
 
 ### Auto-Detection Logic
 
@@ -219,27 +219,31 @@ I can help with CodeQL analysis. What would you like to do?
 
 ---
 
-## Reference Index
+## Topic Index
 
-| File | Content |
+The original Trail of Bits skill split the material below into separate
+workflow and reference files. They are **not bundled** here — treat each
+row as a checklist of what to cover when you reach that phase.
+
+| Topic | Content |
 |------|---------|
 | **Workflows** | |
-| [workflows/build-database.md](workflows/build-database.md) | Database creation with build method sequence |
-| [workflows/create-data-extensions.md](workflows/create-data-extensions.md) | Data extension generation pipeline |
-| [workflows/run-analysis.md](workflows/run-analysis.md) | Query execution and result processing |
+| build-database | Database creation with build method sequence |
+| create-data-extensions | Data extension generation pipeline |
+| run-analysis | Query execution and result processing |
 | **References** | |
-| [references/macos-arm64e-workaround.md](references/macos-arm64e-workaround.md) | Apple Silicon build tracing workarounds |
-| [references/build-fixes.md](references/build-fixes.md) | Build failure fix catalog |
-| [references/quality-assessment.md](references/quality-assessment.md) | Database quality metrics and improvements |
-| [references/extension-yaml-format.md](references/extension-yaml-format.md) | Data extension YAML column definitions and examples |
-| [references/sarif-processing.md](references/sarif-processing.md) | jq commands for SARIF output processing |
-| [references/diagnostic-query-templates.md](references/diagnostic-query-templates.md) | QL queries for source/sink enumeration |
-| [references/important-only-suite.md](references/important-only-suite.md) | Important-only suite template and generation |
-| [references/run-all-suite.md](references/run-all-suite.md) | Run-all suite template |
-| [references/ruleset-catalog.md](references/ruleset-catalog.md) | Available query packs by language |
-| [references/threat-models.md](references/threat-models.md) | Threat model configuration |
-| [references/language-details.md](references/language-details.md) | Language-specific build and extraction details |
-| [references/performance-tuning.md](references/performance-tuning.md) | Memory, threading, and timeout configuration |
+| macOS arm64e workaround | Apple Silicon build tracing workarounds |
+| build-fixes | Build failure fix catalog |
+| quality-assessment | Database quality metrics and improvements |
+| extension-yaml-format | Data extension YAML column definitions and examples |
+| sarif-processing | jq commands for SARIF output processing |
+| diagnostic-query-templates | QL queries for source/sink enumeration |
+| important-only-suite | Important-only suite template and generation |
+| run-all-suite | Run-all suite template |
+| ruleset-catalog | Available query packs by language |
+| threat-models | Threat model configuration |
+| language-details | Language-specific build and extraction details |
+| performance-tuning | Memory, threading, and timeout configuration |
 
 ---
 

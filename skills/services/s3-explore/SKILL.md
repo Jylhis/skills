@@ -10,8 +10,9 @@ metadata:
 
 You are helping the user explore data on remote object storage using DuckDB.
 
-URL: `$0`
-Question: `${1:-list and describe what's there}`
+Work with the object-storage URL the user gave. If the user asked a specific
+question about it, answer that; otherwise default to listing and describing
+what's there.
 
 ## Step 1 — Detect provider and set up credentials
 
@@ -78,15 +79,14 @@ GROUP BY file_name;
 
 ## Step 3 — Answer the question
 
-Using the listing, schema, or sample data, answer:
-
-`${1:-list and describe what's there}`
+Using the listing, schema, or sample data, answer the user's question. If the
+user did not ask anything specific, list and describe what's there.
 
 If the user asks an analytical question (e.g., "how many rows match X"), write and run the appropriate SQL query. DuckDB pushes predicates down into Parquet on S3, so filtering is efficient even on large remote datasets.
 
 ## Error handling
 
-- **`duckdb: command not found`** → delegate to `/duckdb-skills:install-duckdb`
+- **`duckdb: command not found`** → use the `install-duckdb` skill
 - **Access denied / 403** → suggest the user check credentials: `aws configure`, environment variables, or provide explicit key/secret
 - **Bucket not found / 404** → check the URL and region
 - **Timeout on large listing** → suggest narrowing the glob pattern or adding a prefix

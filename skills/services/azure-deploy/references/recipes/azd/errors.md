@@ -21,7 +21,7 @@ These errors occur **during** `azd up` execution:
 | `found '2' resources tagged with 'azd-service-name: <name>'` | Previous deployment left duplicate-tagged resources in same RG | **Preferred**: Create fresh env with `azd env new <new-name> --no-prompt`, set subscription/location, redeploy. **Alternative**: Delete conflicting resources (requires `ask_user`). |
 | Literal `{{ .Env.* }}` in Terraform errors | azd does not interpolate template variables in `.tfvars.json` | See [Unresolved Terraform Template Variables](#unresolved-terraform-template-variables) |
 
-> ℹ️ **Pre-flight validation**: Run `azure-validate` before deployment to catch configuration errors early. See [Pre-Deploy Checklist](../../pre-deploy-checklist.md).
+> ℹ️ **Pre-flight validation**: Validate the infrastructure (e.g. `azd provision --preview`, `terraform validate`) before deployment to catch configuration errors early. See [Pre-Deploy Checklist](../../pre-deploy-checklist.md).
 
 ## Container App Revision Timeout
 
@@ -238,7 +238,7 @@ Error: Invalid value for variable "environment_name"
 
 Or Terraform silently uses the literal string, causing resource naming failures, state conflicts, and cascading errors that lead to deployment timeouts.
 
-**Cause:** azd reads `infra/main.tfvars.json`, substitutes `${VAR}` references using its built-in envsubst, and passes the resolved file to Terraform via `-var-file=`. Go-style `{{ .Env.* }}` variables are only processed in `azure.yaml` and service manifests — they are **NOT** interpolated in `.tfvars.json` or any Terraform variable files. If `azure-prepare` generated a `main.tfvars.json` with Go-style template expressions, those literal strings are passed to Terraform.
+**Cause:** azd reads `infra/main.tfvars.json`, substitutes `${VAR}` references using its built-in envsubst, and passes the resolved file to Terraform via `-var-file=`. Go-style `{{ .Env.* }}` variables are only processed in `azure.yaml` and service manifests — they are **NOT** interpolated in `.tfvars.json` or any Terraform variable files. If `main.tfvars.json` was generated with Go-style template expressions, those literal strings are passed to Terraform.
 
 **Solution:**
 
@@ -269,7 +269,7 @@ Or Terraform silently uses the literal string, causing resource naming failures,
    azd up --no-prompt
    ```
 
-> ⚠️ **Prevention:** This issue should be caught by `azure-validate` Step 10 (Template Variable Resolution Check) before deployment. If you encounter it, re-run validation after fixing.
+> ⚠️ **Prevention:** Catch this during pre-deploy validation with a Template Variable Resolution check (grep `infra/main.tfvars.json` for literal `{{ .Env.` expressions). If you encounter it, re-run validation after fixing.
 
 ## Retry
 

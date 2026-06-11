@@ -1,9 +1,8 @@
 ---
 name: terraform-refactor-module
-description: Transform monolithic Terraform configurations into reusable, maintainable modules following HashiCorp's module design principles and community best practices.
+description: Use when refactoring or splitting monolithic Terraform configurations into reusable modules. Transforms monolithic Terraform into reusable, maintainable modules following HashiCorp's module design principles and community best practices.
 metadata:
   copyright: Copyright IBM Corp. 2026
-  version: 0.0.1
   upstream-id: hashicorp-agent-skills
   upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
   upstream-path: module-generation/skills/refactor-module
@@ -508,8 +507,7 @@ terraform apply migration.tfplan
 ```hcl
 # Use semantic versioning for modules
 module "vpc" {
-  source  = "git::https://github.com/org/terraform-modules.git//vpc?ref=v1.2.0"
-  version = "~> 1.2"
+  source = "git::https://github.com/org/terraform-modules.git//vpc?ref=v1.2.0"
 }
 
 # Pin to specific versions in production

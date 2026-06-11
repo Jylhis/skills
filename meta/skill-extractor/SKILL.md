@@ -1,6 +1,6 @@
 ---
 name: skill-extractor
-description: Extracts reusable skills from work sessions. Use when (1) a non-obvious problem was solved worth preserving, (2) a pattern was discovered that would help future sessions, or (3) a workaround or debugging technique needs documentation. Manual invocation only via /skill-extractor command — no automatic triggers or hooks.
+description: Extracts reusable skills from work sessions. Use when (1) a non-obvious problem was solved worth preserving, (2) a pattern was discovered that would help future sessions, or (3) a workaround or debugging technique needs documentation. Repo-local meta skill — invoke it by name and follow the steps manually; it ships no slash command and has no automatic triggers or hooks.
 metadata:
   upstream-id: trailofbits-skills-curated
   upstream-rev: 022fa0948818c9f2f738a428f4546cc65c427767
@@ -40,15 +40,19 @@ Use these prompts to identify knowledge worth extracting:
 
 If you can't answer at least two of these with something non-trivial, it's probably not worth extracting.
 
-## Command
+## Invocation
 
-```
-/skill-extractor [--project] [context hint]
-```
+This is a **repo-local meta skill**: it lives under `meta/` and is not
+shipped through any plugin, so it has no slash command. Invoke it by
+name and follow the steps below manually.
 
-- Default: saves to `~/.claude/skills/[name]/SKILL.md`
-- `--project`: saves to `.claude/skills/[name]/SKILL.md`
-- Context hint helps focus extraction (e.g., `/skill-extractor the cyclic data DoS fix`)
+Inputs you supply when invoking:
+
+- **Scope** — default saves to `~/.claude/skills/[name]/SKILL.md`;
+  project scope saves to `.claude/skills/[name]/SKILL.md`.
+- **Context hint** — an optional phrase that focuses the extraction
+  (e.g. "the cyclic data DoS fix"). When provided, it arrives as
+  `$ARGUMENTS`.
 
 ## Extraction Process
 
@@ -109,7 +113,7 @@ The user decides whether to proceed regardless of how many criteria pass. Respec
 
 Ask the user:
 1. **Skill name** - Suggest a kebab-case name based on context, let them override
-2. **Scope** - User-level (default) or project-level (`--project`)
+2. **Scope** - User-level (default, `~/.claude/skills/`) or project-level (`.claude/skills/`)
 
 ### Step 4: Optional Research
 

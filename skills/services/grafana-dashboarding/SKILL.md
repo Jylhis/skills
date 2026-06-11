@@ -343,8 +343,12 @@ curl -s -X POST \
 
 ## Grafana scenes (app plugins)
 
-For dashboards embedded in app plugins, use `@grafana/scenes` instead of raw JSON.
-See the `grafana-o11y:grafana-scenes` skill for the React-based scenes API.
+For dashboards embedded in app plugins, use the `@grafana/scenes` React
+library instead of authoring raw dashboard JSON. Scenes models a dashboard as
+a tree of `SceneObject`s (layouts, panels, variables, data providers) and
+re-renders reactively as state changes, which suits programmatic and embedded
+dashboards better than the static JSON model. See the upstream docs at
+<https://grafana.com/developers/scenes/>.
 
 ---
 

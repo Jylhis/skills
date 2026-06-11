@@ -1,10 +1,14 @@
 #!/bin/bash
 # CI Debug Helper Script
 # Automates: find failed jobs → show logs for each
+#
+# Uses real glab syntax (see ../references/glab.md):
+#   glab ci get -p <pipeline-id> -F json   → pipeline + jobs as JSON
+#   glab ci trace <job-id>                 → job log
 
-set -e
+set -euo pipefail
 
-PIPELINE_ID="$1"
+PIPELINE_ID="${1:-}"
 
 if [ -z "$PIPELINE_ID" ]; then
     echo "Usage: $0 <PIPELINE_ID>"
@@ -17,26 +21,32 @@ fi
 
 echo "🔍 Fetching pipeline #$PIPELINE_ID..."
 
-# Get pipeline status
-PIPELINE_STATUS=$(glab ci view "$PIPELINE_ID" --json status -q .status 2>/dev/null || echo "unknown")
+# Fetch the pipeline (with its jobs) as JSON once and reuse it.
+PIPELINE_JSON=$(glab ci get -p "$PIPELINE_ID" -F json)
+
+PIPELINE_STATUS=$(printf '%s' "$PIPELINE_JSON" | jq -r '.status')
 
 echo "Pipeline Status: $PIPELINE_STATUS"
 echo ""
 
 # Get failed jobs
 echo "🔍 Finding failed jobs..."
-FAILED_JOBS=$(glab ci view "$PIPELINE_ID" --json jobs -q '.jobs[] | select(.status=="failed") | .id' 2>/dev/null)
+FAILED_JOBS=$(printf '%s' "$PIPELINE_JSON" | jq -r '.jobs[]? | select(.status=="failed") | .id')
 
 if [ -z "$FAILED_JOBS" ]; then
     echo "✅ No failed jobs found in pipeline #$PIPELINE_ID"
     exit 0
 fi
 
+job_name() {
+    printf '%s' "$PIPELINE_JSON" | jq -r --argjson id "$1" '.jobs[]? | select(.id==$id) | .name'
+}
+
 echo "❌ Failed jobs found:"
-echo "$FAILED_JOBS" | while read -r job_id; do
-    JOB_NAME=$(glab ci view "$PIPELINE_ID" --json jobs -q ".jobs[] | select(.id==$job_id) | .name")
-    echo "  - Job #$job_id: $JOB_NAME"
-done
+while read -r job_id; do
+    [ -z "$job_id" ] && continue
+    echo "  - Job #$job_id: $(job_name "$job_id")"
+done <<<"$FAILED_JOBS"
 echo ""
 
 # Show logs for each failed job
@@ -49,25 +59,25 @@ echo "📋 Fetching logs for failed jobs..."
 echo "=================================="
 echo ""
 
-echo "$FAILED_JOBS" | while read -r job_id; do
-    JOB_NAME=$(glab ci view "$PIPELINE_ID" --json jobs -q ".jobs[] | select(.id==$job_id) | .name")
-    
+while read -r job_id; do
+    [ -z "$job_id" ] && continue
+
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Job #$job_id: $JOB_NAME"
+    echo "Job #$job_id: $(job_name "$job_id")"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
     # Get last 50 lines of log (usually contains the error)
-    glab ci trace "$job_id" 2>/dev/null | tail -n 50
-    
+    glab ci trace "$job_id" | tail -n 50
+
     echo ""
     echo "Full logs: glab ci trace $job_id"
     echo ""
-done
+done <<<"$FAILED_JOBS"
 
 echo "=================================="
 echo "Summary:"
 echo "  Pipeline: #$PIPELINE_ID ($PIPELINE_STATUS)"
-echo "  Failed jobs: $(echo "$FAILED_JOBS" | wc -l)"
+echo "  Failed jobs: $(printf '%s\n' "$FAILED_JOBS" | grep -c .)"
 echo ""
 echo "Next steps:"
 echo "  - Review error messages above"

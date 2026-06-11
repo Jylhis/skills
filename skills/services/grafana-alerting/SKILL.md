@@ -292,11 +292,11 @@ groups:
 
 ```
 provisioning/alerting/
-├── alert_rules.yaml        # Alert and recording rules
-├── contact_points.yaml     # Notification destinations
-├── notification_policies.yaml  # Routing tree
-├── templates.yaml          # Message templates
-└── mute_timings.yaml       # Recurring mute windows
+├── rules.yaml          # Alert and recording rules
+├── contact_points.yaml # Notification destinations
+├── policies.yaml       # Routing tree
+├── templates.yaml      # Message templates
+└── mute_timings.yaml   # Recurring mute windows
 ```
 
 ## API Provisioning (Keeps UI Editable)
@@ -339,9 +339,3 @@ curl -X POST https://grafana.example.com/api/v1/provisioning/alert-rules \
 {{ end }}
 {{ end }}
 ```
-
-## References
-
-- [Alerting Rules](references/alerting.md)
-- [IRM & On-Call](references/irm.md)
-- [SLOs](references/slo.md)

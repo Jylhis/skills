@@ -186,11 +186,38 @@ def write_manifest(data: dict[str, Any], path: Path = MANIFEST) -> None:
     path.write_text("\n".join(lines) + "\n")
 
 
+def _double_quote(s: str) -> str:
+    """Wrap ``s`` as a YAML double-quoted scalar, escaping ``\\`` and ``"``.
+
+    Escape order matters: backslash first, then double-quote, so an
+    embedded ``"`` becomes ``\\"`` (not ``\\\\"``).
+    """
+    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
 def _yaml_value(value: Any) -> str:
     s = "" if value is None else str(value)
-    if s == "" or any(c in s for c in ":#&*?|>!%@`"):
-        return f'"{s}"'
+    if s == "" or any(c in s for c in ':#&*?|>!%@`"\\'):
+        return _double_quote(s)
     return s
+
+
+def skill_local_path(mapping: dict[str, Any]) -> str | None:
+    """Return the ``<category>/<name>`` local path for a skills[] mapping.
+
+    Supports both the preferred ``category:`` + ``name:`` form and the
+    legacy ``local: <category>/<name>`` form. Returns None when neither
+    shape is present (caller decides how to handle a malformed entry).
+    """
+    category = mapping.get("category")
+    name = mapping.get("name")
+    if category and name:
+        return f"{category}/{name}"
+    local = mapping.get("local")
+    if isinstance(local, str) and local:
+        return local
+    return None
 
 
 def find_source(data: dict[str, Any], source_id: str) -> dict[str, Any]:
@@ -310,8 +337,9 @@ def _fm_scalar(value: Any) -> str:
     if "\n" in s:
         indented = "\n  ".join(s.splitlines())
         return f"|\n  {indented}"
-    if any(c in s for c in ":#&*?|>!%@`") or s.startswith(("[", "{", "-", '"', "'")):
-        return f'"{s}"'
+    if (any(c in s for c in ':#&*?|>!%@`"\\')
+            or s.startswith(("[", "{", "-", '"', "'"))):
+        return _double_quote(s)
     return s
 
 

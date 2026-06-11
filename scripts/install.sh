@@ -35,6 +35,7 @@ OPTIN_PLUGINS=(
   jylhis-obsidian
   jylhis-grafana
   jylhis-taste
+  jylhis-duckdb
   jylhis-reverse-engineering
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
@@ -439,7 +440,7 @@ if command -v codex >/dev/null 2>&1; then
     echo "codex marketplace source ($current_codex_src) differs from $REPO_ROOT; resetting"
     run codex plugin marketplace remove jylhis-skills || true
   fi
-  run codex plugin marketplace add "$REPO_ROOT"
+  run codex plugin marketplace add "$REPO_ROOT" || true
   sync_codex_plugin_cache "$CODEX_DIR" "$DEFAULT_PLUGIN"
   enable_codex_plugin "$CODEX_DIR/config.toml" "${DEFAULT_PLUGIN}@jylhis-skills"
 

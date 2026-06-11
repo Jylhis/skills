@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Jylhis-grafana",
     "shortDescription": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
-    "longDescription": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall. Adopted via meta/upstream-tracker; populated by upstream/sources.yaml.",
+    "longDescription": "Grafana observability skills — alerting, dashboarding, OpenTelemetry instrumentation, Grafana OSS operations, and PromQL.",
     "developerName": "Jylhis",
     "category": "Coding",
     "capabilities": ["Read", "Write"],

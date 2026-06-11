@@ -30,12 +30,27 @@ EVAL_FIXTURES_DIR="${EVAL_FIXTURES_DIR:-}"
 
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+# expand.py exports EVAL_FIXTURES_DIR (and EVAL_SUITE_DIR) as REPO_ROOT-
+# relative paths. promptfoo execs this provider from evals/.generated/, so
+# a bare relative path would resolve against that CWD and cassette.py's
+# fixtures_digest() would silently return "none" (stale/missing cassette).
+# Anchor it to REPO_ROOT — unless it is already absolute — so the digest is
+# computed against the real fixtures dir, matching what record-time used.
+FIXTURES_ARG=""
+if [[ -n "$EVAL_FIXTURES_DIR" ]]; then
+  if [[ "$EVAL_FIXTURES_DIR" = /* ]]; then
+    FIXTURES_ARG="$EVAL_FIXTURES_DIR"
+  else
+    FIXTURES_ARG="$REPO_ROOT/$EVAL_FIXTURES_DIR"
+  fi
+fi
+
 # Compute the cassette key via cassette.py.
 KEY="$(python3 "$REPO_ROOT/evals/scripts/cassette.py" key \
   --provider "$EVAL_PROVIDER" \
   --prompt "$PROMPT" \
   --model "$EVAL_MODEL_SNAPSHOT" \
-  ${EVAL_FIXTURES_DIR:+--fixtures "$EVAL_FIXTURES_DIR"})"
+  ${FIXTURES_ARG:+--fixtures "$FIXTURES_ARG"})"
 
 : "${EVAL_SUITE_DIR:?EVAL_SUITE_DIR must be set (expand.py sets this for stub providers)}"
 CASSETTE="$REPO_ROOT/$EVAL_SUITE_DIR/golden/${KEY}.json"
