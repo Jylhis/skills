@@ -32,7 +32,7 @@ eval suite="ast-grep":
     promptfoo eval --config evals/.generated/{{suite}}.yaml --no-cache --output evals/results/{{suite}}.json
 
 # Live four-CLI matrix. Judge defaults to `stub` so the recipe is
-# CI-safe by default; pass judge=claude|codex|antigravity|pi to enable
+# CI-safe by default; pass judge=claude|codex|pi to enable
 # rubric-based g-eval assertions against a live judge CLI (which must
 # be logged in).
 eval-judged suite="ast-grep" judge="stub":

@@ -222,7 +222,6 @@ sync_codex_plugin_cache() {
     --exclude .cache \
     --exclude .claude \
     --exclude .codex \
-    --exclude .gemini \
     --exclude result \
     --exclude 'result-*' \
     --exclude __pycache__ \
@@ -342,55 +341,6 @@ fi
 [[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
 [[ -f "$REPO_ROOT/CLAUDE.md" ]] && link "$REPO_ROOT/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 
-# ── Google Antigravity ───────────────────────────────────────────────────────
-# Antigravity discovers skills directly from ~/.gemini/antigravity/skills/<name>/.
-# Each plugin's skills/ directory contains symlinks into the canonical
-# skills/<category>/<name>/ tree; we resolve those and create one symlink per
-# skill in Antigravity's global skills dir.
-ANTIGRAVITY_DIR="$HOME/.gemini/antigravity"
-run mkdir -p "$ANTIGRAVITY_DIR/skills"
-
-# Migrate legacy Gemini CLI installs: the old flow symlinked plugins into
-# ~/.gemini/extensions/. Antigravity does not consume that directory.
-GEMINI_EXT_DIR="$HOME/.gemini/extensions"
-if [[ -d "$GEMINI_EXT_DIR" ]]; then
-  for legacy in "$GEMINI_EXT_DIR"/jylhis-*; do
-    [[ -e "$legacy" || -L "$legacy" ]] || continue
-    run mkdir -p "$BACKUP_ROOT"
-    run mv "$legacy" "$BACKUP_ROOT/gemini-ext-$(basename "$legacy")"
-    echo "moved legacy Gemini extension $legacy -> $BACKUP_ROOT/"
-  done
-fi
-
-# For each entry under plugins/<plugin>/skills/, resolve the symlink target
-# to its canonical absolute path and link it into Antigravity's skills dir.
-install_antigravity_skills_from_plugin() {
-  local plugin_dir="$REPO_ROOT/plugins/$1"
-  [[ -d "$plugin_dir/skills" ]] || return 0
-  local entry name raw_target target
-  for entry in "$plugin_dir/skills"/*; do
-    [[ -L "$entry" || -d "$entry" ]] || continue
-    name="$(basename "$entry")"
-    if [[ -L "$entry" ]]; then
-      # readlink (no -f) returns the symlink's literal target. Resolve
-      # relative targets to absolute paths without GNU readlink -f
-      # (macOS-safe).
-      raw_target="$(readlink "$entry")"
-      if [[ "$raw_target" = /* ]]; then
-        target="$raw_target"
-      else
-        target="$(cd "$(dirname "$entry")" && cd "$(dirname "$raw_target")" \
-          && pwd)/$(basename "$raw_target")"
-      fi
-    else
-      target="$entry"
-    fi
-    link "$target" "$ANTIGRAVITY_DIR/skills/$name"
-  done
-}
-
-install_antigravity_skills_from_plugin "$DEFAULT_PLUGIN"
-
 # ── Codex ─────────────────────────────────────────────────────────────────────
 CODEX_DIR="$HOME/.codex"
 run mkdir -p "$CODEX_DIR/plugins"
@@ -480,9 +430,6 @@ To install one in each tool (example: jylhis-python):
   Claude Code:  /plugin install jylhis-python@jylhis-skills
   Codex:        codex plugin install jylhis-python@jylhis-skills
                 # then set [plugins."jylhis-python@jylhis-skills"] enabled=true in ~/.codex/config.toml
-  Antigravity:  for s in $REPO_ROOT/plugins/jylhis-python/skills/*; do
-                  ln -s "\$s" "\$HOME/.gemini/antigravity/skills/\$(basename "\$s")"
-                done
 EOF
 
 if [[ -d "$BACKUP_ROOT" ]]; then

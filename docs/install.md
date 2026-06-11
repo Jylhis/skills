@@ -2,7 +2,7 @@
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** that publishes
 one default plugin (`jylhis-skills-core`) and several opt-in plugins to Claude
-Code, Codex, and Google Antigravity.
+Code and Codex.
 
 ## Quick install
 
@@ -20,7 +20,6 @@ installed automatically.
 | Tool | Mechanism | Where |
 |---|---|---|
 | Claude Code | local marketplace + `plugin install jylhis-skills-core@jylhis-skills` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
-| Antigravity | per-skill symlinks (one per skill in the default plugin) | `~/.gemini/antigravity/skills/<skill-name>` → `plugins/jylhis-skills-core/skills/<skill-name>` |
 | Codex | local marketplace + enabled default plugin in config | `~/.codex/config.toml` + plugin cache under `~/.codex/plugins/cache/jylhis-skills/jylhis-skills-core` |
 
 For Claude Code the script registers this repo as a local marketplace and
@@ -83,7 +82,6 @@ Install one in each tool (example: `jylhis-python`):
 |---|---|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills` |
 | Codex | `codex plugin install jylhis-python@jylhis-skills` — then set `[plugins."jylhis-python@jylhis-skills"] enabled = true` in `~/.codex/config.toml` |
-| Antigravity | `for s in <repo>/plugins/jylhis-python/skills/*; do ln -s "$s" ~/.gemini/antigravity/skills/$(basename "$s"); done` |
 
 ## Development
 
@@ -92,12 +90,6 @@ Load the marketplace without installing:
 ```bash
 # Claude Code
 claude --plugin-dir ./
-
-# Antigravity (workspace-scoped: skills visible only inside this repo)
-mkdir -p .agent/skills
-for s in plugins/jylhis-skills-core/skills/*; do
-  ln -s "../../$s" ".agent/skills/$(basename "$s")"
-done
 
 # Codex
 codex plugin marketplace add ./
@@ -123,9 +115,7 @@ To add a skill:
 2. Decide which plugin owns it. For a brand-new plugin, create
    `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json` and
    `.codex-plugin/plugin.json`, plus a `skills/<name>` symlink with relative
-   target `../../../skills/<category>/<name>`. (No per-plugin manifest is
-   needed for Antigravity — it discovers skills via the symlinks
-   `scripts/install.sh` creates under `~/.gemini/antigravity/skills/`.)
+   target `../../../skills/<category>/<name>`.
 3. Add the plugin to `.claude-plugin/marketplace.json` and
    `.agents/plugins/marketplace.json`.
 4. Run `just validate` — the cross-check enforces that every on-disk skill is

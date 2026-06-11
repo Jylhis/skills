@@ -4,17 +4,6 @@
 > architecture the repo is growing toward. Several paths it references
 > (e.g. `flake.nix`, `failure-log/`, `docs/operator-guide.md`) do not yet
 > exist on disk. See `AGENTS.md` for the current implemented layout.
->
-> **Antigravity migration note (2026-05-20).** Gemini CLI has been
-> replaced by Google Antigravity as this marketplace's third target.
-> Antigravity discovers skills via flat directory scan at
-> `~/.gemini/antigravity/skills/<name>/` and has no equivalent of
-> Gemini CLI's `gemini-extension.json` manifest, `GEMINI.md` context
-> file, TOML custom commands, or hook system. Sections below that
-> describe those Gemini-only mechanisms are retained as historical
-> design context — they no longer reflect any shipped per-plugin
-> file in this repo. Wherever the doc reads "Gemini" or "Gemini CLI"
-> as a generic target name, read "Antigravity".
 
 This version incorporates the latest adversarial review. The main change is that the repository spec is now explicitly separated from an engineering operating model.
 
@@ -69,7 +58,6 @@ The repository must support:
 ```text
 Claude Code
 OpenAI Codex
-Google Antigravity
 ```
 
 It must support:
@@ -80,7 +68,6 @@ plugin / extension packages
 optional agents
 optional hooks
 optional MCP server configs
-optional Gemini slash-command wrappers
 reproducible validation and packaging
 content-hash based release integrity
 skill evaluation and failure-driven iteration
@@ -89,7 +76,7 @@ operator guidance for day-to-day use
 
 It must not claim identical behavior across tools.
 
-It must not encode Claude-only, Antigravity-only, or Codex-only behavior in portable skills.
+It must not encode Claude-only or Codex-only behavior in portable skills.
 
 ## 3. Non-goals
 
@@ -123,7 +110,6 @@ repo/
 │
 ├── AGENTS.md
 ├── CLAUDE.md
-├── GEMINI.md
 │
 ├── docs/
 │   ├── operator-guide.md
@@ -167,8 +153,7 @@ repo/
 │
 ├── target-skills/
 │   ├── claude/
-│   ├── codex/
-│   └── gemini/
+│   └── codex/
 │
 ├── agents/
 │   ├── reviewer.md
@@ -201,17 +186,10 @@ repo/
 │   │   │   ├── .mcp.json
 │   │   │   └── hooks/
 │   │   │       └── hooks.json
-│   │   ├── codex/
-│   │   │   ├── .codex-plugin/
-│   │   │   │   └── plugin.json
-│   │   │   ├── .mcp.json
-│   │   │   └── hooks/
-│   │   │       └── hooks.json
-│   │   └── gemini/
-│   │       ├── gemini-extension.json
-│   │       ├── commands/
-│   │       │   └── review/
-│   │       │       └── pr.toml
+│   │   └── codex/
+│   │       ├── .codex-plugin/
+│   │       │   └── plugin.json
+│   │       ├── .mcp.json
 │   │       └── hooks/
 │   │           └── hooks.json
 │   └── engineering-workflows/
@@ -220,8 +198,7 @@ repo/
 │       ├── skills.txt
 │       ├── agents.txt
 │       ├── claude/
-│       ├── codex/
-│       └── gemini/
+│       └── codex/
 │
 ├── evals/
 │   ├── skills/
@@ -249,8 +226,7 @@ repo/
 │   ├── eval.py
 │   └── smoke/
 │       ├── claude.sh
-│       ├── codex.sh
-│       └── gemini.sh
+│       └── codex.sh
 │
 ├── tests/
 │   ├── fixtures/
@@ -258,8 +234,7 @@ repo/
 │
 └── dist/
     ├── claude/
-    ├── codex/
-    └── gemini/
+    └── codex/
 ```
 
 `dist/` is generated and normally gitignored.
@@ -275,7 +250,6 @@ Files:
 ```text
 AGENTS.md
 CLAUDE.md
-GEMINI.md
 ```
 
 Purpose:
@@ -344,16 +318,6 @@ Tool wrappers:
 
 Use skills for procedural workflows.
 Do not rely on plugin behavior from subdirectory CLAUDE.md imports.
-```
-
-```markdown
-<!-- GEMINI.md -->
-@AGENTS.md
-
-## Gemini CLI
-
-Prefer skills over always-loaded context.
-Use bundled skills for task-specific workflows.
 ```
 
 ### 5.2 Skills
@@ -566,10 +530,7 @@ target-skills/
 ├── claude/
 │   └── review-pr/
 │       └── SKILL.md
-├── codex/
-│   └── review-pr/
-│       └── SKILL.md
-└── gemini/
+└── codex/
     └── review-pr/
         └── SKILL.md
 ```
@@ -831,7 +792,7 @@ Evaluation levels:
 Level 0: Human review of SKILL.md
 Level 1: Static lint and frontmatter validation
 Level 2: Fixture-based prompt tests
-Level 3: Target smoke tests in Claude, Codex, and Antigravity
+Level 3: Target smoke tests in Claude and Codex
 Level 4: Regression suite from historical failures
 Level 5: External benchmark integration if needed
 ```
@@ -918,9 +879,9 @@ failure modes
 
 ## 13. Agents
 
-Agents are shared only where native formats are close enough.
+Each target keeps its native agent format.
 
-Claude and Gemini can share Markdown only under a strict intersection profile:
+Claude uses Markdown:
 
 ```text
 agents/reviewer.md
@@ -932,16 +893,16 @@ Codex gets TOML:
 agents/reviewer.codex.toml
 ```
 
-### 13.1 Shared Claude/Gemini Markdown agent
+### 13.1 Claude Markdown agent
 
-Allowed shared frontmatter:
+Allowed frontmatter:
 
 ```yaml
 name: reviewer
 description: Reviews pull requests for correctness, security, regressions, and missing tests.
 ```
 
-Rejected in shared Markdown agents unless split by target:
+Rejected in Markdown agents unless split by target:
 
 ```text
 tools
@@ -1049,10 +1010,12 @@ Commands are not canonical.
 
 Use skills as the primary invocation model.
 
-Gemini may need TOML command wrappers because its custom command system is target-native.
+A target may need TOML or Markdown command wrappers because its custom
+command system is target-native. When one does, keep the wrapper under
+that target's plugin directory, for example:
 
 ```text
-plugins/code-review/gemini/commands/review/pr.toml
+plugins/code-review/codex/commands/review/pr.toml
 ```
 
 Example:
@@ -1091,7 +1054,6 @@ Hook config lives here:
 ```text
 plugins/code-review/claude/hooks/hooks.json
 plugins/code-review/codex/hooks/hooks.json
-plugins/code-review/gemini/hooks/hooks.json
 ```
 
 Do not define:
@@ -1131,7 +1093,6 @@ MCP configuration is target-native:
 ```text
 plugins/code-review/claude/.mcp.json
 plugins/code-review/codex/.mcp.json
-plugins/code-review/gemini/gemini-extension.json
 ```
 
 Do not define:
@@ -1193,13 +1154,6 @@ Codex:
   custom agent config
   plugin availability policy
   hooks where supported
-
-Gemini:
-  settings
-  excludeTools
-  policy engine
-  hooks
-  extension trust controls
 ```
 
 Important:
@@ -1234,10 +1188,6 @@ Runtime guarantees:
   Codex:
     sandbox required for local automation
     branch push permitted only by target-native config
-
-  Gemini:
-    extension policy cannot auto-allow risky actions
-    release command is prompt-only unless target-native scripts are installed
 ```
 
 ## 18. Plugins
@@ -1258,17 +1208,10 @@ plugins/engineering-workflows/
 │   ├── .mcp.json
 │   └── hooks/
 │       └── hooks.json
-├── codex/
-│   ├── .codex-plugin/
-│   │   └── plugin.json
-│   ├── .mcp.json
-│   └── hooks/
-│       └── hooks.json
-└── gemini/
-    ├── gemini-extension.json
-    ├── commands/
-    │   └── review/
-    │       └── pr.toml
+└── codex/
+    ├── .codex-plugin/
+    │   └── plugin.json
+    ├── .mcp.json
     └── hooks/
         └── hooks.json
 ```
@@ -1338,23 +1281,6 @@ dist/codex/engineering-workflows/
 ```
 
 Do not assume Codex plugin installation installs custom agents unless documented and smoke-tested.
-
-### 19.3 Gemini
-
-```text
-dist/gemini/engineering-workflows/
-├── gemini-extension.json
-├── README.md
-├── CHANGELOG.md
-├── GEMINI.md
-├── skills/
-├── agents/
-├── commands/
-├── hooks/
-│   └── hooks.json
-├── SKILLS.lock
-└── AGENTS.lock
-```
 
 ## 20. Versioning and locks
 
@@ -1468,12 +1394,6 @@ Claude:
   /permissions
   /mcp
 
-Gemini:
-  /memory show
-  /memory reload
-  custom commands under .gemini/commands
-  context.fileName to include AGENTS.md
-
 Codex:
   AGENTS.md instruction chain
   custom agents under .codex/agents or Codex home
@@ -1484,13 +1404,12 @@ Do not encode these commands into portable skills unless the skill is target-spe
 
 ## 24. Manual spike
 
-Before implementing automation, hand-author one plugin package for all three tools:
+Before implementing automation, hand-author one plugin package for both tools:
 
 ```text
 scratch/
 ├── claude-engineering-workflows/
-├── codex-engineering-workflows/
-└── gemini-engineering-workflows/
+└── codex-engineering-workflows/
 ```
 
 Test:
@@ -1503,7 +1422,6 @@ invoke diagnose-bug
 invoke tdd-cycle
 run optional helper script
 invoke reviewer subagent
-run Gemini command wrapper
 start MCP server if configured
 trigger hook if configured
 verify lock hashes
@@ -1514,8 +1432,8 @@ Only automate the pain observed in this manual spike.
 ## 25. Implementation order
 
 ```text
-1. Hand-author engineering-workflows for Claude, Codex, Antigravity.
-2. Install and smoke-test all three.
+1. Hand-author engineering-workflows for Claude and Codex.
+2. Install and smoke-test both.
 3. Add strict portable skill lint.
 4. Add target-specific skill fork support.
 5. Add shared Markdown agent plus Codex TOML agent.
@@ -1542,7 +1460,7 @@ Explicit forks:
   target-skills/<target>/<name>/SKILL.md
 
 Shared with drift detection:
-  agents/<name>.md for Claude/Gemini intersection
+  agents/<name>.md for Claude
   agents/<name>.codex.toml for Codex
 
 Target-native:
@@ -1591,6 +1509,3 @@ Rejected:
 - Codex skills: https://developers.openai.com/codex/skills
 - Codex subagents: https://developers.openai.com/codex/subagents
 - Codex AGENTS.md: https://developers.openai.com/codex/guides/agents-md
-- Google Antigravity (IDE + CLI + SDK): https://antigravity.google
-- Antigravity documentation: https://antigravity.google/docs
-- Antigravity skills authoring (codelab): https://codelabs.developers.google.com/getting-started-with-antigravity-skills

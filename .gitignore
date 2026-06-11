@@ -17,7 +17,6 @@ __pycache__/
 .agents/skills/
 .claude/
 .codex/
-.gemini/
 
 # Eval harness runtime artefacts. Cassettes and authored cases.yaml are
 # tracked; results, expander output, and Pi sentinel marks are not.
