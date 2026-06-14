@@ -14,18 +14,25 @@ demand.
 
 ```
 skills/                          ← published catalogue (jylhis-skills plugin)
-├── emacs/emacs/                 Emacs Lisp + Emacs tooling
-├── filesystems/filesystems/     APFS, Btrfs, ZFS
-├── gitlab/gitlab/               GitLab CI/CD + glab CLI
-├── go/go/                       Modern Go (per project's Go version)
-├── jvm/jvm/                     Gradle build, Maven Central publishing, JUnit/AssertJ/kotest
-├── nix/nix/                     Nix language, flakes, Nixpkgs, NixOS, nix-darwin, home-manager, devenv, ...
-├── python/python/               Python 3.12+
-├── security/security/           Cross-language security review (Python, TS/Node, JVM)
-├── typescript/typescript/       TypeScript 5.9+ on Node 22 LTS
-└── unix/
-    ├── ast-grep/                ast-grep tool (standalone)
-    └── offline-docs/            offline man / info / doc discovery (standalone)
+├── engineering/
+│   ├── ast-grep/                ast-grep tool (standalone)
+│   └── offline-docs/            offline man / info / doc discovery (standalone)
+├── languages/
+│   ├── go/                      Modern Go (per project's Go version)
+│   ├── jvm/                     Gradle build, Maven Central publishing, JUnit/AssertJ/kotest
+│   ├── nix/                     Nix language, flakes, Nixpkgs, NixOS, nix-darwin, home-manager, devenv, ...
+│   ├── python/                  Python 3.12+
+│   └── typescript/              TypeScript 5.9+ on Node 22 LTS
+├── domains/
+│   └── security/                Cross-language security review (Python, TS/Node, JVM)
+├── services/
+│   └── gitlab/                  GitLab CI/CD + glab CLI
+├── stack/
+│   └── filesystems/             APFS, Btrfs, ZFS
+├── misc/
+│   └── emacs/                   Emacs Lisp + Emacs tooling
+├── productivity/                reserved category (currently empty)
+└── personal/                    reserved category (currently empty)
 
 meta/                      ← repo-only, not shipped to users
 ├── skill-creator-lang/          Authoring new language/stack skills
