@@ -74,7 +74,7 @@ def judge_id(name: str) -> str:
 
 
 def _exec_id(path: Path) -> str:
-    return f"exec:{shlex.quote(str(path))}"
+    return f"exec:{shlex.quote(path.as_posix())}"
 
 
 def stub_provider_for(name: str, suite: str,
