@@ -8,7 +8,7 @@ Input shape (canonical, per spec-v3 §10 + this plan's extensions):
         kind: trigger_positive          # trigger_positive | trigger_negative | output_quality
         prompt: "..."
         expected_skill: ast-grep
-        providers: [claude]             # default: trigger_* -> [claude], output_quality -> all four
+        providers: [claude]             # default: trigger_* -> [claude], output_quality -> all three
         fixtures_subdir: ts-snippet     # optional path under suite's fixtures/
         pass_threshold: 0.5
         near_miss_vocabulary: [...]
@@ -49,7 +49,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EVALS_DIR = REPO_ROOT / "evals"
 GENERATED_DIR = EVALS_DIR / ".generated"
 
-ALL_PROVIDERS = ["claude", "codex", "antigravity", "pi"]
+ALL_PROVIDERS = ["claude", "codex", "pi"]
 
 
 def default_providers(case: dict) -> list[str]:
@@ -57,7 +57,7 @@ def default_providers(case: dict) -> list[str]:
 
     The cases.yaml field ``providers`` is purely a recording hint (which
     CLIs to *record* against); it does not restrict which providers
-    appear in the promptfoo matrix.  We always expand to all four
+    appear in the promptfoo matrix.  We always expand to all three
     providers so that promptfoo's top-level × test cross-product has a
     cassette for every cell.
     """

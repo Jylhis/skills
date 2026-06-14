@@ -1,16 +1,14 @@
 # AGENTS.md
 
 Always-loaded project context for AI coding agents (Claude Code, Codex,
-Google Antigravity, etc.). The tool-specific wrapper `CLAUDE.md` extends
-this file via Claude Code's import mechanism. Antigravity discovers
-skills directly from `~/.gemini/antigravity/skills/<name>/` and has no
-project-context-file equivalent.
+etc.). The tool-specific wrapper `CLAUDE.md` extends this file via Claude
+Code's import mechanism.
 
 ## What this repo is
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis
-that publishes one default plugin and several opt-in plugins to Claude Code,
-Codex, and Google Antigravity. The default plugin (`jylhis-skills-core`) ships
+that publishes one default plugin and several opt-in plugins to Claude Code
+and Codex. The default plugin (`jylhis-skills-core`) ships
 cross-cutting engineering and productivity skills (security, ast-grep,
 offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
@@ -40,9 +38,7 @@ only when the user opts in. See `docs/install.md` for install instructions.
   and a `skills/` directory of symlinks pointing back into
   `skills/<category>/<name>`. The default plugin
   `plugins/jylhis-skills-core/` additionally ships `agents/` and
-  `commands/`. Antigravity reads the per-skill symlinks directly from
-  `~/.gemini/antigravity/skills/` (set up by `scripts/install.sh`), so
-  no per-plugin manifest is needed for it. Language plugins ship their own per-language `.lsp.json`
+  `commands/`. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
 - `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
@@ -122,7 +118,6 @@ tool plugin from the same marketplace:
 |-------------|------------------------------------------------------------------------|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills`                          |
 | Codex       | `codex plugin install jylhis-python@jylhis-skills` (then enable in `~/.codex/config.toml`) |
-| Antigravity | `for s in <repo>/plugins/jylhis-python/skills/*; do ln -s "$s" ~/.gemini/antigravity/skills/$(basename "$s"); done` |
 
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
@@ -139,8 +134,7 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 
 Claude-only plugin artefacts ship inside per-plugin directories, not at the
 repo root. Codex's recursive scan stays scoped to each plugin's local
-`./skills/`, and Antigravity reads only its own `~/.gemini/antigravity/skills/`
-tree, so these files are inert in the other tools — no separate exclusion is
+`./skills/`, so these files are inert in Codex — no separate exclusion is
 needed.
 
 - `plugins/jylhis-<lang>/.lsp.json` — native LSP plugin format (Claude

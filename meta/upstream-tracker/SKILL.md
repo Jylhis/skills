@@ -101,7 +101,6 @@ Procedure:
    `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and an
    empty `skills/` directory, and add it to
    `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`.
-   (Antigravity needs no per-plugin manifest.)
 
 5. **Run the import:**
    ```bash

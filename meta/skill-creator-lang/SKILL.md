@@ -9,8 +9,7 @@ description: >
 Generate a new specialist skill that captures expert knowledge for one programming
 language, or one framework/stack on top of a language. The output is a `SKILL.md`,
 optional helper scripts, optional reference docs, and the surrounding plugin
-scaffolding so Claude Code, Codex, and Google Antigravity can load the skill
-from this marketplace.
+scaffolding so Claude Code and Codex can load the skill from this marketplace.
 
 This is a meta skill. It does not write application code. It produces other
 skills, organised by category and grouped into a plugin under
@@ -44,18 +43,17 @@ skills, organised by category and grouped into a plugin under
    that stays valid across recent releases unless a feature is version-gated.
 
 4. **Pick the output location.** Ask the user where to write the skill. This
-   meta-skill targets the `Jylhis/skills` marketplace; Claude Code, Codex,
-   and Antigravity all consume from the same `plugins/<name>/` tree (Antigravity
-   via per-skill symlinks set up by `scripts/install.sh`), so a single output
+   meta-skill targets the `Jylhis/skills` marketplace; Claude Code and Codex
+   both consume from the same `plugins/<name>/` tree, so a single output
    destination serves every tool. The two valid choices are:
 
    - `skills/<category>/<name>/` in this repo (committed back, shipped via
-     `plugins/jylhis-<name>/` to all three tools).
+     `plugins/jylhis-<name>/` to both tools).
    - `.claude/skills/<name>/` inside the user's current project
      (project-scoped, not shipped via the marketplace).
 
    Do not assume. No tool-specific skill-creator variants exist; one
-   meta-skill serves all three tools via the marketplace machinery.
+   meta-skill serves both tools via the marketplace machinery.
 
 5. **Check for an existing skill.** Look in the chosen output location for a
    skill matching this language or stack. Re-running this meta-skill against
@@ -176,10 +174,7 @@ skills, organised by category and grouped into a plugin under
      Model on `plugins/jylhis-python/.lsp.json`.
    - `skills/<name>` — symlink into the canonical
      `skills/<category>/<name>/` directory. The canonical tree is the
-     source of truth; the plugin only references it. Antigravity picks
-     this up automatically via the per-skill symlinks
-     `scripts/install.sh` writes under `~/.gemini/antigravity/skills/`;
-     no per-plugin manifest is needed.
+     source of truth; the plugin only references it.
 
    **Marketplace registration:**
    - Add the plugin to `.claude-plugin/marketplace.json` (Claude Code).
@@ -236,6 +231,6 @@ open standard and the local profile in `docs/skill-authoring-guide.md`.
 
 A new skill directory the user can immediately load through the
 `Jylhis/skills` marketplace, along with the plugin scaffolding that exposes
-it to Claude Code, Codex, and Antigravity. Every recommendation is concrete,
+it to Claude Code and Codex. Every recommendation is concrete,
 every command runs, and the skill states one opinionated path with no
 menus.
