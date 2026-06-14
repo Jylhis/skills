@@ -86,6 +86,12 @@
       "source": "./plugins/jylhis-taste",
       "description": "Taste skill — UI/UX design taste, visual hierarchy, design critique.",
       "category": "Design"
+    },
+    {
+      "name": "jylhis-duckdb",
+      "source": "./plugins/jylhis-duckdb",
+      "description": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
+      "category": "Coding"
     }
   ]
 }

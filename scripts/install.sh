@@ -66,18 +66,31 @@ PY
 list_enabled_codex_plugins() {
   local config="$1"
   [[ -f "$config" ]] || return 0
-  awk '
-    /^\[plugins\."[^"]+@jylhis-skills"\]/ {
-      match($0, /"([^"]+)"/, m)
-      current = m[1]
-      next
-    }
-    /^\[/ { current = "" }
-    current && /^enabled[[:space:]]*=[[:space:]]*true/ {
-      print current
-      current = ""
-    }
-  ' "$config"
+  python3 - "$config" <<'PY'
+import re
+import sys
+
+section_re = re.compile(r'^\[plugins\."([^"]+@jylhis-skills)"\]\s*$')
+enabled_re = re.compile(r"^enabled\s*=\s*true\s*$")
+
+current = ""
+try:
+    with open(sys.argv[1], encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            match = section_re.match(line)
+            if match:
+                current = match.group(1)
+                continue
+            if line.startswith("["):
+                current = ""
+                continue
+            if current and enabled_re.match(line):
+                print(current)
+                current = ""
+except OSError:
+    pass
+PY
 }
 
 link() {
@@ -142,6 +155,53 @@ enable_codex_plugin() {
   echo "enable Codex plugin $plugin_id in $config"
 }
 
+remove_codex_plugin_config_section() {
+  local config="$1"
+  local plugin_id="$2"
+  local section="[plugins.\"$plugin_id\"]"
+
+  [[ -f "$config" ]] || return 0
+  grep -qF "$section" "$config" || return 0
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    echo "DRY: remove legacy Codex plugin section $plugin_id from $config"
+    return
+  fi
+
+  python3 - "$config" "$section" <<'PY'
+import sys
+
+path, section = sys.argv[1], sys.argv[2]
+
+try:
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+except OSError:
+    sys.exit(0)
+
+out = []
+skipping = False
+changed = False
+
+for line in lines:
+    stripped = line.strip()
+    if stripped == section:
+        skipping = True
+        changed = True
+        continue
+    if skipping and stripped.startswith("["):
+        skipping = False
+    if not skipping:
+        out.append(line)
+
+if changed:
+    with open(path, "w", encoding="utf-8") as f:
+        f.writelines(out)
+PY
+
+  echo "removed legacy Codex plugin section $plugin_id from $config"
+}
+
 sync_codex_plugin_cache() {
   local cache_dir="$1/plugins/cache/jylhis-skills/$2"
   local cache_root="$cache_dir/local"
@@ -162,7 +222,6 @@ sync_codex_plugin_cache() {
     --exclude .cache \
     --exclude .claude \
     --exclude .codex \
-    --exclude .gemini \
     --exclude result \
     --exclude 'result-*' \
     --exclude __pycache__ \
@@ -282,22 +341,6 @@ fi
 [[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
 [[ -f "$REPO_ROOT/CLAUDE.md" ]] && link "$REPO_ROOT/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 
-# ── Gemini CLI ────────────────────────────────────────────────────────────────
-# Each plugin doubles as a Gemini extension. Default install symlinks only the
-# core plugin; opt-in plugins are user-symlinked (see hint at end).
-GEMINI_DIR="$HOME/.gemini"
-run mkdir -p "$GEMINI_DIR/extensions"
-
-# Migration: the old install symlinked the entire repo as one extension.
-GEMINI_LEGACY_LINK="$GEMINI_DIR/extensions/jylhis-skills"
-if [[ -L "$GEMINI_LEGACY_LINK" ]]; then
-  run mkdir -p "$BACKUP_ROOT"
-  run mv "$GEMINI_LEGACY_LINK" "$BACKUP_ROOT/$(basename "$GEMINI_LEGACY_LINK")"
-  echo "moved legacy Gemini extension link $GEMINI_LEGACY_LINK -> $BACKUP_ROOT/"
-fi
-
-link "$REPO_ROOT/plugins/$DEFAULT_PLUGIN" "$GEMINI_DIR/extensions/$DEFAULT_PLUGIN"
-
 # ── Codex ─────────────────────────────────────────────────────────────────────
 CODEX_DIR="$HOME/.codex"
 run mkdir -p "$CODEX_DIR/plugins"
@@ -318,6 +361,8 @@ if [[ -d "$CODEX_LEGACY_CACHE" ]]; then
   run mv "$CODEX_LEGACY_CACHE" "$BACKUP_ROOT/codex-cache-$(basename "$CODEX_LEGACY_CACHE")"
   echo "moved legacy Codex cache $CODEX_LEGACY_CACHE -> $BACKUP_ROOT/"
 fi
+
+remove_codex_plugin_config_section "$CODEX_DIR/config.toml" "${LEGACY_PLUGIN}@jylhis-skills"
 
 # Read the `source = "..."` line under `[marketplaces.jylhis-skills]` in
 # Codex config.toml. Same intent as claude_marketplace_source: detect when
@@ -385,7 +430,6 @@ To install one in each tool (example: jylhis-python):
   Claude Code:  /plugin install jylhis-python@jylhis-skills
   Codex:        codex plugin install jylhis-python@jylhis-skills
                 # then set [plugins."jylhis-python@jylhis-skills"] enabled=true in ~/.codex/config.toml
-  Gemini CLI:   ln -s $REPO_ROOT/plugins/jylhis-python ~/.gemini/extensions/jylhis-python
 EOF
 
 if [[ -d "$BACKUP_ROOT" ]]; then

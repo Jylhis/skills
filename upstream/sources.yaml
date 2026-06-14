@@ -345,6 +345,60 @@ sources:
         name: grafana-opentelemetry
         target-plugin: jylhis-grafana
         merge-strategy: standalone
+  - id: duckdb-skills
+    repo: "https://github.com/duckdb/duckdb-skills"
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
+    reviewed-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
+    last-fetched: "2026-05-14T18:32:18Z"
+    skills:
+      - upstream: attach-db
+        category: services
+        name: attach-db
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: convert-file
+        category: services
+        name: convert-file
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: duckdb-docs
+        category: services
+        name: duckdb-docs
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: install-duckdb
+        category: services
+        name: install-duckdb
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: query
+        category: services
+        name: query
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: read-file
+        category: services
+        name: read-file
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: read-memories
+        category: services
+        name: read-memories
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: s3-explore
+        category: services
+        name: s3-explore
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+      - upstream: spatial
+        category: services
+        name: spatial
+        target-plugin: jylhis-duckdb
+        merge-strategy: standalone
   - id: taste-skill
     repo: "https://github.com/Leonxlnx/taste-skill"
     branch: main

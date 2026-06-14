@@ -2,7 +2,7 @@
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** that publishes
 one default plugin (`jylhis-skills-core`) and several opt-in plugins to Claude
-Code, Gemini CLI, and Codex.
+Code and Codex.
 
 ## Quick install
 
@@ -20,7 +20,6 @@ installed automatically.
 | Tool | Mechanism | Where |
 |---|---|---|
 | Claude Code | local marketplace + `plugin install jylhis-skills-core@jylhis-skills` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
-| Gemini CLI | symlink the default plugin as an extension | `~/.gemini/extensions/jylhis-skills-core` → `plugins/jylhis-skills-core` |
 | Codex | local marketplace + enabled default plugin in config | `~/.codex/config.toml` + plugin cache under `~/.codex/plugins/cache/jylhis-skills/jylhis-skills-core` |
 
 For Claude Code the script registers this repo as a local marketplace and
@@ -71,6 +70,11 @@ by default.
 | `jylhis-nix` | Nix skill + `nixd` LSP |
 | `jylhis-filesystems` | DuckDB / filesystem tooling skill |
 | `jylhis-gitlab` | GitLab push + MR-create skill |
+| `jylhis-terraform` | Terraform skill |
+| `jylhis-azure` | Azure cloud skill |
+| `jylhis-obsidian` | Obsidian note-taking and knowledge management skill |
+| `jylhis-grafana` | Grafana observability skill |
+| `jylhis-taste` | UI/UX design taste and critique skill |
 
 Install one in each tool (example: `jylhis-python`):
 
@@ -78,7 +82,6 @@ Install one in each tool (example: `jylhis-python`):
 |---|---|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills` |
 | Codex | `codex plugin install jylhis-python@jylhis-skills` — then set `[plugins."jylhis-python@jylhis-skills"] enabled = true` in `~/.codex/config.toml` |
-| Gemini CLI | `ln -s <repo>/plugins/jylhis-python ~/.gemini/extensions/jylhis-python` |
 
 ## Development
 
@@ -87,9 +90,6 @@ Load the marketplace without installing:
 ```bash
 # Claude Code
 claude --plugin-dir ./
-
-# Gemini CLI
-gemini extensions link ./plugins/jylhis-skills-core
 
 # Codex
 codex plugin marketplace add ./
@@ -113,10 +113,9 @@ To add a skill:
    (`name`, `description`). Categories: `engineering`, `languages`,
    `domains`, `services`, `stack`, `productivity`, `personal`, `misc`.
 2. Decide which plugin owns it. For a brand-new plugin, create
-   `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json`,
-   `.codex-plugin/plugin.json`, and `gemini-extension.json`, plus a
-   `skills/<name>` symlink with relative target
-   `../../../skills/<category>/<name>`.
+   `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json` and
+   `.codex-plugin/plugin.json`, plus a `skills/<name>` symlink with relative
+   target `../../../skills/<category>/<name>`.
 3. Add the plugin to `.claude-plugin/marketplace.json` and
    `.agents/plugins/marketplace.json`.
 4. Run `just validate` — the cross-check enforces that every on-disk skill is

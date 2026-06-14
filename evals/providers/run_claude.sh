@@ -37,8 +37,7 @@ TRACE_FILE="$WORKDIR/claude-trace.jsonl"
     --output-format stream-json \
     --verbose \
     --max-turns 1 \
-    --permission-mode bypassPermissions \
-    > "$TRACE_FILE" 2>"$WORKDIR/claude-stderr.log"
+    < /dev/null > "$TRACE_FILE" 2>"$WORKDIR/claude-stderr.log"
 ) || {
   status=$?
   cat "$WORKDIR/claude-stderr.log" >&2

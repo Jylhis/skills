@@ -1,0 +1,20 @@
+{
+  "name": "jylhis-duckdb",
+  "description": "DuckDB skills \u2014 read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/attach-db",
+    "./skills/convert-file",
+    "./skills/duckdb-docs",
+    "./skills/install-duckdb",
+    "./skills/query",
+    "./skills/read-file",
+    "./skills/read-memories",
+    "./skills/s3-explore",
+    "./skills/spatial"
+  ]
+}

@@ -1,7 +1,7 @@
 ---
 name: microsoft-docs
 description: Understand Microsoft technologies by querying official documentation. Use whenever the user asks how something works, wants tutorials, needs configuration options, limits, quotas, or best practices for any Microsoft technology (Azure, .NET, M365, Windows, Power Platform, etc.)—even if they don't mention "docs." If the question is about understanding a concept rather than writing code, this is the right skill.
-compatibility: "Primarily uses the Microsoft Learn MCP Server (https://learn.microsoft.com/api/mcp); if that is unavailable, fall back to the mslearn CLI (`npx @microsoft/learn-cli`)."
+compatibility: "Primarily uses the Microsoft Learn MCP Server (https://learn.microsoft.com/api/mcp). If unavailable, use a Nix-provided mslearn CLI only (no npm fallback)."
 metadata:
   upstream-id: microsoft-docs
   upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
@@ -60,18 +60,16 @@ Fetch after search when:
 - **Completeness** — tutorials have all steps, not fragments
 - **Authority** — official Microsoft documentation
 
-## CLI Alternative
+## CLI Alternative (Nix only)
 
-If the Learn MCP server is not available, use the `mslearn` CLI from the command line instead:
+If the Learn MCP server is not available, use a Nix-provided `mslearn` CLI only (do not use npm):
 
 ```sh
-# Run directly (no install needed)
-npx @microsoft/learn-cli search "azure functions timeout"
-
-# Or install globally, then run
-npm install -g @microsoft/learn-cli
-mslearn search "azure functions timeout"
+# Example (once packaged in nixpkgs)
+nix run nixpkgs#mslearn -- search "azure functions timeout"
 ```
+
+If `mslearn` is not yet available in nixpkgs, do not fall back to npm; report the limitation and track packaging work in `./Todo`.
 
 | MCP Tool | CLI Command |
 |----------|-------------|

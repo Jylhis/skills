@@ -82,7 +82,9 @@ For deployments with Azure SQL Database and managed identity:
 
 ```bash
 # Load environment variables
-eval $(azd env get-values)
+while IFS='=' read -r name value; do
+  export "$name=$value"
+done < <(azd env get-values)
 
 # Check managed identity user exists in database
 az sql db query \

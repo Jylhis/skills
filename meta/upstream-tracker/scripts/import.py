@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -43,6 +44,16 @@ VALID_CATEGORIES = {
 }
 
 VALID_STRATEGIES = {"standalone", "umbrella-references", "replace"}
+NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+PLUGIN_RE = re.compile(r"^jylhis-[a-z0-9]+(-[a-z0-9]+)*$")
+
+
+def _require_safe_segment(field: str, value: str) -> str:
+    if not isinstance(value, str) or not NAME_RE.fullmatch(value):
+        print(f"  invalid {field} {value!r}; expected lowercase "
+              "letters/numbers/hyphens path segment", file=sys.stderr)
+        sys.exit(3)
+    return value
 
 
 def _upstream_path(subpath: str, upstream_subdir: str) -> str:
@@ -78,14 +89,19 @@ def _resolve_dest(mapping: dict) -> tuple[str, str]:
     """
     if "category" in mapping and "name" in mapping:
         category = mapping["category"]
-        name = mapping["name"]
+        name = _require_safe_segment("name", mapping["name"])
     elif "local" in mapping:
-        parts = mapping["local"].split("/")
+        local_val = mapping["local"]
+        if not isinstance(local_val, str):
+            print(f"  invalid local: {local_val!r} (expected string)", file=sys.stderr)
+            sys.exit(3)
+        parts = local_val.split("/")
         if len(parts) != 2:
             print(f"  invalid local: {mapping['local']!r} "
                   f"(expected <category>/<name>)", file=sys.stderr)
             sys.exit(3)
         category, name = parts
+        name = _require_safe_segment("name", name)
     else:
         print(f"  mapping missing category+name (or legacy local): "
               f"{mapping!r}", file=sys.stderr)
@@ -191,6 +207,8 @@ def _import_umbrella_reference(cache: Path, src: dict, mapping: dict,
         print("  merge-strategy: umbrella-references requires "
               "umbrella: <name> and topic: <filename-stem>", file=sys.stderr)
         sys.exit(3)
+    umbrella = _require_safe_segment("umbrella", umbrella)
+    topic = _require_safe_segment("topic", topic)
 
     umbrella_dir = L.ROOT / "skills" / category / umbrella
     if not (umbrella_dir / "SKILL.md").exists():
@@ -232,6 +250,10 @@ def _wire_plugin(plugin: str, category: str, name: str) -> list[str]:
     Returns a list of human-readable status lines for the importer log.
     """
     out: list[str] = []
+    if not isinstance(plugin, str) or not PLUGIN_RE.fullmatch(plugin):
+        print(f"  invalid target-plugin {plugin!r}; expected jylhis-<name>",
+              file=sys.stderr)
+        sys.exit(3)
     plugin_dir = L.ROOT / "plugins" / plugin
     if not plugin_dir.exists():
         print(f"  plugin dir {plugin_dir.relative_to(L.ROOT)} does not exist; "

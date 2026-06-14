@@ -1,7 +1,7 @@
 ---
 description: Append a correction note to the improvement-memory JSONL.
 argument-hint: <short note describing the correction>
-allowed-tools: Bash(go:*), Bash(date:*), Read
+allowed-tools: Bash(go run "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go":*), Bash(date:*), Read
 ---
 
 Record a user correction as one schema-v1 entry in the
@@ -31,7 +31,7 @@ Steps:
    - `proposed_skill_change`: `null` unless an obvious one-line edit
      is suggested by the correction.
 
-3. Pipe the object to `go run scripts/append-correction.go --json -`
+3. Pipe the object to `go run "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go" --json -`
    via stdin. Pass the JSON through a heredoc or `printf '%s'` from a
    shell variable; do NOT inline the JSON inside the command string
    (quoting hazards).
@@ -43,7 +43,7 @@ Steps:
 Example invocation:
 
 ```bash
-go run scripts/append-correction.go --json - <<'JSON'
+go run "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go" --json - <<'JSON'
 {
   "schema_version": 1,
   "timestamp": "2026-05-11T14:23:00Z",

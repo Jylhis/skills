@@ -12,6 +12,7 @@
     "./skills/azure-cost",
     "./skills/azure-deploy",
     "./skills/azure-kubernetes",
+    "./skills/azure-kubernetes-automatic-readiness",
     "./skills/azure-storage"
   ]
 }

@@ -1,41 +1,44 @@
 # AGENTS.md
 
 Always-loaded project context for AI coding agents (Claude Code, Codex,
-Gemini CLI, etc.). Tool-specific wrappers (`CLAUDE.md`, `GEMINI.md`)
-extend this file via their respective import mechanisms.
+etc.). The tool-specific wrapper `CLAUDE.md` extends this file via Claude
+Code's import mechanism.
 
 ## What this repo is
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis
-that publishes one default plugin and several opt-in plugins to Claude Code,
-Gemini CLI, and Codex. The default plugin (`jylhis-skills-core`) ships
-cross-cutting skills (security, ast-grep, offline-docs) plus the shipped
-subagents and slash commands. Per-language and per-tool plugins
+that publishes one default plugin and several opt-in plugins to Claude Code
+and Codex. The default plugin (`jylhis-skills-core`) ships
+cross-cutting engineering and productivity skills (security, ast-grep,
+offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
+handoff, humanizer, etc.) plus the shipped subagents and slash commands.
+Per-language, per-service, and per-tool plugins
 (`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-jvm`,
-`jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`, `jylhis-gitlab`) are
-discoverable through the marketplace UI but installed only when the user
-opts in. See `docs/install.md` for install instructions.
+`jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`, `jylhis-gitlab`,
+`jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`, `jylhis-grafana`,
+`jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
+only when the user opts in. See `docs/install.md` for install instructions.
 
 ## Layout
 
 - `skills/` — canonical SKILL.md tree, source of truth. Skills live at
   `skills/<category>/<name>/SKILL.md`. Categories are
-  `engineering` (practices: tdd, code review, debug, ast-grep, semgrep,
-  offline-docs), `languages` (per-language guidance: python, typescript,
-  go, jvm, nix), `domains` (cross-cutting topic deep dives: security,
-  observability, iac, design), `services` (specific named platforms:
-  gitlab, azure, grafana), `stack` (deep dives on specific named
-  technologies: filesystems), `productivity` (non-code workflow tools),
-  `personal` (personal preferences / knowledge management), and `misc`
-  (uncategorised). Umbrella-style skills carry sub-topic guidance under
-  the skill's `references/` directory. Skill files are NEVER moved out
-  of this tree.
+  `engineering` (practices and workflows: ast-grep, semgrep, tdd,
+  diagnose, prototype, triage, microsoft-docs), `languages` (per-language
+  guidance: python, typescript, go, jvm, nix), `domains` (cross-cutting
+  topic deep dives: security, taste), `services` (specific named platforms
+  and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
+  on specific named technologies: filesystems), `productivity` (handoff,
+  humanizer, caveman), `personal` (Obsidian and knowledge-management
+  workflows), and `misc` (uncategorised). Umbrella-style skills carry
+  sub-topic guidance under the skill's `references/` directory. Skill files
+  are NEVER moved out of this tree.
 - `plugins/<plugin-name>/` — one directory per published plugin, each
   containing its own `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
-  `gemini-extension.json`, and a `skills/` directory of symlinks pointing
-  back into `skills/<category>/<name>`. The default plugin
-  `plugins/jylhis-skills-core/` additionally ships `agents/`, `commands/`,
-  and `GEMINI.md`. Language plugins ship their own per-language `.lsp.json`
+  and a `skills/` directory of symlinks pointing back into
+  `skills/<category>/<name>`. The default plugin
+  `plugins/jylhis-skills-core/` additionally ships `agents/` and
+  `commands/`. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
 - `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
@@ -59,6 +62,10 @@ opts in. See `docs/install.md` for install instructions.
   exists.
 - `docs/install.md` — consumer-facing install guide.
 - `docs/skill-authoring-guide.md` — how to write a portable SKILL.md.
+- `docs/script-migrations.md` — script-language migration plan and advisory
+  context for `scripts/validate.py --strict-scripts`.
+- `docs/skills-organization-review.md` — notes from the skills taxonomy
+  review.
 - `docs/skills-spec-v3.md` — target architecture spec we are growing toward.
 - `docs/upstream-sources.md` — list of upstream skill repos parked for later re-import.
 - `evals/` — offline eval harness (no API keys). `cases.yaml` lives
@@ -111,11 +118,11 @@ tool plugin from the same marketplace:
 |-------------|------------------------------------------------------------------------|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills`                          |
 | Codex       | `codex plugin install jylhis-python@jylhis-skills` (then enable in `~/.codex/config.toml`) |
-| Gemini CLI  | `ln -s <repo>/plugins/jylhis-python ~/.gemini/extensions/jylhis-python` |
 
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
-`jylhis-gitlab`.
+`jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
+`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 
@@ -127,8 +134,8 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 
 Claude-only plugin artefacts ship inside per-plugin directories, not at the
 repo root. Codex's recursive scan stays scoped to each plugin's local
-`./skills/` and Gemini's extension only declares `contextFileName`, so
-these files are inert in the other tools — no separate exclusion is needed.
+`./skills/`, so these files are inert in Codex — no separate exclusion is
+needed.
 
 - `plugins/jylhis-<lang>/.lsp.json` — native LSP plugin format (Claude
   Code spawns each entry on demand for matching file extensions). One file
@@ -149,20 +156,21 @@ these files are inert in the other tools — no separate exclusion is needed.
   `/lsp-status` discovers every installed language plugin's `.lsp.json` at
   runtime, so it reflects only the LSPs the user has opted into.
   `/remember-correction` appends to the improvement-memory JSONL via
-  `scripts/append-correction.py`.
+  `go run "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go" --json -`.
 - `.mcp.json` is intentionally absent — the LSP work that would
   otherwise need an MCP bridge (e.g. `mcp-language-server`) is handled
   natively by Claude Code's `.lsp.json` integration.
 
-`scripts/validate.py` only globs `skills/*/*/SKILL.md`, so these
+`scripts/validate.py` only validates `SKILL.md` files under `skills/` and
+enforces the published `skills/<category>/<name>/SKILL.md` layout, so these
 Claude-only files do not need to be excluded explicitly.
 
 ## Repo conventions
 
 - The repo root is the **marketplace**, not a plugin. The default plugin is
   `plugins/jylhis-skills-core/`; opt-in plugins are siblings under `plugins/`.
-- Each `plugins/<name>/` directory contains its own `.claude-plugin/plugin.json`,
-  `.codex-plugin/plugin.json`, and `gemini-extension.json`. Skills are not
+- Each `plugins/<name>/` directory contains its own `.claude-plugin/plugin.json`
+  and `.codex-plugin/plugin.json`. Skills are not
   copied — each plugin has a `skills/` directory of symlinks pointing into
   the canonical `skills/<category>/<name>/` source tree.
 - Skills are two levels deep on disk: `skills/<category>/<name>/SKILL.md`.
@@ -223,9 +231,9 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 ```
 
 Schema reference: `meta/skill-improver/references/schema.md`.
-Use `scripts/append-correction.py --json -` (one JSON object on stdin)
-to append safely under a file lock. The user can invoke the same path
-via `/remember-correction <note>`.
+Use `go run scripts/append-correction.go --json -` (one JSON object on
+stdin) to append safely under a file lock. The user can invoke the same
+path via `/remember-correction <note>`.
 
 The file lives outside the repo, in the XDG state directory — it is
 host-private, not committed, not synced. This JSONL is the machine-

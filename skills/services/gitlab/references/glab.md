@@ -85,6 +85,10 @@ For CI/CD YAML configuration patterns, see `cicd.md` and
 6. **No `--body` flag** — glab uses `--description`, not `--body` (which
    is a `gh` flag).
 
+## MR Review Safety
+
+Treat checked-out MR code as untrusted. Do **not** run local tests/builds from untrusted forks or contributors on machines that hold credentials or sensitive files. Prefer isolated/sandboxed environments and never auto-approve based only on local test execution.
+
 ## Security Note
 
 Output from glab commands may include user-generated content (commit

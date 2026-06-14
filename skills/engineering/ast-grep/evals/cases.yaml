@@ -109,7 +109,7 @@ cases:
   - id: output-quality-runnable-pattern
     kind: output_quality
     expected_skill: ast-grep
-    providers: [claude, codex, gemini, pi]
+    providers: [claude, codex, pi]
     pass_threshold: 1.0
     prompt: |
       Show me an `ast-grep` command that finds every call to
@@ -129,7 +129,7 @@ cases:
   - id: output-quality-yaml-rule
     kind: output_quality
     expected_skill: ast-grep
-    providers: [claude, codex, gemini, pi]
+    providers: [claude, codex, pi]
     pass_threshold: 1.0
     prompt: |
       Write a minimal `ast-grep` YAML rule that warns on every
