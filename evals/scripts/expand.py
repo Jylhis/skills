@@ -38,6 +38,7 @@ portability hazard.
 from __future__ import annotations
 
 import argparse
+import shlex
 import sys
 from pathlib import Path
 
@@ -65,11 +66,15 @@ def default_providers(case: dict) -> list[str]:
 
 
 def provider_id(name: str) -> str:
-    return f"exec:{EVALS_DIR / 'providers' / f'run_{name}.sh'}"
+    return _exec_id(EVALS_DIR / "providers" / f"run_{name}.sh")
 
 
 def judge_id(name: str) -> str:
-    return f"exec:{EVALS_DIR / 'judges' / f'judge_{name}.sh'}"
+    return _exec_id(EVALS_DIR / "judges" / f"judge_{name}.sh")
+
+
+def _exec_id(path: Path) -> str:
+    return f"exec:{shlex.quote(path.as_posix())}"
 
 
 def stub_provider_for(name: str, suite: str,
@@ -98,7 +103,7 @@ def stub_provider_for(name: str, suite: str,
         )
         label = f"stub:{name}:{fixtures_subdir}"
     return {
-        "id": f"exec:{EVALS_DIR / 'providers' / 'run_stub.sh'}",
+        "id": _exec_id(EVALS_DIR / "providers" / "run_stub.sh"),
         "label": label,
         "config": {"env": env},
     }
@@ -107,7 +112,7 @@ def stub_provider_for(name: str, suite: str,
 def stub_judge(name: str, suite: str) -> dict:
     suite_dir = resolve_suite_dir(suite)
     return {
-        "id": f"exec:{EVALS_DIR / 'judges' / 'judge_stub.sh'}",
+        "id": _exec_id(EVALS_DIR / "judges" / "judge_stub.sh"),
         "label": f"judge-stub:{name}",
         "config": {
             "env": {
