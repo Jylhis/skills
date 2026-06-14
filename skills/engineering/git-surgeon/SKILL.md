@@ -25,7 +25,10 @@ why) pair it with the `commit-stories` skill.
 ```bash
 cargo install git-surgeon                       # Rust
 brew install raine/git-surgeon/git-surgeon      # Homebrew
-curl -fsSL https://raw.githubusercontent.com/raine/git-surgeon/main/scripts/install.sh | bash
+
+# Or fetch the upstream install script, read it, then run it (don't pipe to a shell unread):
+curl -fsSL https://raw.githubusercontent.com/raine/git-surgeon/main/scripts/install.sh -o install-git-surgeon.sh
+bash install-git-surgeon.sh                      # after reviewing it
 ```
 
 Requires git ≥ 2.0. The binary is `git-surgeon`. (It also ships a
