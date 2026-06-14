@@ -11,6 +11,7 @@
     "./skills/caveman",
     "./skills/commit-stories",
     "./skills/diagnose",
+    "./skills/git-surgeon",
     "./skills/grill-with-docs",
     "./skills/handoff",
     "./skills/humanizer",
