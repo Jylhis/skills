@@ -48,10 +48,13 @@ header is excluded). Properties to rely on:
 - **Collision-safe** — ambiguous IDs get `-2`, `-3` suffixes
   (e.g. `a1b2c3d-2`).
 
-Many commands accept an inline **line range** suffix on the ID to act on
-part of a hunk: `a1b2c3d:5-30`, or multiple ranges `a1b2c3d:1-11,20-30`.
-The standalone `--lines <range>` flag does the same for single-hunk
-commands. Line numbers are 1-based against the output of `show`.
+To act on part of a hunk you give it a **line range** (1-based against the
+output of `show`). Two syntaxes, and they are **not interchangeable**:
+
+- Inline `id:range` suffix — `a1b2c3d:5-30` or `a1b2c3d:1-11,20-30` — is
+  parsed **only** by `commit`, `commit-to`, and `split`.
+- The `--lines <range>` flag is how `stage`, `unstage`, `discard`, and
+  `undo` take a range; they **reject** an ID containing `:`.
 
 ## Inspect
 
@@ -63,10 +66,15 @@ git-surgeon hunks --commit <sha>     # hunks introduced by a commit
 git-surgeon hunks --full             # complete diff with line numbers
 git-surgeon hunks --blame            # which commit introduced each line
 git-surgeon show <id>                # full diff for one hunk, 1-based line numbers
+git-surgeon show <id> --commit <sha> # a hunk from a specific commit
 ```
 
 Always `hunks` / `show` first — IDs and line numbers come from here, and
-it is your only "dry run" (see footguns).
+it is your only "dry run" (see footguns). `show` without `--commit`
+searches only the staged + unstaged diffs, so an ID you got from
+`hunks --commit <sha>` must be shown (and later split/undone) with the
+**same** `--commit <sha>` — otherwise it reports "not found" or hands you
+line numbers from an unrelated worktree hunk.
 
 ## Stage / unstage / discard
 
@@ -92,7 +100,10 @@ git-surgeon commit-to <branch> <id>... -m "message"   # commit onto another bran
   fails, it auto-unstages so the index is left clean.
 - `commit-to` applies the hunks to the target branch's tree via git
   plumbing **without checking it out**. It is atomic — if the patch
-  doesn't apply cleanly the repo is left untouched.
+  doesn't apply cleanly the repo is left untouched. On success it
+  **discards the committed hunks from your working tree** — the selected
+  local changes move to the target branch and disappear locally, they are
+  not left behind as uncommitted edits.
 - Both **refuse to run if the index already has staged changes** —
   unstage or commit those first.
 
@@ -101,19 +112,22 @@ git-surgeon commit-to <branch> <id>... -m "message"   # commit onto another bran
 ```bash
 git-surgeon fold <sha> [--from <sha>]                 # fold commit(s) into an earlier one (HEAD by default)
 git-surgeon amend <sha>                               # fold currently-staged changes into an earlier commit
-git-surgeon reword <sha> -m "subject" [-m "body"]     # change a message, not the content
-git-surgeon squash <sha> -m "message"                 # squash <sha>..HEAD into one commit
+git-surgeon reword <sha> -m "subject" [-m "body"]     # change a message (clean index only — see safety)
+git-surgeon squash <sha> -m "message"                 # squash <sha> through HEAD (inclusive) into one commit
 git-surgeon split <sha> --pick <ids> -m "msg" [--rest-message "msg"]
 git-surgeon move <sha> --after <target>               # also --before <target> or --to-end
-git-surgeon undo <id> --from <sha>                    # reverse-apply hunks from a commit onto the worktree
+git-surgeon undo <id> --from <sha> [--lines 2-10]     # reverse-apply hunks from a commit onto the worktree
 ```
 
 Notes:
 
 - `amend` uses `git commit --amend` for HEAD, or an autosquash rebase
   for older commits; unstaged work is preserved via autostash.
-- `squash` flags: `--force` (flatten merge commits),
-  `--no-preserve-author` (attribute to the current user).
+- `squash` takes the **oldest** commit to fold and combines it *through*
+  HEAD, inclusively — `git-surgeon squash HEAD~1 -m ...` squashes the last
+  two commits. It is not git's exclusive `<sha>..HEAD` range, so don't pass
+  the parent of the commit you mean. Flags: `--force` (flatten merge
+  commits), `--no-preserve-author` (attribute to the current user).
 - `split` needs a clean working tree; repeat `--pick <ids> -m <msg>` for
   each output commit, with inline ranges (`a1b2c3d:1-11,20-30`) allowed.
 - `undo` reverse-applies the hunks as **unstaged** worktree changes — a
@@ -133,6 +147,12 @@ Notes:
   auto-commit a guess.
 - **Index-must-be-clean refusals.** `commit` and `commit-to` won't run
   with staged changes already present; that's a guard, not a bug.
+- **`reword` / `amend` do *not* guard the index.** `reword` is
+  "message-only" **only on a clean index** — it amends via
+  `git commit --amend -m`, so any changes you have staged get folded into
+  the rewritten commit. Stash or unstage first if you intend to touch the
+  message alone. (`amend` folding the staged index is its purpose, not a
+  surprise — but the same caveat applies if you forgot what was staged.)
 - Rewriting published history still rewrites SHAs — only do it on
   branches you can force-push.
 
