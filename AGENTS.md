@@ -15,10 +15,10 @@ cross-cutting engineering and productivity skills (security, ast-grep,
 offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
 Per-language, per-service, and per-tool plugins
-(`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-jvm`,
-`jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`, `jylhis-gitlab`,
-`jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`, `jylhis-grafana`,
-`jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
+(`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-rust`,
+`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
+`jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
+`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
 only when the user opts in. See `docs/install.md` for install instructions.
 
 ## Layout
@@ -123,9 +123,9 @@ tool plugin from the same marketplace:
 | Pi          | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` (then re-run `just install` to refresh) |
 
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
-`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
-`jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
-`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
+`jylhis-rust`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
+`jylhis-filesystems`, `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`,
+`jylhis-obsidian`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 
@@ -146,7 +146,8 @@ carry none of this layer.
   Code spawns each entry on demand for matching file extensions). One file
   per language plugin: `jylhis-nix` registers `nixd`, `jylhis-python`
   registers `basedpyright`, `jylhis-typescript` registers
-  `typescript-language-server`, `jylhis-go` registers `gopls`. Each uses
+  `typescript-language-server`, `jylhis-go` registers `gopls`,
+  `jylhis-rust` registers `rust-analyzer`. Each uses
   `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix but no
   pre-installed LSP. Installing a language plugin wires its LSP; not
   installing it leaves Claude Code unaware of that language.
