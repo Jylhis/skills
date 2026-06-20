@@ -41,6 +41,7 @@ import _lib as L
 VALID_CATEGORIES = {
     "engineering", "languages", "domains", "services",
     "stack", "productivity", "personal", "misc",
+    "product", "business",
 }
 
 VALID_STRATEGIES = {"standalone", "umbrella-references", "replace"}
