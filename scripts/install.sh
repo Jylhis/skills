@@ -89,12 +89,13 @@ sync_pi_plugin_skills() {
   local pi_dir="$1" plugin="$2"
   local dest="$pi_dir/skills/$plugin"
 
-  run mkdir -p "$dest"
+  # Back up any existing symlink / non-directory before creating the dir, so a
+  # broken symlink at $dest can't make `mkdir -p` fail.
   if [[ -L "$dest" || ( -e "$dest" && ! -d "$dest" ) ]]; then
     run mkdir -p "$BACKUP_ROOT"
     run mv "$dest" "$BACKUP_ROOT/pi-skills-$(basename "$dest")"
-    run mkdir -p "$dest"
   fi
+  run mkdir -p "$dest"
   run rsync -aL --delete --delete-excluded \
     --exclude .git \
     --exclude .devenv \
@@ -246,8 +247,8 @@ pi (pi-coding-agent) not found on PATH. Install it with:
   npm install -g @earendil-works/pi-coding-agent
   # or: curl -fsSL https://pi.dev/install.sh | sh
 Then re-run this script, or sync the default plugin manually:
-  mkdir -p $PI_DIR/skills/${DEFAULT_PLUGIN}
-  rsync -aL --delete $REPO_ROOT/plugins/${DEFAULT_PLUGIN}/skills/ $PI_DIR/skills/${DEFAULT_PLUGIN}/
+  mkdir -p "$PI_DIR/skills/${DEFAULT_PLUGIN}"
+  rsync -aL --delete "$REPO_ROOT/plugins/${DEFAULT_PLUGIN}/skills/" "$PI_DIR/skills/${DEFAULT_PLUGIN}/"
 EOF
 fi
 
@@ -262,7 +263,7 @@ Available opt-in plugins: ${OPTIN_PLUGINS[*]}
 
 To install one (example: jylhis-python):
   Claude Code:  /plugin install jylhis-python@jylhis-skills
-  Pi:           rsync -aL --delete $REPO_ROOT/plugins/jylhis-python/skills/ $PI_DIR/skills/jylhis-python/
+  Pi:           rsync -aL --delete "$REPO_ROOT/plugins/jylhis-python/skills/" "$PI_DIR/skills/jylhis-python/"
                 # then re-run scripts/install.sh to keep it refreshed
 
 claude.ai Skills (upload channel): run \`just package\` and upload
