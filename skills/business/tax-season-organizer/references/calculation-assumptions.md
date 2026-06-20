@@ -45,6 +45,11 @@ Default assumption: **sole proprietor** unless the user specifies otherwise. Alw
 
 ### Federal income tax brackets (2025, single filer)
 
+> **Confirm the tax year first.** The brackets below are **2025**. Before estimating,
+> verify the applicable tax year and substitute that year's IRS figures (brackets, the
+> SE Social Security wage base, and 1040-ES due dates) — look up current-year values
+> when estimating for a later year. Always state which tax year's constants were used.
+
 | Taxable income | Rate |
 |---------------|------|
 | $0 – $11,925 | 10% |

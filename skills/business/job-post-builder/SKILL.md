@@ -169,8 +169,7 @@ Build from scratch using `references/job-post-structure.md` as the full template
 - Keep the required qualifications list tight — every line is a reason someone doesn't apply
 - If compensation isn't provided, omit the range rather than invent one
 
-Save as `[Role]-Job-Post.docx` using the docx skill.
-Read `docx/SKILL.md` before generating the file.
+Save as `[Role]-Job-Post.docx` using your environment's document-authoring capability — in Claude Code, read `docx/SKILL.md` first; in other tools, produce an equivalent `.docx` (or Markdown the user can convert).
 
 ---
 
@@ -258,6 +257,11 @@ Save as `[Role]-Offer-Letter.docx` using the docx skill.
 ---
 
 ## Phase 6 — Route the Offer Letter Directly to DocuSign
+
+> **Claude Code only.** This phase drives DocuSign through Claude-in-Chrome browser
+> automation. In environments without browser control (e.g. Codex), skip the browser
+> flow and use the manual fallback at the end of this phase: deliver the `.docx` plus
+> a short DocuSign upload checklist, or draft the Gmail handoff for the owner to send.
 
 Use Claude in Chrome to upload the offer letter into DocuSign and set up the
 envelope, so the user doesn't have to touch DocuSign manually.

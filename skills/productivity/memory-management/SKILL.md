@@ -76,7 +76,7 @@ This tiered approach keeps CLAUDE.md lean (~100 lines) while supporting unlimite
 
 ## File Locations
 
-- **Working memory:** `CLAUDE.md` in current working directory
+- **Working memory:** the host tool's project-instructions file in the current working directory — `CLAUDE.md` under Claude Code, `AGENTS.md` under Codex (referred to as `CLAUDE.md` throughout this skill)
 - **Deep memory:** `memory/` subdirectory
 
 ## Working Memory Format (CLAUDE.md)

@@ -129,7 +129,7 @@ Source(s): [connectors used]
 ```
 
 **XLSX workbook** (always):
-Read `xlsx/SKILL.md` before generating. Produce a workbook with three sheets:
+Generate the workbook with your environment's spreadsheet capability — in Claude Code, read `xlsx/SKILL.md` first; in other tools, produce an equivalent `.xlsx` (or fall back to a CSV the user can open in Excel). Produce a workbook with three sheets:
 
 1. **Summary** — the 30/60/90 forecast table with confidence bands. Beneath
    each window row, expand inline sub-rows showing the individual transactions
