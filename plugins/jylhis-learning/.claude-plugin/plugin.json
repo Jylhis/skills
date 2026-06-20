@@ -1,0 +1,16 @@
+{
+  "name": "jylhis-learning",
+  "description": "AI tutoring skills — spaced-repetition learning engine plus German, Thai, Rust, and Jujutsu (jj) subject tutors.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/tutor-engine",
+    "./skills/learn-german",
+    "./skills/learn-thai",
+    "./skills/learn-rust",
+    "./skills/learn-jj"
+  ]
+}

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# jj-scratch — create a throwaway Jujutsu repo seeded with a little history so a
+# learner can practice jj operations safely. Prints the repo path on stdout.
+#
+# Usage: jj-scratch [DIR]    (DIR defaults to a fresh mktemp directory)
+#        jj-scratch --help
+#
+# Requires `jj` on PATH (https://github.com/jj-vcs/jj). Never touches an existing
+# repo: it refuses if DIR already exists and is non-empty.
+set -euo pipefail
+
+case "${1:-}" in
+  -h|--help)
+    sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+    ;;
+esac
+
+if ! command -v jj >/dev/null 2>&1; then
+  echo "jj-scratch: jj not found on PATH; install Jujutsu first" >&2
+  exit 4
+fi
+
+dir="${1:-$(mktemp -d -t jj-scratch.XXXXXX)}"
+if [ -e "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ]; then
+  echo "jj-scratch: $dir exists and is not empty; refusing" >&2
+  exit 3
+fi
+mkdir -p "$dir"
+
+jj git init "$dir" >/dev/null
+cd "$dir"
+
+printf '# Scratch project\n\nPractice jj here.\n' > README.md
+jj describe -m "Add README" >/dev/null
+jj new -m "Start notes" >/dev/null
+printf 'one\n' > notes.txt
+jj new -m "Add a second note" >/dev/null
+printf 'two\n' >> notes.txt
+
+echo "$dir"
