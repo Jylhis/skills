@@ -24,11 +24,11 @@ User: "prioritize my leads"
 
 ## Workflow
 
-1. **Pull leads from HubSpot.** Fetch contacts with `lifecyclestage` = `Lead` or `MQL` and `hs_lead_status` ≠ `Unqualified`. Use the field list in [reference/hubspot-scoring.md](reference/hubspot-scoring.md). If HubSpot is unavailable, stop: *"HubSpot is disconnected — connect it and try again."*
+1. **Pull leads from HubSpot.** Fetch contacts with `lifecyclestage` = `Lead` or `MQL` and `hs_lead_status` ≠ `Unqualified`. Use the field list in [references/hubspot-scoring.md](references/hubspot-scoring.md). If HubSpot is unavailable, stop: *"HubSpot is disconnected — connect it and try again."*
 
 2. **Clarify if trigger is ambiguous.** If the user said only "pipeline" without a qualifier, ask: *"Quick pipeline overview (deal stages + total value) or prioritized call list?"* — then route accordingly. Do not score leads on a bare "pipeline."
 
-3. **Score each lead.** Apply the four-dimension model in [reference/hubspot-scoring.md](reference/hubspot-scoring.md):
+3. **Score each lead.** Apply the four-dimension model in [references/hubspot-scoring.md](references/hubspot-scoring.md):
    - **Engagement** — email replies, opens, site visits in HubSpot (last 30 days only)
    - **Company fit** — industry and employee count vs. owner's ICP (default: any industry, 1–50 employees)
    - **Urgency** — lead age, stage duration, notes containing "urgent / ASAP / deadline / budget approved"
@@ -55,6 +55,6 @@ User: "prioritize my leads"
 
 ## Reference
 
-- [reference/hubspot-scoring.md](reference/hubspot-scoring.md) — HubSpot field names, scoring weights, ICP defaults
-- [reference/gotchas.md](reference/gotchas.md) — edge cases: stale data, zero leads, pipeline disambiguation, customer contamination
-- [reference/examples/happy-path-triage.md](reference/examples/happy-path-triage.md) — worked output for a 7-lead list with draft and slot proposal
+- [references/hubspot-scoring.md](references/hubspot-scoring.md) — HubSpot field names, scoring weights, ICP defaults
+- [references/gotchas.md](references/gotchas.md) — edge cases: stale data, zero leads, pipeline disambiguation, customer contamination
+- [references/examples/happy-path-triage.md](references/examples/happy-path-triage.md) — worked output for a 7-lead list with draft and slot proposal

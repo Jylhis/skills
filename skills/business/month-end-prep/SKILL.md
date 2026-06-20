@@ -44,7 +44,7 @@ Present the count ("14 transactions need a category") and list them for the user
 classify before proceeding. Don't advance with open uncategorized items unless the
 user explicitly says "skip for now."
 
-See [reference/quickbooks-reconcile.md](reference/quickbooks-reconcile.md) for field
+See [references/quickbooks-reconcile.md](references/quickbooks-reconcile.md) for field
 mappings and API notes.
 
 ### Step 3 — Pull payment processor settlements
@@ -59,7 +59,7 @@ Match each settlement deposit against the QuickBooks bank deposit line:
 - **Settlement exists, no QB deposit** — flag as "missing in QuickBooks"
 - **QB deposit exists, no settlement** — flag as "deposit not in processor data"
 
-See [reference/paypal-settlements.md](reference/paypal-settlements.md) for settlement
+See [references/paypal-settlements.md](references/paypal-settlements.md) for settlement
 report field mappings (PayPal, Square, Stripe).
 
 ### Step 4 — Detect suspicious duplicates
@@ -73,7 +73,7 @@ transaction as a suspicious duplicate when **all three** match:
 Present flagged pairs to the user. They decide whether each is legitimate (e.g., a
 recurring weekly subscription) or a real duplicate to void.
 
-See [reference/gotchas.md](reference/gotchas.md) for common false-positive patterns
+See [references/gotchas.md](references/gotchas.md) for common false-positive patterns
 and how to distinguish them.
 
 ### Step 5 — Receipts check (Desktop connector)
@@ -124,7 +124,7 @@ Structure:
 
 Avoid jargon; define anything that isn't plain English ("MoM" = month over month).
 
-See [reference/examples/pl-narrative.md](reference/examples/pl-narrative.md) for a
+See [references/examples/pl-narrative.md](references/examples/pl-narrative.md) for a
 worked example.
 
 ### Step 8 — Export the close packet
@@ -144,7 +144,7 @@ Produce two files:
 
 Save both to the Desktop (or a path the user specifies). Confirm the file locations.
 
-See [reference/close-packet-format.md](reference/close-packet-format.md) for column
+See [references/close-packet-format.md](references/close-packet-format.md) for column
 specs and PDF layout details.
 
 ## Approval gates
@@ -166,13 +166,13 @@ specs and PDF layout details.
 
 ## Reference files
 
-- [reference/quickbooks-reconcile.md](reference/quickbooks-reconcile.md) — QB field
+- [references/quickbooks-reconcile.md](references/quickbooks-reconcile.md) — QB field
   mappings, API pagination, common data issues
-- [reference/paypal-settlements.md](reference/paypal-settlements.md) — settlement
+- [references/paypal-settlements.md](references/paypal-settlements.md) — settlement
   report structure for PayPal, Square, and Stripe
-- [reference/close-packet-format.md](reference/close-packet-format.md) — xlsx column
+- [references/close-packet-format.md](references/close-packet-format.md) — xlsx column
   specs, PDF layout, file naming convention
-- [reference/gotchas.md](reference/gotchas.md) — duplicate false positives, split
+- [references/gotchas.md](references/gotchas.md) — duplicate false positives, split
   transactions, partial-month edge cases
-- [reference/examples/pl-narrative.md](reference/examples/pl-narrative.md) — worked
+- [references/examples/pl-narrative.md](references/examples/pl-narrative.md) — worked
   P&L narrative example

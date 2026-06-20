@@ -14,9 +14,9 @@ Parse arguments:
 - `--lookback` (default `90d`) — how far back to look for the revenue dip
 - `--channel` (default `both`) — `email`, `social`, or `both`
 
-## Step 1 — Sales analysis + content brief (content-strategy)
+## Step 1 — Sales analysis + content brief
 
-Trigger the `content-strategy` skill workflow:
+Run the sales analysis and content brief:
 1. Pull sales data from QuickBooks and PayPal for the lookback window.
 2. Identify the revenue dip — which product/service, which time period, magnitude.
 3. Produce a 30-day prioritized content brief: what to push, what offer to run, what to hold.
@@ -24,9 +24,9 @@ Trigger the `content-strategy` skill workflow:
 
 If the owner edits the brief, incorporate edits and re-present.
 
-## Step 2 — Asset generation + send staging (canva-creator)
+## Step 2 — Asset generation + send staging
 
-After Step 1 approval, trigger the `canva-creator` skill workflow:
+After Step 1 approval, generate the campaign assets:
 1. Take the approved brief from Step 1 as input.
 2. Build the posting calendar matched to the brief's priorities.
 3. Generate on-brand Canva assets for each post (apply each on screen for owner approval before moving on).

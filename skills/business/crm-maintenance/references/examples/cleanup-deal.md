@@ -76,7 +76,7 @@ Waits for the user. User replies: *"Yes to all except 4 — leave close date alo
 
 ## What this example demonstrates
 
-- Every field check from `reference/cleanup-checklist.md` applied to one deal
+- Every field check from `references/cleanup-checklist.md` applied to one deal
 - Side-by-side current → proposed framing for every proposed change
 - Stage change correctly held as flag-only
 - User selectively approves items — skill honors the exact selection

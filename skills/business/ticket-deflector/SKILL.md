@@ -41,7 +41,7 @@ User: "answer this customer" [forwards email]
    - Refund request → empathetic, clear, action-oriented
    - Order status question → factual, reassuring
    - General complaint → acknowledge, explain, offer resolution
-   Flag any data gaps inline in the draft with a bracketed note (e.g., *[Note: No PayPal transaction found — verify order ID before sending]*) so the owner sees the gap before sending. For a worked example, see [reference/examples/respond-refund-request.md](reference/examples/respond-refund-request.md). For common pitfalls, see [reference/gotchas.md](reference/gotchas.md).
+   Flag any data gaps inline in the draft with a bracketed note (e.g., *[Note: No PayPal transaction found — verify order ID before sending]*) so the owner sees the gap before sending. For a worked example, see [references/examples/respond-refund-request.md](references/examples/respond-refund-request.md). For common pitfalls, see [references/gotchas.md](references/gotchas.md).
 
 5. **Approval gate — owner reviews the draft.** Present the full draft. Do not send or stage it until the owner approves. The owner may edit freely before approving.
 
@@ -65,5 +65,5 @@ User: "answer this customer" [forwards email]
 
 ## Reference
 
-- [reference/gotchas.md](reference/gotchas.md) — Good / Bad patterns for tone, PayPal lookup, and ambiguous refund scenarios
-- [reference/examples/respond-refund-request.md](reference/examples/respond-refund-request.md) — worked example: refund request with PayPal transaction found
+- [references/gotchas.md](references/gotchas.md) — Good / Bad patterns for tone, PayPal lookup, and ambiguous refund scenarios
+- [references/examples/respond-refund-request.md](references/examples/respond-refund-request.md) — worked example: refund request with PayPal transaction found

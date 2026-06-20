@@ -15,7 +15,7 @@ Parse arguments:
 
 ## Step 1 — Load the contract
 
-Using the `contract-review` skill workflow:
+Load the contract:
 
 1. If a file path is given: read the document from Files or Desktop.
 2. If a DocuSign envelope ID is given: pull the document from DocuSign.

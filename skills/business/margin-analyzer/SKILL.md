@@ -35,9 +35,9 @@ The output equips the owner to make their own pricing call with real data behind
 
 **QuickBooks:** Call `company-info` to verify the industry field is populated. If it's missing or "Unknown", ask: "I need your business category to pull relevant benchmarks. What industry are you in?" Then call `quickbooks-profile-info-update`.
 
-**PayPal:** No pre-flight needed, but PayPal rate-limits on rapid calls — see `reference/gotchas.md`.
+**PayPal:** No pre-flight needed, but PayPal rate-limits on rapid calls — see `references/gotchas.md`.
 
-**No connectors:** Offer CSV upload as a fallback. The skill can work from exported transaction and expense data. The expected CSV schema is in `reference/csv-schema.md`.
+**No connectors:** Offer CSV upload as a fallback. The skill can work from exported transaction and expense data. The expected CSV schema is in `references/csv-schema.md`.
 
 ### Step 2: Clarify scope
 
@@ -100,7 +100,7 @@ Flag any item where margin is below 20% — not as a recommendation, but as a da
 Layer in context to make the numbers meaningful:
 
 - **Inflation:** Note relevant cost trends if discussing input cost increases. Example: "Your input costs rose ~X% over this period while your prices held flat — that compressed margin by Y points."
-- **Industry benchmarks:** Use the QuickBooks industry profile to surface rough gross margin norms for their category. See `reference/industry-benchmarks.md`.
+- **Industry benchmarks:** Use the QuickBooks industry profile to surface rough gross margin norms for their category. See `references/industry-benchmarks.md`.
 - **Historical comparison:** If 24+ months of data is available, compare this year's margins to last year's to surface the trend direction.
 
 Handle low-data gracefully: if fewer than 6 months of transactions exist, omit the elasticity section and note: "You need at least 6 months of pricing history to estimate how volume responds to price changes. I'll show scenario math instead."
@@ -155,7 +155,7 @@ This is intentional. Pricing decisions have real business consequences and depen
 
 ## Reference files
 
-- `reference/gotchas.md` — common pitfalls (data gaps, elasticity traps, margin math errors)
-- `reference/industry-benchmarks.md` — gross margin ranges by SMB category
-- `reference/csv-schema.md` — expected columns when the owner uploads a CSV
-- `reference/examples/` — worked scenarios (retail, services, product-based)
+- `references/gotchas.md` — common pitfalls (data gaps, elasticity traps, margin math errors)
+- `references/industry-benchmarks.md` — gross margin ranges by SMB category
+- `references/csv-schema.md` — expected columns when the owner uploads a CSV
+- `references/examples/` — worked scenarios (retail, services, product-based)

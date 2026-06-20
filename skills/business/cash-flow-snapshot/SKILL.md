@@ -164,5 +164,5 @@ Remind the user after delivery:
 
 | File | Load when |
 |---|---|
-| `reference/gotchas.md` | When a connector returns unexpected data or variance is extreme |
-| `reference/examples/worked-example.md` | When modeling the output format for a new data shape |
+| `references/gotchas.md` | When a connector returns unexpected data or variance is extreme |
+| `references/examples/worked-example.md` | When modeling the output format for a new data shape |

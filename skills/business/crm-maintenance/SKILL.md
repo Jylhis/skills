@@ -38,13 +38,13 @@ User: "log this call to the Acme deal"
 3. **Resolve the HubSpot contact and deal.** For email/call paths:
    - Search HubSpot contacts by email address. If a contact is missing, create it from email signature or calendar invite data — announce creation in chat before writing.
    - Find the right deal in this order: (a) explicit match if the user named one, (b) the contact's sole open deal, (c) fuzzy match across the contact's open deals against the email subject or meeting title — confirm before writing, (d) ask the user if no match. **Never auto-create a deal.**
-   - For field names, activity types, and association rules, read [reference/hubspot-fields.md](reference/hubspot-fields.md) before writing anything to HubSpot.
-   - If deduplication or deal-resolution feels ambiguous, check [reference/gotchas.md](reference/gotchas.md) before proceeding — it covers the most common failure modes.
+   - For field names, activity types, and association rules, read [references/hubspot-fields.md](references/hubspot-fields.md) before writing anything to HubSpot.
+   - If deduplication or deal-resolution feels ambiguous, check [references/gotchas.md](references/gotchas.md) before proceeding — it covers the most common failure modes.
 
 4. **Execute the action.**
-   - Email path: write an email activity with the thread subject as the title and a concise summary (not the full thread) as the body. Timestamp to the latest message. For a worked example, see [reference/examples/log-email-happy-path.md](reference/examples/log-email-happy-path.md).
-   - Call path: write a call activity with the event title, duration, and any notes available. Timestamp to the event start. For a worked example including a missing-contact scenario, see [reference/examples/log-call-happy-path.md](reference/examples/log-call-happy-path.md).
-   - Cleanup path: walk each field per [reference/cleanup-checklist.md](reference/cleanup-checklist.md) and assemble a proposed-changes list. Show current → proposed side-by-side. Write only what the user approves. For a full worked example, see [reference/examples/cleanup-deal.md](reference/examples/cleanup-deal.md).
+   - Email path: write an email activity with the thread subject as the title and a concise summary (not the full thread) as the body. Timestamp to the latest message. For a worked example, see [references/examples/log-email-happy-path.md](references/examples/log-email-happy-path.md).
+   - Call path: write a call activity with the event title, duration, and any notes available. Timestamp to the event start. For a worked example including a missing-contact scenario, see [references/examples/log-call-happy-path.md](references/examples/log-call-happy-path.md).
+   - Cleanup path: walk each field per [references/cleanup-checklist.md](references/cleanup-checklist.md) and assemble a proposed-changes list. Show current → proposed side-by-side. Write only what the user approves. For a full worked example, see [references/examples/cleanup-deal.md](references/examples/cleanup-deal.md).
 
 5. **Approval gate — every externally visible write.** For contact creation and activity logging, announce before writing and surface the result after. For cleanup edits, do not write anything until the user approves the specific changes.
 
@@ -60,9 +60,9 @@ User: "log this call to the Acme deal"
 
 ## Reference
 
-- [reference/hubspot-fields.md](reference/hubspot-fields.md) — activity types, field names, association rules used in this skill
-- [reference/cleanup-checklist.md](reference/cleanup-checklist.md) — the fields checked during a deal cleanup and the evidence needed to flag each
-- [reference/gotchas.md](reference/gotchas.md) — Good / Bad patterns for contact resolution, activity summaries, and cleanup proposals
-- [reference/examples/log-email-happy-path.md](reference/examples/log-email-happy-path.md) — worked example: email to existing deal
-- [reference/examples/log-call-happy-path.md](reference/examples/log-call-happy-path.md) — worked example: meeting to existing deal, missing contact
-- [reference/examples/cleanup-deal.md](reference/examples/cleanup-deal.md) — worked example: stale deal audit
+- [references/hubspot-fields.md](references/hubspot-fields.md) — activity types, field names, association rules used in this skill
+- [references/cleanup-checklist.md](references/cleanup-checklist.md) — the fields checked during a deal cleanup and the evidence needed to flag each
+- [references/gotchas.md](references/gotchas.md) — Good / Bad patterns for contact resolution, activity summaries, and cleanup proposals
+- [references/examples/log-email-happy-path.md](references/examples/log-email-happy-path.md) — worked example: email to existing deal
+- [references/examples/log-call-happy-path.md](references/examples/log-call-happy-path.md) — worked example: meeting to existing deal, missing contact
+- [references/examples/cleanup-deal.md](references/examples/cleanup-deal.md) — worked example: stale deal audit

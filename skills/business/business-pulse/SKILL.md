@@ -14,7 +14,7 @@ One prompt, one page. Pull live data from every connected tool, synthesize it in
 
 ## Step 1 — Pull data in parallel
 
-**Dispatch all connector calls in a single parallel batch** — see `reference/data_sources.md` for the exact tool-to-metric mapping. Do not pull serially; latency turns a 30-second skill into a painful wait.
+**Dispatch all connector calls in a single parallel batch** — see `references/data_sources.md` for the exact tool-to-metric mapping. Do not pull serially; latency turns a 30-second skill into a painful wait.
 
 Connectors to attempt simultaneously:
 
@@ -35,7 +35,7 @@ If a connector errors or returns no data, record it internally and move on. Neve
 
 ## Step 2 — Compute metrics
 
-Read `reference/thresholds.md` for red/yellow/green cutoffs. Compute:
+Read `references/thresholds.md` for red/yellow/green cutoffs. Compute:
 
 - **AR aging** — open QuickBooks invoices grouped by days since due date (0–30, 31–60, 61+)
 - **Pipeline coverage** — HubSpot weighted pipeline ÷ monthly revenue target
@@ -54,7 +54,7 @@ Scan for actionable items. Every risk entry must name a specific record and a ne
 
 ## Step 4 — Compose the output
 
-Use the exact template in `reference/output_template.md`. Include only sections where real data exists — omit headers for connectors that weren't available. Adapt depth to context: a casual "how are we doing" gets a fuller report; "quick snapshot before a call" gets a tighter one.
+Use the exact template in `references/output_template.md`. Include only sections where real data exists — omit headers for connectors that weren't available. Adapt depth to context: a casual "how are we doing" gets a fuller report; "quick snapshot before a call" gets a tighter one.
 
 Cross-connector synthesis is where this skill earns its keep. If a Slack message connects to a stalled HubSpot deal, surface that link in the #1 Priority section. Synthesis is what makes the pulse more useful than checking each tool separately.
 
@@ -90,7 +90,7 @@ The owner may ask for a narrower cut:
 
 ## Reference files
 
-- `reference/data_sources.md` — exact connector tool → metric mapping with fallbacks
-- `reference/thresholds.md` — 🟢/🟡/🔴 cutoffs, tunable per owner
-- `reference/output_template.md` — exact markdown structure; do not deviate
-- `reference/gotchas.md` — known failure modes (QB states, Gmail auth, Slack write)
+- `references/data_sources.md` — exact connector tool → metric mapping with fallbacks
+- `references/thresholds.md` — 🟢/🟡/🔴 cutoffs, tunable per owner
+- `references/output_template.md` — exact markdown structure; do not deviate
+- `references/gotchas.md` — known failure modes (QB states, Gmail auth, Slack write)

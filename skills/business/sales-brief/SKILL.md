@@ -15,7 +15,7 @@ Parse arguments:
 
 ## Step 1 — Sales breakdown
 
-Using the `content-strategy` skill workflow for sales analysis:
+Run the sales analysis:
 
 1. Pull PayPal transactions for the lookback period grouped by item/service/SKU.
 2. Pull QuickBooks revenue by product/service category.

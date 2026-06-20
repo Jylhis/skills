@@ -54,7 +54,7 @@ Use QuickBooks to pull a Profit & Loss report from January 1 of the current year
 - **Total expenses** (operating expenses, COGS, etc.)
 - **Net ordinary income** = revenue − expenses
 
-If QuickBooks is not connected, ask the user to upload a P&L as CSV or paste the key numbers. For field names and query approach, see [reference/connector-queries.md](reference/connector-queries.md).
+If QuickBooks is not connected, ask the user to upload a P&L as CSV or paste the key numbers. For field names and query approach, see [references/connector-queries.md](references/connector-queries.md).
 
 ### 2. Ask about prior estimated payments
 
@@ -62,7 +62,7 @@ Before calculating, ask: "How much have you already paid in estimated taxes so f
 
 ### 3. Calculate estimated liability
 
-See [reference/calculation-assumptions.md](reference/calculation-assumptions.md) for the full math and the assumptions table you must include in output.
+See [references/calculation-assumptions.md](references/calculation-assumptions.md) for the full math and the assumptions table you must include in output.
 
 Short version:
 1. **SE tax** = net profit × 0.9235 × 0.153 (then halve it — the deductible half offsets income)
@@ -123,7 +123,7 @@ Query each connected source for **all payments made to individuals or businesses
 
 > **Note for future connector versions:** If the QuickBooks MCP is upgraded to expose vendor payment records directly, step 1 will succeed and the CSV fallback will be skipped automatically. No changes to this skill are needed — the try-first logic handles it.
 
-For field names and query approach, see [reference/connector-queries.md](reference/connector-queries.md).
+For field names and query approach, see [references/connector-queries.md](references/connector-queries.md).
 
 **PayPal:** Pull all "Goods & Services" payments sent. Note: PayPal issues its own 1099-K to contractors above the threshold — flag these separately in output so the accountant can determine whether a 1099-NEC is also needed.
 
@@ -195,8 +195,8 @@ Structure the 1099 prep output as a document with these sections:
 
 ## Reference files
 
-- [reference/calculation-assumptions.md](reference/calculation-assumptions.md) — full tax math, bracket table, and SE tax walkthrough
-- [reference/connector-queries.md](reference/connector-queries.md) — how to pull data from QuickBooks, PayPal, and Stripe
-- [reference/gotchas.md](reference/gotchas.md) — Good / Bad patterns for common failure modes
-- [reference/examples/quarterly-estimate.md](reference/examples/quarterly-estimate.md) — worked quarterly estimate example
-- [reference/examples/year-end-1099.md](reference/examples/year-end-1099.md) — worked year-end 1099 prep example
+- [references/calculation-assumptions.md](references/calculation-assumptions.md) — full tax math, bracket table, and SE tax walkthrough
+- [references/connector-queries.md](references/connector-queries.md) — how to pull data from QuickBooks, PayPal, and Stripe
+- [references/gotchas.md](references/gotchas.md) — Good / Bad patterns for common failure modes
+- [references/examples/quarterly-estimate.md](references/examples/quarterly-estimate.md) — worked quarterly estimate example
+- [references/examples/year-end-1099.md](references/examples/year-end-1099.md) — worked year-end 1099 prep example

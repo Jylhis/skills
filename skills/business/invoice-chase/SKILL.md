@@ -17,7 +17,7 @@ Pull the AR aging report, score each customer by payment history, draft a tone-m
 ```
 User: "who owes me money"
 → Pull AR aging from QuickBooks
-→ Cross-reference PayPal settlements (last 14 days)
+→ Cross-reference PayPal settlements (last 7 days)
 → Score each customer: good-payer / occasionally-late / repeat-late
 → Draft tone-matched reminders
 → Show summary table + drafts. Wait for "send these."
@@ -46,9 +46,9 @@ Do not ask again on subsequent runs.
 
    If a customer shows a settled payment within the query window, flag as "possibly paid — verify" and exclude from the draft queue.
 
-3. **Score each customer.** Read [reference/tone-matching.md](reference/tone-matching.md) for scoring logic. Result: `good-payer`, `occasionally-late`, or `repeat-late`.
+3. **Score each customer.** Read [references/tone-matching.md](references/tone-matching.md) for scoring logic. Result: `good-payer`, `occasionally-late`, or `repeat-late`.
 
-4. **Draft reminder emails.** One email per customer — consolidate multiple overdue invoices into one email. Match tone to score. See [reference/examples/gentle-reminder.md](reference/examples/gentle-reminder.md) and [reference/examples/firm-reminder.md](reference/examples/firm-reminder.md).
+4. **Draft reminder emails.** One email per customer — consolidate multiple overdue invoices into one email. Match tone to score. See [references/examples/gentle-reminder.md](references/examples/gentle-reminder.md) and [references/examples/firm-reminder.md](references/examples/firm-reminder.md).
 
 5. **Present drafts to owner.** Show a summary table first:
 
@@ -69,13 +69,13 @@ Do not ask again on subsequent runs.
 ## Approval gates
 
 - **Never send or queue a draft without explicit owner approval.** Present all drafts first; wait for the go-ahead.
-- **Never include a customer who paid in the last 14 days.** Flag as "possibly paid — verify" instead.
+- **Never include a customer who paid in the last 7 days.** Flag as "possibly paid — verify" instead.
 - **Never send to a customer not in the QuickBooks AR report** (or Stripe, if enabled). No reminders from memory alone.
 - **One approval covers one batch.** Adding a customer or changing a draft after approval starts a new round.
 
 ## Reference
 
-- [reference/tone-matching.md](reference/tone-matching.md) — scoring logic, tone guidelines, subject line formulas
-- [reference/gotchas.md](reference/gotchas.md) — known failure modes
-- [reference/examples/gentle-reminder.md](reference/examples/gentle-reminder.md) — good-payer email example
-- [reference/examples/firm-reminder.md](reference/examples/firm-reminder.md) — repeat-late-payer email example
+- [references/tone-matching.md](references/tone-matching.md) — scoring logic, tone guidelines, subject line formulas
+- [references/gotchas.md](references/gotchas.md) — known failure modes
+- [references/examples/gentle-reminder.md](references/examples/gentle-reminder.md) — good-payer email example
+- [references/examples/firm-reminder.md](references/examples/firm-reminder.md) — repeat-late-payer email example
