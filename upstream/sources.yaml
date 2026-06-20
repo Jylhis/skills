@@ -4,9 +4,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: 6ccf725ff46d3d2d78d7be76974ada4220c8bafd
+    upstream-rev: a5e0e5997aac169b659e70cb826a20b489bc4c6c
     reviewed-rev: 6ccf725ff46d3d2d78d7be76974ada4220c8bafd
-    last-fetched: "2026-05-12T12:06:08Z"
+    last-fetched: "2026-06-20T21:02:58Z"
     skills:
       - upstream: golang-code-style
         category: languages
@@ -69,9 +69,9 @@ sources:
     branch: main
     subpath: plugins
     license: AGPL-3.0
-    upstream-rev: a56045e9ae00b3506cacefea0f672aab0a1a6e3c
+    upstream-rev: c070b9b5881183ea5f6e320ff06c46688becb13e
     reviewed-rev: a56045e9ae00b3506cacefea0f672aab0a1a6e3c
-    last-fetched: "2026-05-12T11:56:49Z"
+    last-fetched: "2026-06-20T21:02:58Z"
     skills:
       - upstream: modern-python/skills/modern-python
         category: languages
@@ -99,7 +99,7 @@ sources:
     license: AGPL-3.0
     upstream-rev: 022fa0948818c9f2f738a428f4546cc65c427767
     reviewed-rev: 022fa0948818c9f2f738a428f4546cc65c427767
-    last-fetched: "2026-05-12T12:01:04Z"
+    last-fetched: "2026-06-20T21:02:58Z"
     skills:
       - upstream: humanizer/skills/humanizer
         category: productivity
@@ -116,9 +116,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    upstream-rev: 6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
     reviewed-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
-    last-fetched: "2026-05-12T12:06:09Z"
+    last-fetched: "2026-06-20T21:02:58Z"
     skills:
       - upstream: engineering/tdd
         category: engineering
@@ -170,9 +170,9 @@ sources:
     branch: main
     subpath: skills/.curated
     license: MIT
-    upstream-rev: 4c4058ebf44f6734e62c70ab4a81246d4d093fc8
+    upstream-rev: 972cb867affac58fda9afa76bb1a19b399a278cf
     reviewed-rev: 4c4058ebf44f6734e62c70ab4a81246d4d093fc8
-    last-fetched: "2026-05-12T11:59:18Z"
+    last-fetched: "2026-06-20T21:02:59Z"
     skills:
       - upstream: security-best-practices
         category: domains
@@ -200,9 +200,9 @@ sources:
     branch: main
     subpath: terraform
     license: MPL-2.0
-    upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
+    upstream-rev: 339a113935812ad75c6ff90d418b739a021826d1
     reviewed-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
-    last-fetched: "2026-05-12T12:06:11Z"
+    last-fetched: "2026-06-20T21:02:59Z"
     skills:
       - upstream: code-generation/skills/terraform-test
         category: services
@@ -229,9 +229,9 @@ sources:
     branch: main
     subpath: .github/plugins/azure-skills/skills
     license: MIT
-    upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
+    upstream-rev: 12184914d53b81e8d7fe3780d52b58d910b549ec
     reviewed-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
-    last-fetched: "2026-05-12T12:06:14Z"
+    last-fetched: "2026-06-20T21:02:59Z"
     skills:
       - upstream: azure-deploy
         category: services
@@ -268,9 +268,9 @@ sources:
     branch: main
     subpath: .github/skills
     license: MIT
-    upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
+    upstream-rev: 12184914d53b81e8d7fe3780d52b58d910b549ec
     reviewed-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
-    last-fetched: "2026-05-12T11:52:09Z"
+    last-fetched: "2026-06-20T21:02:59Z"
     skills:
       - upstream: microsoft-docs
         category: engineering
@@ -282,9 +282,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
+    upstream-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
     reviewed-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
-    last-fetched: "2026-05-12T12:06:15Z"
+    last-fetched: "2026-06-20T21:02:59Z"
     skills:
       - upstream: obsidian-markdown
         category: personal
@@ -316,9 +316,9 @@ sources:
     branch: main
     subpath: skills
     license: AGPL-3.0
-    upstream-rev: d124c434391b7e3d24f57c865cad3462dae596dd
+    upstream-rev: 03c7b81fd296fc01c00e8477a0595f0e99cdef3f
     reviewed-rev: d124c434391b7e3d24f57c865cad3462dae596dd
-    last-fetched: "2026-05-12T12:08:52Z"
+    last-fetched: "2026-06-20T21:02:59Z"
     skills:
       - upstream: grafana-core/grafana-oss
         category: services
@@ -352,7 +352,7 @@ sources:
     license: MIT
     upstream-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
     reviewed-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
-    last-fetched: "2026-05-14T18:32:18Z"
+    last-fetched: "2026-06-20T21:03:00Z"
     skills:
       - upstream: attach-db
         category: services
@@ -404,12 +404,191 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
+    upstream-rev: 5285855df6719b6efb95d5268359e752d3d79045
     reviewed-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
-    last-fetched: "2026-05-12T12:00:05Z"
+    last-fetched: "2026-06-20T21:03:00Z"
     skills:
       - upstream: taste-skill
         category: domains
         name: taste
         target-plugin: jylhis-taste
+        merge-strategy: standalone
+  - id: anthropics-knowledge-work
+    repo: "https://github.com/anthropics/knowledge-work-plugins"
+    branch: main
+    subpath: .
+    license: Apache-2.0
+    upstream-rev: 55447a28e6c785444197cecde5a401b44f830161
+    reviewed-rev: 55447a28e6c785444197cecde5a401b44f830161
+    last-fetched: "2026-06-20T21:03:00Z"
+    skills:
+      - upstream: engineering/skills/architecture
+        category: engineering
+        name: architecture
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/code-review
+        category: engineering
+        name: code-review
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/deploy-checklist
+        category: engineering
+        name: deploy-checklist
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/documentation
+        category: engineering
+        name: documentation
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/incident-response
+        category: engineering
+        name: incident-response
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/standup
+        category: engineering
+        name: standup
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/system-design
+        category: engineering
+        name: system-design
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: engineering/skills/tech-debt
+        category: engineering
+        name: tech-debt
+        target-plugin: jylhis-engineering
+        merge-strategy: standalone
+      - upstream: product-management/skills/competitive-brief
+        category: product
+        name: competitive-brief
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: product-management/skills/metrics-review
+        category: product
+        name: metrics-review
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: product-management/skills/product-brainstorming
+        category: product
+        name: product-brainstorming
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: product-management/skills/roadmap-update
+        category: product
+        name: roadmap-update
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: product-management/skills/sprint-planning
+        category: product
+        name: sprint-planning
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: product-management/skills/stakeholder-update
+        category: product
+        name: stakeholder-update
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: product-management/skills/synthesize-research
+        category: product
+        name: synthesize-research
+        target-plugin: jylhis-product
+        merge-strategy: standalone
+      - upstream: productivity/skills/memory-management
+        category: productivity
+        name: memory-management
+        target-plugin: jylhis-productivity
+        merge-strategy: standalone
+      - upstream: productivity/skills/task-management
+        category: productivity
+        name: task-management
+        target-plugin: jylhis-productivity
+        merge-strategy: standalone
+      - upstream: small-business/skills/business-pulse
+        category: business
+        name: business-pulse
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/cash-flow-snapshot
+        category: business
+        name: cash-flow-snapshot
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/crm-cleanup
+        category: business
+        name: crm-cleanup
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/crm-maintenance
+        category: business
+        name: crm-maintenance
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/customer-pulse
+        category: business
+        name: customer-pulse
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/invoice-chase
+        category: business
+        name: invoice-chase
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/job-post-builder
+        category: business
+        name: job-post-builder
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/lead-triage
+        category: business
+        name: lead-triage
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/margin-analyzer
+        category: business
+        name: margin-analyzer
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/month-end-prep
+        category: business
+        name: month-end-prep
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/plan-payroll
+        category: business
+        name: plan-payroll
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/quarterly-review
+        category: business
+        name: quarterly-review
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/review-contract
+        category: business
+        name: review-contract
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/run-campaign
+        category: business
+        name: run-campaign
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/sales-brief
+        category: business
+        name: sales-brief
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/tax-season-organizer
+        category: business
+        name: tax-season-organizer
+        target-plugin: jylhis-small-business
+        merge-strategy: standalone
+      - upstream: small-business/skills/ticket-deflector
+        category: business
+        name: ticket-deflector
+        target-plugin: jylhis-small-business
         merge-strategy: standalone
