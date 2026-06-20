@@ -170,10 +170,12 @@ func applyReview(st *State, c *Card, g int, now time.Time) {
 		c.Stability = initStability(w, g)
 		c.Difficulty = initDifficulty(w, g)
 	} else {
-		last, _ := time.Parse(time.RFC3339, c.LastReview)
-		elapsed := now.Sub(last).Hours() / 24
-		if elapsed < 0 {
-			elapsed = 0
+		var elapsed float64
+		if last, err := time.Parse(time.RFC3339, c.LastReview); err == nil {
+			elapsed = now.Sub(last).Hours() / 24
+			if elapsed < 0 {
+				elapsed = 0
+			}
 		}
 		r := retrievability(elapsed, c.Stability)
 		c.Difficulty = nextDifficulty(w, c.Difficulty, g)
@@ -238,13 +240,12 @@ func writeState(st *State, dryRun bool) error {
 		return err
 	}
 	tmpName := tmp.Name()
+	defer os.Remove(tmpName) // no-op once renamed; cleans up on any error path
 	if _, err := tmp.Write(out); err != nil {
 		tmp.Close()
-		os.Remove(tmpName)
 		return err
 	}
 	if err := tmp.Close(); err != nil {
-		os.Remove(tmpName)
 		return err
 	}
 	return os.Rename(tmpName, statePath(st.Subject))
@@ -373,7 +374,10 @@ func cmdAdd(args []string) {
 	var inputs []addInput
 	if *front == "" {
 		// read JSON from stdin: a single object or an array of objects.
-		raw, _ := io.ReadAll(os.Stdin)
+		raw, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			fail(exitIO, "reading stdin: %v", err)
+		}
 		trimmed := strings.TrimSpace(string(raw))
 		if trimmed == "" {
 			fail(exitUsage, "provide --front or JSON on stdin")

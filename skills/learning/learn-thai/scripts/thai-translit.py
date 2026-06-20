@@ -27,8 +27,10 @@ Usage:
 
 Output: JSON {input, words, syllables:[{thai, rtgs, tone}]}.
 stdout is data; stderr is diagnostics. Exit codes: 0 ok, 2 usage, 4 runtime.
+
+Fully type-annotated and mypy --strict clean.  # type: validated
 """
-from __future__ import annotations  # type: validated (mypy --strict clean)
+from __future__ import annotations
 
 import json
 import sys
@@ -51,10 +53,10 @@ DEAD_FINALS = set("กขคฆบปพฟภจฉชซฌฎฏฐฑฒด�
 # Final consonants that close a "live" syllable (sonorant endings).
 LIVE_FINALS = set("งญณนรลฬมยว")
 
-# Short-vowel signs (subset that disambiguates the low-class dead case).
-SHORT_VOWEL_SIGNS = set("ะัิึุ็ํ")  # ะ ั ิ ึ ุ ็ ํ
+# Short-vowel signs (ิ is handled specially: เ-ิ is the long "oe" vowel).
+SHORT_VOWEL_SIGNS = set("ะัึุ็ํ")  # ะ ั ึ ุ ็ ํ
 LONG_VOWEL_SIGNS = set("าีืูำ")  # า ี ื ู ำ
-LEADING_VOWELS = set("เแโใไ")  # เ แ โ ใ ไ
+LEADING_VOWELS = set("เแโใไ")  # เ แ โ ใ ไ — written before the consonant, long/live
 
 
 def _strip_marks(syl: str) -> str:
@@ -82,24 +84,35 @@ def _initial_class(cons: list[str]) -> str | None:
 
 
 def _is_dead_and_length(syl: str, cons: list[str]) -> tuple[bool | None, bool | None]:
-    """Return (is_dead, is_long). Either may be None when undeterminable."""
+    """Return (is_dead, is_long). Either may be None when undeterminable.
+
+    Leading vowels (เ แ โ ใ ไ) are written before the consonant and have no
+    trailing length sign, so they're treated as long/live by default. The
+    combining vowel เ-ิ ("oe", as in เดิน) is long even though it contains ิ.
+    """
     bare = _strip_marks(syl)
     chars = list(bare)
-    has_long = any(c in LONG_VOWEL_SIGNS for c in chars)
-    has_short = any(c in SHORT_VOWEL_SIGNS for c in chars)
+    has_short_sign = any(c in SHORT_VOWEL_SIGNS for c in chars)
+    has_i = "ิ" in chars
+    is_oe = "เ" in chars and has_i  # เ-ิ is a long vowel, not short
+    is_short = has_short_sign or (has_i and not is_oe)
+    has_long = (
+        any(c in LONG_VOWEL_SIGNS for c in chars)
+        or any(c in LEADING_VOWELS for c in chars)
+        or is_oe
+    )
     last = chars[-1] if chars else ""
     # A trailing consonant after the initial is the final.
-    final = last if (last in CONSONANTS and len(cons) >= 2 and chars[-1] == last) else ""
+    final = last if (last in CONSONANTS and len(cons) >= 2) else ""
     if final in DEAD_FINALS:
-        return True, (has_long and not has_short)
-    if final in LIVE_FINALS or final == "":
-        if final in LIVE_FINALS:
-            return False, None  # sonorant-closed syllables are live
-        # open syllable: live if long vowel, dead if short vowel
-        if has_long and not has_short:
-            return False, True
-        if has_short and not has_long:
-            return True, False
+        return True, (has_long and not is_short)
+    if final in LIVE_FINALS:
+        return False, None  # sonorant-closed syllables are live
+    # open syllable
+    if is_short:
+        return True, False
+    if has_long:
+        return False, True
     return None, None
 
 
