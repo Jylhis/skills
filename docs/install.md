@@ -1,8 +1,9 @@
 # Install jylhis-skills
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** that publishes
-one default plugin (`jylhis-skills-core`) and several opt-in plugins to Claude
-Code and Codex.
+one default plugin (`jylhis-skills-core`) and several opt-in plugins. Supported
+targets: **Claude Code** (CLI + Claude Code on the web), **Pi**
+(`pi-coding-agent`), and **claude.ai Skills** (per-skill `.zip` upload).
 
 ## Quick install
 
@@ -19,8 +20,8 @@ installed automatically.
 
 | Tool | Mechanism | Where |
 |---|---|---|
-| Claude Code | local marketplace + `plugin install jylhis-skills-core@jylhis-skills` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
-| Codex | local marketplace + enabled default plugin in config | `~/.codex/config.toml` + plugin cache under `~/.codex/plugins/cache/jylhis-skills/jylhis-skills-core` |
+| Claude Code (CLI + web) | local marketplace + `plugin install jylhis-skills-core@jylhis-skills` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
+| Pi (`pi-coding-agent`) | mirror default plugin's skills + link `AGENTS.md` | `~/.pi/agent/skills/jylhis-skills-core/` + `~/.pi/agent/AGENTS.md` |
 
 For Claude Code the script registers this repo as a local marketplace and
 installs the `jylhis-skills-core` plugin. If the `claude` CLI is not on
@@ -50,10 +51,37 @@ Claude Code also gets direct context links so `@AGENTS.md` resolves:
 ~/.claude/CLAUDE.md  →  CLAUDE.md
 ```
 
-The Codex flow registers `.agents/plugins/marketplace.json` as a local
-marketplace and enables `jylhis-skills-core@jylhis-skills` in
-`~/.codex/config.toml`. Older raw symlinks at `~/.codex/plugins/jylhis-skills`
-and the pre-split monolithic plugin install are migrated aside on first run.
+### Claude Code on the web
+
+Claude Code on the web (code.claude.com sessions) uses the **same** plugin
+marketplace as the CLI, so no separate step is needed — install the marketplace
+once and web sessions pick up `jylhis-skills-core`.
+
+### Pi (`pi-coding-agent`)
+
+Pi reads `~/.pi/agent/AGENTS.md` for project context and auto-discovers
+`SKILL.md` files under `~/.pi/agent/skills/`. The install script mirrors the
+default plugin's skills there (real files, symlinks flattened) and links
+`AGENTS.md`. If the `pi` CLI is not on `PATH`, install it first:
+
+```bash
+npm install -g @earendil-works/pi-coding-agent
+# or: curl -fsSL https://pi.dev/install.sh | sh
+```
+
+then re-run `bash scripts/install.sh`. Override the agent dir with
+`PI_AGENT_DIR=… bash scripts/install.sh`.
+
+### claude.ai Skills
+
+For the claude.ai chat app, package skills into per-skill `.zip` archives and
+upload them via **Settings → Capabilities → Skills**:
+
+```bash
+just package          # writes dist/skills/<name>.zip
+```
+
+Each archive is self-contained (`SKILL.md` + `scripts/`/`references/`/`assets/`).
 
 ## Opt-in plugins
 
@@ -75,13 +103,15 @@ by default.
 | `jylhis-obsidian` | Obsidian note-taking and knowledge management skill |
 | `jylhis-grafana` | Grafana observability skill |
 | `jylhis-taste` | UI/UX design taste and critique skill |
+| `jylhis-duckdb` | DuckDB query / attach / spatial skill set |
 
-Install one in each tool (example: `jylhis-python`):
+Install one (example: `jylhis-python`):
 
 | Tool | Command |
 |---|---|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills` |
-| Codex | `codex plugin install jylhis-python@jylhis-skills` — then set `[plugins."jylhis-python@jylhis-skills"] enabled = true` in `~/.codex/config.toml` |
+| Pi | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` — then re-run `bash scripts/install.sh` to keep it refreshed |
+| claude.ai | `just package jylhis-python` is not a unit; package individual skills (`just package <name>`) and upload the `.zip` |
 
 ## Development
 
@@ -90,9 +120,6 @@ Load the marketplace without installing:
 ```bash
 # Claude Code
 claude --plugin-dir ./
-
-# Codex
-codex plugin marketplace add ./
 ```
 
 All dev tools come from devenv:
@@ -113,11 +140,10 @@ To add a skill:
    (`name`, `description`). Categories: `engineering`, `languages`,
    `domains`, `services`, `stack`, `productivity`, `personal`, `misc`.
 2. Decide which plugin owns it. For a brand-new plugin, create
-   `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json` and
-   `.codex-plugin/plugin.json`, plus a `skills/<name>` symlink with relative
-   target `../../../skills/<category>/<name>`.
-3. Add the plugin to `.claude-plugin/marketplace.json` and
-   `.agents/plugins/marketplace.json`.
+   `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json`, plus a
+   `skills/<name>` symlink with relative target
+   `../../../skills/<category>/<name>`.
+3. Add the plugin to `.claude-plugin/marketplace.json`.
 4. Run `just validate` — the cross-check enforces that every on-disk skill is
    referenced by exactly one plugin manifest.
 

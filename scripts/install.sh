@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # Install the jylhis-skills marketplace + the default plugin into supported
-# agent tools. Per-language and per-tool plugins remain opt-in — the script
-# prints the commands to install them at the end.
+# agent tools. Targets: Claude Code (CLI + Claude Code on the web, same plugin
+# marketplace mechanism) and Pi (pi-coding-agent). Per-language and per-tool
+# plugins remain opt-in — the script prints the commands to install them at the
+# end. claude.ai Skills are a separate, upload-based channel (see `just package`
+# / docs/install.md), not wired here.
 #
-# Also links AGENTS.md and CLAUDE.md directly for Claude Code project context.
-# Idempotent. Backs up any existing files it would overwrite.
+# Also links AGENTS.md and CLAUDE.md directly for Claude Code project context,
+# and AGENTS.md for Pi project context. Idempotent. Backs up any existing files
+# it would overwrite.
 #
 # Usage: bash scripts/install.sh [--dry-run]
 set -euo pipefail
@@ -35,10 +39,9 @@ OPTIN_PLUGINS=(
   jylhis-obsidian
   jylhis-grafana
   jylhis-taste
+  jylhis-duckdb
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
-
-ALL_PLUGINS=("$DEFAULT_PLUGIN" "${OPTIN_PLUGINS[@]}")
 
 # Iterate $INSTALLED (Claude) for jylhis-* plugins currently installed in this scope.
 # Used to refresh all installed plugins, not just the default, after a structural
@@ -61,38 +64,6 @@ if isinstance(keys, dict):
 PY
 }
 
-# Iterate ~/.codex/config.toml [plugins."<name>@jylhis-skills"] sections currently
-# enabled. Same purpose as the Claude variant — find opt-ins to refresh.
-list_enabled_codex_plugins() {
-  local config="$1"
-  [[ -f "$config" ]] || return 0
-  python3 - "$config" <<'PY'
-import re
-import sys
-
-section_re = re.compile(r'^\[plugins\."([^"]+@jylhis-skills)"\]\s*$')
-enabled_re = re.compile(r"^enabled\s*=\s*true\s*$")
-
-current = ""
-try:
-    with open(sys.argv[1], encoding="utf-8") as f:
-        for raw_line in f:
-            line = raw_line.strip()
-            match = section_re.match(line)
-            if match:
-                current = match.group(1)
-                continue
-            if line.startswith("["):
-                current = ""
-                continue
-            if current and enabled_re.match(line):
-                print(current)
-                current = ""
-except OSError:
-    pass
-PY
-}
-
 link() {
   local src="$1" dst="$2"
   # Always create absolute-path symlinks. Plain `readlink` avoids
@@ -109,125 +80,34 @@ link() {
   echo "link $dst -> $src"
 }
 
-enable_codex_plugin() {
-  local config="$1"
-  local plugin_id="$2"
-  local section="[plugins.\"$plugin_id\"]"
-  local tmp
+# Pi (pi-coding-agent) discovers skills by recursively scanning its skills
+# directories for SKILL.md. Mirror a plugin's skills/ symlink farm into
+# ~/.pi/agent/skills/<plugin>/ as real files (rsync -L resolves the symlinks to
+# the canonical skills/<category>/<name>/ tree). evals/ are recording fixtures,
+# not skill content, so they are excluded.
+sync_pi_plugin_skills() {
+  local pi_dir="$1" plugin="$2"
+  local dest="$pi_dir/skills/$plugin"
 
-  if [[ $DRY_RUN -eq 1 ]]; then
-    echo "DRY: enable Codex plugin $plugin_id in $config"
-    return
-  fi
-
-  mkdir -p "$(dirname "$config")"
-  touch "$config"
-
-  if grep -qF "$section" "$config"; then
-    tmp="$(mktemp "${config}.XXXXXX")"
-    awk -v section="$section" '
-      /^\[/ {
-        if (in_section && !saw_enabled) {
-          print "enabled = true"
-        }
-        in_section = ($0 == section)
-        if (in_section) {
-          saw_enabled = 0
-        }
-      }
-      in_section && /^enabled[[:space:]]*=/ {
-        print "enabled = true"
-        saw_enabled = 1
-        next
-      }
-      { print }
-      END {
-        if (in_section && !saw_enabled) {
-          print "enabled = true"
-        }
-      }
-    ' "$config" > "$tmp"
-    mv "$tmp" "$config"
-  else
-    printf '\n[plugins."%s"]\nenabled = true\n' "$plugin_id" >> "$config"
-  fi
-
-  echo "enable Codex plugin $plugin_id in $config"
-}
-
-remove_codex_plugin_config_section() {
-  local config="$1"
-  local plugin_id="$2"
-  local section="[plugins.\"$plugin_id\"]"
-
-  [[ -f "$config" ]] || return 0
-  grep -qF "$section" "$config" || return 0
-
-  if [[ $DRY_RUN -eq 1 ]]; then
-    echo "DRY: remove legacy Codex plugin section $plugin_id from $config"
-    return
-  fi
-
-  python3 - "$config" "$section" <<'PY'
-import sys
-
-path, section = sys.argv[1], sys.argv[2]
-
-try:
-    with open(path, encoding="utf-8") as f:
-        lines = f.readlines()
-except OSError:
-    sys.exit(0)
-
-out = []
-skipping = False
-changed = False
-
-for line in lines:
-    stripped = line.strip()
-    if stripped == section:
-        skipping = True
-        changed = True
-        continue
-    if skipping and stripped.startswith("["):
-        skipping = False
-    if not skipping:
-        out.append(line)
-
-if changed:
-    with open(path, "w", encoding="utf-8") as f:
-        f.writelines(out)
-PY
-
-  echo "removed legacy Codex plugin section $plugin_id from $config"
-}
-
-sync_codex_plugin_cache() {
-  local cache_dir="$1/plugins/cache/jylhis-skills/$2"
-  local cache_root="$cache_dir/local"
-
-  run mkdir -p "$cache_dir"
-  if [[ -L "$cache_root" || ( -e "$cache_root" && ! -d "$cache_root" ) ]]; then
+  run mkdir -p "$dest"
+  if [[ -L "$dest" || ( -e "$dest" && ! -d "$dest" ) ]]; then
     run mkdir -p "$BACKUP_ROOT"
-    run mv "$cache_root" "$BACKUP_ROOT/$(basename "$cache_root")"
+    run mv "$dest" "$BACKUP_ROOT/pi-skills-$(basename "$dest")"
+    run mkdir -p "$dest"
   fi
-  run mkdir -p "$cache_root"
-  # Codex plugin cache mirrors the per-plugin directory under plugins/<name>/.
-  # Use rsync -L so the per-plugin skills/ symlinks resolve to the canonical
-  # SKILL.md tree under the repo's skills/ root.
   run rsync -aL --delete --delete-excluded \
     --exclude .git \
     --exclude .devenv \
     --exclude .direnv \
     --exclude .cache \
     --exclude .claude \
-    --exclude .codex \
+    --exclude evals \
     --exclude result \
     --exclude 'result-*' \
     --exclude __pycache__ \
     --exclude '*.pyc' \
-    "$REPO_ROOT/plugins/$2/" "$cache_root/"
-  echo "sync $cache_root <- $REPO_ROOT/plugins/$2"
+    "$REPO_ROOT/plugins/$plugin/skills/" "$dest/"
+  echo "sync $dest <- $REPO_ROOT/plugins/$plugin/skills"
 }
 
 # ── Claude Code ──────────────────────────────────────────────────────────────
@@ -341,84 +221,38 @@ fi
 [[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
 [[ -f "$REPO_ROOT/CLAUDE.md" ]] && link "$REPO_ROOT/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
 
-# ── Codex ─────────────────────────────────────────────────────────────────────
-CODEX_DIR="$HOME/.codex"
-run mkdir -p "$CODEX_DIR/plugins"
+# ── Pi (pi-coding-agent) ──────────────────────────────────────────────────────
+# Pi reads ~/.pi/agent/AGENTS.md for project context and auto-discovers SKILL.md
+# under ~/.pi/agent/skills/. We mirror the default plugin's skills there and link
+# AGENTS.md. Override the agent dir with PI_AGENT_DIR (Pi honours
+# PI_CODING_AGENT_DIR at runtime).
+PI_DIR="${PI_AGENT_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}}"
+run mkdir -p "$PI_DIR/skills"
 
-# Migrate older installs: a raw symlink under ~/.codex/plugins is not a
-# Codex marketplace install and can make Codex try to parse Claude metadata.
-CODEX_LEGACY_LINK="$CODEX_DIR/plugins/jylhis-skills"
-if [[ -e "$CODEX_LEGACY_LINK" || -L "$CODEX_LEGACY_LINK" ]]; then
-  run mkdir -p "$BACKUP_ROOT"
-  run mv "$CODEX_LEGACY_LINK" "$BACKUP_ROOT/$(basename "$CODEX_LEGACY_LINK")"
-  echo "moved legacy Codex plugin path $CODEX_LEGACY_LINK -> $BACKUP_ROOT/"
-fi
+if command -v pi >/dev/null 2>&1; then
+  sync_pi_plugin_skills "$PI_DIR" "$DEFAULT_PLUGIN"
+  echo "pi: synced ${DEFAULT_PLUGIN} skills into $PI_DIR/skills"
 
-# Drop the pre-split monolithic Codex cache if present.
-CODEX_LEGACY_CACHE="$CODEX_DIR/plugins/cache/jylhis-skills/${LEGACY_PLUGIN}"
-if [[ -d "$CODEX_LEGACY_CACHE" ]]; then
-  run mkdir -p "$BACKUP_ROOT"
-  run mv "$CODEX_LEGACY_CACHE" "$BACKUP_ROOT/codex-cache-$(basename "$CODEX_LEGACY_CACHE")"
-  echo "moved legacy Codex cache $CODEX_LEGACY_CACHE -> $BACKUP_ROOT/"
-fi
-
-remove_codex_plugin_config_section "$CODEX_DIR/config.toml" "${LEGACY_PLUGIN}@jylhis-skills"
-
-# Read the `source = "..."` line under `[marketplaces.jylhis-skills]` in
-# Codex config.toml. Same intent as claude_marketplace_source: detect when
-# an older add pointed at a remote mirror so we can reset before re-adding.
-codex_marketplace_source() {
-  local config="$1"
-  [[ -f "$config" ]] || return 0
-  awk '
-    /^\[marketplaces\.jylhis-skills\]/ { in_section = 1; next }
-    /^\[/                              { in_section = 0 }
-    in_section && /^source[[:space:]]*=/ {
-      sub(/^source[[:space:]]*=[[:space:]]*/, "")
-      gsub(/^"|"$/, "")
-      print
-      exit
-    }
-  ' "$config"
-}
-
-if command -v codex >/dev/null 2>&1; then
-  current_codex_src="$(codex_marketplace_source "$CODEX_DIR/config.toml")"
-  if [[ -n "$current_codex_src" && "$current_codex_src" != "$REPO_ROOT" ]]; then
-    echo "codex marketplace source ($current_codex_src) differs from $REPO_ROOT; resetting"
-    run codex plugin marketplace remove jylhis-skills || true
-  fi
-  run codex plugin marketplace add "$REPO_ROOT"
-  sync_codex_plugin_cache "$CODEX_DIR" "$DEFAULT_PLUGIN"
-  enable_codex_plugin "$CODEX_DIR/config.toml" "${DEFAULT_PLUGIN}@jylhis-skills"
-
-  # Refresh any opt-in Codex plugins the user has previously enabled so they
-  # pick up structural changes (skills/<category>/<name> layout migration).
-  while IFS= read -r enabled_id; do
-    plugin_name="${enabled_id%@jylhis-skills}"
-    case "$plugin_name" in
-      "$DEFAULT_PLUGIN"|"") continue ;;
-    esac
-    is_known=0
-    for known in "${ALL_PLUGINS[@]}"; do
-      [[ "$known" == "$plugin_name" ]] && is_known=1 && break
-    done
-    [[ "$is_known" -eq 1 ]] || continue
-    echo "refresh $enabled_id"
-    sync_codex_plugin_cache "$CODEX_DIR" "$plugin_name"
-  done < <(list_enabled_codex_plugins "$CODEX_DIR/config.toml")
+  # Refresh any opt-in plugins already mirrored into Pi so they pick up
+  # structural changes. A plugin is "installed for Pi" if its skills dir exists.
+  for plugin_name in "${OPTIN_PLUGINS[@]}"; do
+    [[ -d "$PI_DIR/skills/$plugin_name" ]] || continue
+    echo "refresh pi:$plugin_name"
+    sync_pi_plugin_skills "$PI_DIR" "$plugin_name"
+  done
 else
   cat <<EOF
-codex CLI not found on PATH. To finish the Codex install, run:
-  codex plugin marketplace add $REPO_ROOT
-  mkdir -p ~/.codex/plugins/cache/jylhis-skills/${DEFAULT_PLUGIN}
-  rsync -aL --delete $REPO_ROOT/plugins/${DEFAULT_PLUGIN}/ ~/.codex/plugins/cache/jylhis-skills/${DEFAULT_PLUGIN}/local/
-
-Then enable the default plugin in ~/.codex/config.toml:
-  [plugins."${DEFAULT_PLUGIN}@jylhis-skills"]
-  enabled = true
+pi (pi-coding-agent) not found on PATH. Install it with:
+  npm install -g @earendil-works/pi-coding-agent
+  # or: curl -fsSL https://pi.dev/install.sh | sh
+Then re-run this script, or sync the default plugin manually:
+  mkdir -p $PI_DIR/skills/${DEFAULT_PLUGIN}
+  rsync -aL --delete $REPO_ROOT/plugins/${DEFAULT_PLUGIN}/skills/ $PI_DIR/skills/${DEFAULT_PLUGIN}/
 EOF
 fi
+
+# Pi project context (it reads AGENTS.md / CLAUDE.md from its agent dir).
+[[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$PI_DIR/AGENTS.md"
 
 # ── Opt-in install hints ────────────────────────────────────────────────────
 cat <<EOF
@@ -426,10 +260,13 @@ cat <<EOF
 Default plugin installed: ${DEFAULT_PLUGIN}
 Available opt-in plugins: ${OPTIN_PLUGINS[*]}
 
-To install one in each tool (example: jylhis-python):
+To install one (example: jylhis-python):
   Claude Code:  /plugin install jylhis-python@jylhis-skills
-  Codex:        codex plugin install jylhis-python@jylhis-skills
-                # then set [plugins."jylhis-python@jylhis-skills"] enabled=true in ~/.codex/config.toml
+  Pi:           rsync -aL --delete $REPO_ROOT/plugins/jylhis-python/skills/ $PI_DIR/skills/jylhis-python/
+                # then re-run scripts/install.sh to keep it refreshed
+
+claude.ai Skills (upload channel): run \`just package\` and upload
+dist/skills/<name>.zip via claude.ai → Settings → Capabilities → Skills.
 EOF
 
 if [[ -d "$BACKUP_ROOT" ]]; then

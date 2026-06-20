@@ -18,6 +18,11 @@ install:
 list:
     @find skills -name SKILL.md | sort
 
+# Package skills into per-skill dist/skills/<name>.zip for claude.ai upload.
+# Pass skill names to package a subset (e.g. `just package tdd security`).
+package *names:
+    python3 scripts/package-skill.py {{names}}
+
 # Run evals against stubbed SUT + stubbed judge (CI-safe; no network)
 eval-stub suite="ast-grep":
     python3 evals/scripts/expand.py {{suite}} --stub-sut --stub-judge --no-rubric
@@ -31,8 +36,8 @@ eval suite="ast-grep":
     python3 evals/scripts/invariants.py --provider claude --judge stub --suite {{suite}}
     promptfoo eval --config evals/.generated/{{suite}}.yaml --no-cache --output evals/results/{{suite}}.json
 
-# Live four-CLI matrix. Judge defaults to `stub` so the recipe is
-# CI-safe by default; pass judge=claude|codex|pi to enable
+# Live multi-CLI matrix. Judge defaults to `stub` so the recipe is
+# CI-safe by default; pass judge=claude|pi to enable
 # rubric-based g-eval assertions against a live judge CLI (which must
 # be logged in).
 eval-judged suite="ast-grep" judge="stub":

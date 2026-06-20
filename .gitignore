@@ -13,10 +13,11 @@ __pycache__/
 *.pyc
 
 # Per-machine tool install/runtime state — install scripts regenerate these.
-# (.agents/plugins/marketplace.json stays tracked.)
-.agents/skills/
 .claude/
-.codex/
+.pi/
+
+# Generated claude.ai skill archives (`just package`).
+dist/
 
 # Eval harness runtime artefacts. Cassettes and authored cases.yaml are
 # tracked; results, expander output, and Pi sentinel marks are not.
