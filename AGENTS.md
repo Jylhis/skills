@@ -14,12 +14,15 @@ marketplace), **Pi** (`pi-coding-agent`), and **claude.ai Skills** (per-skill
 cross-cutting engineering and productivity skills (security, ast-grep,
 offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
-Per-language, per-service, and per-tool plugins
+Per-language, per-service, per-tool, and learning plugins
 (`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-rust`,
 `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
 `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
-`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
-only when the user opts in. See `docs/install.md` for install instructions.
+`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`, `jylhis-learning`) are
+discoverable through the marketplace UI but installed only when the user opts in.
+`jylhis-learning` ships an agent-native spaced-repetition tutoring engine plus
+German, Thai, Rust, and Jujutsu (jj) subject tutors. See `docs/install.md` for
+install instructions.
 
 ## Layout
 
@@ -32,7 +35,9 @@ only when the user opts in. See `docs/install.md` for install instructions.
   and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
   on specific named technologies: filesystems), `productivity` (handoff,
   humanizer), `personal` (Obsidian and knowledge-management
-  workflows), and `misc` (uncategorised). Umbrella-style skills carry
+  workflows), `learning` (AI tutoring: tutor-engine, learn-german,
+  learn-thai, learn-rust, learn-jj), and `misc` (uncategorised).
+  Umbrella-style skills carry
   sub-topic guidance under the skill's `references/` directory. Skill files
   are NEVER moved out of this tree.
 - `plugins/<plugin-name>/` — one directory per published plugin, each
@@ -125,7 +130,8 @@ tool plugin from the same marketplace:
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-rust`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
 `jylhis-filesystems`, `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`,
-`jylhis-obsidian`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
+`jylhis-obsidian`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`,
+`jylhis-learning`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 
@@ -179,11 +185,12 @@ Claude-only files do not need to be excluded explicitly.
   Skills are not copied — each plugin has a `skills/` directory of symlinks
   pointing into the canonical `skills/<category>/<name>/` source tree.
 - Skills are two levels deep on disk: `skills/<category>/<name>/SKILL.md`.
-  The eight categories are `engineering` (practices), `languages`
+  The nine categories are `engineering` (practices), `languages`
   (per-language guidance), `domains` (cross-cutting topic deep dives),
   `services` (specific named platforms), `stack` (deep dives on
-  specific named technologies), `productivity`, `personal`, and
-  `misc`. An umbrella skill (one that gathers sub-topics) keeps those
+  specific named technologies), `productivity`, `personal`, `learning`
+  (AI tutoring), and `misc`. An umbrella skill (one that gathers sub-topics)
+  keeps those
   under its own `references/<topic>.md` (and nested
   `references/<topic>/...md` for multi-file topics).
 - When **adding a new skill**: drop it under `skills/<category>/<name>/`,
