@@ -26,3 +26,7 @@ evals/results/
 evals/.generated/
 evals/.skill_marks
 evals/scripts/__pycache__/
+
+# nix build / nix-build result symlinks
+result
+result-*
