@@ -41,8 +41,9 @@ syllable, the Thai, RTGS romanization, and the **computed tone**:
 scripts/thai-translit.py "ผมกินข้าว"      # or: echo "…" | scripts/thai-translit.py -
 ```
 
-It runs via a `uv` shebang (PEP 723 inline deps: PyThaiNLP); first run downloads
-packages, so it needs `uv` and network once. The tone classifier is reliable when
+It runs via a Nix-backed shebang (`nix run nixpkgs#uv -- run --script`, PEP 723
+inline deps: PyThaiNLP), so a Nix host needs no pre-installed `uv`; the first run
+fetches the Python packages and so needs network once. The tone classifier is reliable when
 a tone mark is present and for simple live syllables; it returns `"tone": null`
 rather than guessing on ambiguous syllables. It does **not** emit Paiboon — derive
 Paiboon from the tone + romanization using `references/romanization.md` and your
