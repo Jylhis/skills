@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --quiet --script
+#!/usr/bin/env -S nix run nixpkgs#uv -- run --quiet --script
 # /// script
 # requires-python = ">=3.10"
 # dependencies = ["pythainlp>=5.0,<6", "python-crfsuite>=0.9"]

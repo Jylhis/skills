@@ -185,15 +185,18 @@ func applyReview(st *State, c *Card, g int, now time.Time) {
 			c.Stability = stabilityAfterRecall(w, c.Difficulty, c.Stability, r, g)
 		}
 	}
+	c.LastReview = now.UTC().Format(time.RFC3339)
 	if g == 1 {
 		c.Lapses++
 		c.State = "relearning"
+		// A lapsed card stays due this session so the warm-up/practice loop
+		// retouches it immediately, rather than vanishing for >=1 day.
+		c.Due = now.UTC().Format(time.RFC3339)
 	} else {
 		c.State = "review"
+		ivl := nextInterval(c.Stability, st.FSRS.DesiredRetention)
+		c.Due = now.UTC().AddDate(0, 0, ivl).Format(time.RFC3339)
 	}
-	ivl := nextInterval(c.Stability, st.FSRS.DesiredRetention)
-	c.LastReview = now.UTC().Format(time.RFC3339)
-	c.Due = now.UTC().AddDate(0, 0, ivl).Format(time.RFC3339)
 }
 
 // ── persistence ────────────────────────────────────────────────────────
@@ -336,8 +339,14 @@ func cmdInit(args []string) {
 	if *retention < 0.7 || *retention > 0.97 {
 		fail(exitValidation, "--retention %.2f out of range [0.70, 0.97]", *retention)
 	}
-	if _, err := loadState(*subject); err == nil && !*force {
-		fail(exitValidation, "state for %q already exists; use --force to overwrite", *subject)
+	if !*force {
+		// Refuse to clobber existing state — including an existing-but-unreadable
+		// file (corrupt JSON, interrupted write) — unless --force is given.
+		if _, err := loadState(*subject); err == nil {
+			fail(exitValidation, "state for %q already exists; use --force to overwrite", *subject)
+		} else if !os.IsNotExist(err) {
+			fail(exitValidation, "state for %q exists but is unreadable (%v); use --force to overwrite", *subject, err)
+		}
 	}
 	now := time.Now().UTC().Format(time.RFC3339)
 	st := &State{
@@ -423,6 +432,9 @@ func cmdDue(args []string) {
 	tag := fs.String("tag", "", "only cards with this tag")
 	fs.Parse(args)
 	checkSubject(*subject)
+	if *limit < 0 {
+		fail(exitValidation, "--limit must be >= 0, got %d", *limit)
+	}
 	st := mustLoad(*subject)
 	now := time.Now().UTC()
 
@@ -522,6 +534,12 @@ func cmdSession(args []string) {
 	dryRun := fs.Bool("dry-run", false, "do not write")
 	fs.Parse(args)
 	checkSubject(*subject)
+	if *minutes < 0 {
+		fail(exitValidation, "--minutes must be >= 0, got %d", *minutes)
+	}
+	if *score < 0 || *score > 1 {
+		fail(exitValidation, "--score must be in [0,1], got %.2f", *score)
+	}
 	st := mustLoad(*subject)
 	st.Sessions = append(st.Sessions, SessionEntry{
 		Date: time.Now().UTC().Format("2006-01-02"), Minutes: *minutes,

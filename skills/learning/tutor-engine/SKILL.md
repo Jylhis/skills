@@ -63,7 +63,8 @@ nix run nixpkgs#go -- run scripts/learn.go <subcommand> [flags]
 State path (host-private, never committed):
 `${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/learning/<subject>.json`
 
-Typical session flow:
+Typical session flow (below, `learn.go` is shorthand for `go run scripts/learn.go`
+— that prefix is required to run it; it is not an installed command):
 
 ```
 learn.go init   --subject german --level A2 --target B1 --focus "dative,gender"
