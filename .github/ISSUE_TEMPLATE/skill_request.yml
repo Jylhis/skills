@@ -1,0 +1,44 @@
+name: Skill request
+description: Propose a new skill or an improvement to an existing skill.
+title: "[Skill]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should the skill help agents do?
+    validations:
+      required: true
+  - type: textarea
+    id: trigger
+    attributes:
+      label: Trigger conditions
+      description: When should the skill be used?
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Relevant docs, examples, repos, or prior art.
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Likely plugin
+      options:
+        - jylhis-skills-core
+        - jylhis-python
+        - jylhis-typescript
+        - jylhis-go
+        - jylhis-jvm
+        - jylhis-emacs
+        - jylhis-nix
+        - jylhis-filesystems
+        - jylhis-gitlab
+        - jylhis-terraform
+        - jylhis-azure
+        - jylhis-obsidian
+        - jylhis-grafana
+        - jylhis-taste
+        - jylhis-duckdb
