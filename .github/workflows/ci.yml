@@ -10,16 +10,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: check (${{ matrix.os }})
-    # Per-ref, per-OS cancellation. `matrix` is only a valid context inside a
-    # job, so this concurrency block must live here, not at the workflow level
-    # (a workflow-level `${{ matrix.os }}` makes the workflow invalid → the run
-    # fails at startup with zero jobs).
-    concurrency:
-      group: ci-${{ github.ref }}-${{ matrix.os }}
-      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
