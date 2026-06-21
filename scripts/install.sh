@@ -74,7 +74,11 @@ link() {
   fi
   if [[ -e "$dst" || -L "$dst" ]]; then
     run mkdir -p "$BACKUP_ROOT"
-    run mv "$dst" "$BACKUP_ROOT/$(basename "$dst")"
+    # Name the backup after the full destination path (slashes → underscores)
+    # so distinct files that share a basename — e.g. ~/.claude/AGENTS.md and
+    # ~/.pi/agent/AGENTS.md — don't clobber each other's backup.
+    local rel="${dst#/}"
+    run mv "$dst" "$BACKUP_ROOT/${rel//\//_}"
   fi
   run ln -s "$src" "$dst"
   echo "link $dst -> $src"
