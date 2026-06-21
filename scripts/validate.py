@@ -492,7 +492,7 @@ def main() -> int:
         print(f"validate.py: skills/ not found at {SKILLS_DIR}", file=sys.stderr)
         return 1
 
-    # Codex loads skills recursively; validate every SKILL.md under skills/.
+    # Pi discovers skills recursively; validate every SKILL.md under skills/.
     all_skill_files = sorted(SKILLS_DIR.rglob("SKILL.md"))
     if not all_skill_files:
         print("validate.py: no skills to validate (skills/ is empty)")

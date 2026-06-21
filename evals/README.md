@@ -1,7 +1,7 @@
 # Skill evaluations
 
 Offline, no-API-key evaluation harness for the `jylhis-skills` catalogue.
-Drives the three agent-skill CLIs (Claude Code, Codex, and
+Drives the two agent-skill CLIs (Claude Code and
 `pi-coding-agent`) through `promptfoo` `exec:` providers, with
 deterministic assertions as the merge gate and an optional LLM-as-a-judge
 layer for rubric-style checks. See `docs/skills-spec-v3.md` §10 for the
@@ -13,7 +13,6 @@ actually run anything.
 | CLI | Auth | Headless invocation |
 | --- | --- | --- |
 | Claude Code | OAuth from `claude login` (kept in keychain) | `claude -p` |
-| Codex CLI | `~/.codex/auth.json` from `codex login` | `codex exec --json` |
 | Pi (`pi-coding-agent`) | `pi login` against existing Claude Pro / ChatGPT / Copilot subscription | `pi -p` |
 
 `pi` here means `@earendil-works/pi-coding-agent`
@@ -28,12 +27,10 @@ before you run live evals. The harness itself never sees an API key.
 ```sh
 # CLIs (npm-global; not bundled in devenv because each needs user auth)
 npm i -g @anthropic-ai/claude-code
-npm i -g @openai/codex
 npm i -g @earendil-works/pi-coding-agent
 
 # Then log each one in once:
 claude        # OAuth in browser
-codex login
 pi login
 ```
 
@@ -72,7 +69,6 @@ cases.yaml              promptfoo eval
 expand.py ─► .generated/<suite>.yaml ─► [exec: providers] ─► result
                                             │
                                             ├── run_claude.sh
-                                            ├── run_codex.sh
                                             ├── run_pi.sh
                                             └── run_stub.sh   (cassette replay)
                                                         ▲
@@ -97,10 +93,10 @@ expand.py ─► .generated/<suite>.yaml ─► [exec: providers] ─► result
 
 Trigger-accuracy metrics are reported **per provider only** and never
 aggregated. Doc 2 §6 anti-pattern: Claude has an explicit `Skill` tool
-event, Codex infers triggering heuristically from `command_execution`,
-and Pi inlines into the system prompt. These are different denominators.
+event, while Pi inlines into the system prompt. These are different
+denominators.
 
-Only `output_quality` cases run in the three-CLI matrix.
+Only `output_quality` cases run in the two-CLI matrix.
 
 ## Known limitations
 
@@ -147,7 +143,7 @@ just eval-stub suite=<name> # deterministic asserts + stubbed SUT
 Judged runs are opt-in:
 
 ```
-just eval-judged suite=<name> judge=codex   # live three-CLI matrix
-just eval-one suite=<name> provider=claude judge=codex
-just eval-judge suite=<name> judge=codex    # tune the rubric only
+just eval-judged suite=<name> judge=pi   # live two-CLI matrix
+just eval-one suite=<name> provider=claude judge=pi
+just eval-judge suite=<name> judge=pi    # tune the rubric only
 ```

@@ -1,3 +1,9 @@
+> **Superseded by [`docs/skills-spec-v4.md`](./skills-spec-v4.md).** v4 retargets
+> the repo to Claude Code (CLI + web), Pi, and claude.ai Skills (Codex is
+> dropped), adds the custom-tools taxonomy and the role-forward marketplace
+> model, and reconciles aspirational paths with what is actually on disk. v3 is
+> retained for history.
+
 # Cross-Tool Agent Skills Repository Spec — v3
 
 > **Status: forward-looking spec.** This document describes the target

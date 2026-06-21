@@ -47,7 +47,6 @@ def provider_family(name: str, kind: str = "provider") -> str:
     """
     static_map = {
         "claude": "anthropic",
-        "codex": "openai",
         "pi": "unknown",  # Pi can route to any backend
         "stub": "stub",
     }
