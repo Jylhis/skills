@@ -1,1 +1,50 @@
 f304057d61d3df3c9fd992ac2b6e3833cb9325fb	accept	2026-05-12T12:06:09Z	initial-import 2026-05-12
+e74f0061bb67222181640effa98c675bdb2fdaa7	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+feaaf4204d32c1ae098612194fd1f9da83676522	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+bc32841b2e9782956c71430d0dfa8162d41c3e9e	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+e7df78bb81da39c537be810e622d2b90bbdc7dc5	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+d54c497aa94400a496d3f2c38be10fa5f284c5a9	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+a36584e09eaee067c425938fd66bc7ccddf089e2	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+b8be62ffacb0118fa3eaa29a0923c87c8c11985c	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+fadf11d45f24e04726ca0eecac70226072f849cd	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+bd96a9f0c61405844acdaa8c891aaab961f57eeb	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+0288510dd61ff6ef7c2003834082ab8f2387e80e	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+e3b90b5238f38cdea5996e16861dcae28ef52eda	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+aaf2453fbdfe7a15c07f11d861224f34ab4b53cb	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+88eb3f8d040fae4a6a76e47385454a4a3fc7e19d	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+cef541c8888c2297923bdd843659ccf9252a4674	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+dbcb1bda030dd594482d66e8f1138ae2b9efff8f	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+be55a7970319ede7965edbb02b5e41cba1ca82c9	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+2bf70051928429983de3b5718d277150926f8c89	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+59c92aa9e7f8a21b571242e571d0acc53dbda327	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+e3d8b735ef92ec9554b07f11f408089d81289eed	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+26ba8ae34bb3657e7dd85939fce8a5a166439f8b	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+d75217795ce77e7aa65898d6d4056263521ced22	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+3b37863fc3ed47f0f7acb5417ac728aff36398db	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+dabb725dfd3efa570a0e5e3b174599db0c720426	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+694fa30311e02c2639942308513555e61ee84a6f	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+221ffca96736afefdc08ca7cf0b3965e9ea83f41	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+2064fb64bce8e0914b2b1da788474b54b173dd08	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+cbf6db4233c7e4202abaf79643f7ab395c75a2df	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+0a4b76776dfd9979bfe013d99b5562a03b743839	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+7d3ada9716a9ee08d6c6f775d8a78ef889e1798f	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+0a8105bba99d8f1cbe3c460060ab70164046024b	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+800201f7b2829ae7c0fe67dc94c72da772dac6c2	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+658d53e6ded8cc0eaa26a96e0580bee9381ca0e3	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+3832253f149ea165f45a32ea727886e6d0094d60	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+81ddacb08b3878d07ac4fa2de60bd8a53bacba5b	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+788b5c382b769155afcbac0d8402c3b56eae02fd	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+ffb2fa662321045a8ace6f56f29ef8af11e19d3d	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+ab7196a1584ac60688aeb63cf0b56a5114c4a6f3	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+bc4cf903ff4855ce23199a8dd3bf98b3dbd7ad71	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+801a01cc7d265e06dd9dbcef5a4c471add05a0b3	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+e112a6b03cd7893a36760fea1d387dffa6cba80a	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22
+2e647324f90f36b4c8ef8cbca0bbda89b2a82434	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+aa7ed40cbe9dfc863e5ec52bb1415fc8eaf2b729	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+df129fcfce610712a737fe4bb9362e621f0752c5	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+48f3d31fef07afef4b02fa3c822a4ee55ce6c1e0	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+460f19f240ea3677dc6ac7a5dba9c8050e0b7bfc	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+ee8bae40062cd6b435073368ed0c540f48c35862	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+d20ee2684e2a9442698ac3c1e0f2c5b68c4cf296	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+aa024cb1954fedbc8221967c080fa40b9867f994	skip	2026-06-22T08:58:31Z	non-vendored / kept self-contained / no-op
+e00eadb4bb32c3d5a631ead1a5ed5d6a7c5f74e2	cherry-picked:94064bf4bfe114ac2250a60e1f061350ffb489d3	2026-06-22T08:58:31Z	self-contained adaptation, upstream-sync 2026-06-22

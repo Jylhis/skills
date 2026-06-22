@@ -117,7 +117,7 @@ sources:
     subpath: skills
     license: MIT
     upstream-rev: 6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-    reviewed-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    reviewed-rev: e00eadb4bb32c3d5a631ead1a5ed5d6a7c5f74e2
     last-fetched: "2026-06-22T07:59:37Z"
     skills:
       - upstream: engineering/tdd
@@ -140,11 +140,6 @@ sources:
         name: prototype
         target-plugin: jylhis-skills-core
         merge-strategy: standalone
-      - upstream: engineering/zoom-out
-        category: engineering
-        name: zoom-out
-        target-plugin: jylhis-skills-core
-        merge-strategy: standalone
       - upstream: engineering/to-prd
         category: engineering
         name: to-prd
@@ -158,11 +153,6 @@ sources:
       - upstream: productivity/handoff
         category: productivity
         name: handoff
-        target-plugin: jylhis-skills-core
-        merge-strategy: standalone
-      - upstream: productivity/caveman
-        category: productivity
-        name: caveman
         target-plugin: jylhis-skills-core
         merge-strategy: standalone
   - id: openai-skills
