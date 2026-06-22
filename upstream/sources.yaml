@@ -4,9 +4,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: 6ccf725ff46d3d2d78d7be76974ada4220c8bafd
-    reviewed-rev: 6ccf725ff46d3d2d78d7be76974ada4220c8bafd
-    last-fetched: "2026-05-12T12:06:08Z"
+    upstream-rev: a5e0e5997aac169b659e70cb826a20b489bc4c6c
+    reviewed-rev: a5e0e5997aac169b659e70cb826a20b489bc4c6c
+    last-fetched: "2026-06-22T07:59:34Z"
     skills:
       - upstream: golang-code-style
         category: languages
@@ -69,9 +69,9 @@ sources:
     branch: main
     subpath: plugins
     license: AGPL-3.0
-    upstream-rev: a56045e9ae00b3506cacefea0f672aab0a1a6e3c
-    reviewed-rev: a56045e9ae00b3506cacefea0f672aab0a1a6e3c
-    last-fetched: "2026-05-12T11:56:49Z"
+    upstream-rev: ff4162dcb9cec5b7abe5ab039c868544b325275d
+    reviewed-rev: ff4162dcb9cec5b7abe5ab039c868544b325275d
+    last-fetched: "2026-06-22T07:59:35Z"
     skills:
       - upstream: modern-python/skills/modern-python
         category: languages
@@ -99,7 +99,7 @@ sources:
     license: AGPL-3.0
     upstream-rev: 022fa0948818c9f2f738a428f4546cc65c427767
     reviewed-rev: 022fa0948818c9f2f738a428f4546cc65c427767
-    last-fetched: "2026-05-12T12:01:04Z"
+    last-fetched: "2026-06-22T07:59:36Z"
     skills:
       - upstream: humanizer/skills/humanizer
         category: productivity
@@ -116,9 +116,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+    upstream-rev: 6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
     reviewed-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
-    last-fetched: "2026-05-12T12:06:09Z"
+    last-fetched: "2026-06-22T07:59:37Z"
     skills:
       - upstream: engineering/tdd
         category: engineering
@@ -170,9 +170,9 @@ sources:
     branch: main
     subpath: skills/.curated
     license: MIT
-    upstream-rev: 4c4058ebf44f6734e62c70ab4a81246d4d093fc8
-    reviewed-rev: 4c4058ebf44f6734e62c70ab4a81246d4d093fc8
-    last-fetched: "2026-05-12T11:59:18Z"
+    upstream-rev: 972cb867affac58fda9afa76bb1a19b399a278cf
+    reviewed-rev: 972cb867affac58fda9afa76bb1a19b399a278cf
+    last-fetched: "2026-06-22T07:59:45Z"
     skills:
       - upstream: security-best-practices
         category: domains
@@ -200,9 +200,9 @@ sources:
     branch: main
     subpath: terraform
     license: MPL-2.0
-    upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
+    upstream-rev: 339a113935812ad75c6ff90d418b739a021826d1
     reviewed-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
-    last-fetched: "2026-05-12T12:06:11Z"
+    last-fetched: "2026-06-22T07:59:46Z"
     skills:
       - upstream: code-generation/skills/terraform-test
         category: services
@@ -229,9 +229,9 @@ sources:
     branch: main
     subpath: .github/plugins/azure-skills/skills
     license: MIT
-    upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
-    reviewed-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
-    last-fetched: "2026-05-12T12:06:14Z"
+    upstream-rev: 12184914d53b81e8d7fe3780d52b58d910b549ec
+    reviewed-rev: f39093a2538d8180055a48d68f26c284361116e1
+    last-fetched: "2026-06-22T07:59:46Z"
     skills:
       - upstream: azure-deploy
         category: services
@@ -268,9 +268,9 @@ sources:
     branch: main
     subpath: .github/skills
     license: MIT
-    upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
-    reviewed-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
-    last-fetched: "2026-05-12T11:52:09Z"
+    upstream-rev: 12184914d53b81e8d7fe3780d52b58d910b549ec
+    reviewed-rev: 2909352da0a88bf12cfa9922feff6ca288ea770e
+    last-fetched: "2026-06-22T07:59:52Z"
     skills:
       - upstream: microsoft-docs
         category: engineering
@@ -282,9 +282,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
-    reviewed-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
-    last-fetched: "2026-05-12T12:06:15Z"
+    upstream-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
+    reviewed-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
+    last-fetched: "2026-06-22T07:59:53Z"
     skills:
       - upstream: obsidian-markdown
         category: personal
@@ -316,9 +316,9 @@ sources:
     branch: main
     subpath: skills
     license: AGPL-3.0
-    upstream-rev: d124c434391b7e3d24f57c865cad3462dae596dd
-    reviewed-rev: d124c434391b7e3d24f57c865cad3462dae596dd
-    last-fetched: "2026-05-12T12:08:52Z"
+    upstream-rev: 03c7b81fd296fc01c00e8477a0595f0e99cdef3f
+    reviewed-rev: 03c7b81fd296fc01c00e8477a0595f0e99cdef3f
+    last-fetched: "2026-06-22T08:33:01Z"
     skills:
       - upstream: grafana-core/grafana-oss
         category: services
@@ -352,7 +352,7 @@ sources:
     license: MIT
     upstream-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
     reviewed-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
-    last-fetched: "2026-05-14T18:32:18Z"
+    last-fetched: "2026-06-22T07:59:54Z"
     skills:
       - upstream: attach-db
         category: services
@@ -404,9 +404,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
-    reviewed-rev: c8075169cd63d1430bbf492dd4ddd478ea9fa4da
-    last-fetched: "2026-05-12T12:00:05Z"
+    upstream-rev: 06d6028b5c623016c59ce8536f578e5a1127b499
+    reviewed-rev: 06d6028b5c623016c59ce8536f578e5a1127b499
+    last-fetched: "2026-06-22T08:33:00Z"
     skills:
       - upstream: taste-skill
         category: domains
