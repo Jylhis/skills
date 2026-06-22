@@ -23,7 +23,7 @@ Go's concurrency model is built on goroutines and channels. Goroutines are cheap
 5. **Specify channel direction** (`chan<-`, `<-chan`) — the compiler prevents misuse at build time
 6. **Default to unbuffered channels** — larger buffers mask backpressure; use them only with measured justification
 7. **Always include `ctx.Done()` in select** — without it, goroutines leak after caller cancellation
-8. **Never use `time.After` in loops** — each call creates a timer that lives until it fires, accumulating memory. Use `time.NewTimer` + `Reset`
+8. **Avoid repeated `time.After` in hot loops** — each call allocates a timer and creates unnecessary churn; use `time.NewTimer` + `Reset` for long-running loops
 9. **Track goroutine leaks in tests** with `go.uber.org/goleak`
 
 For detailed channel/select code examples, see [Channels and Select Patterns](references/channels-and-select.md).
@@ -58,7 +58,7 @@ For detailed channel/select code examples, see [Channels and Select Patterns](re
 | `sync.Map` | Concurrent map, read-heavy | No explicit locking; use `RWMutex`+map when writes dominate |
 | `sync.Pool` | Reuse temporary objects | Always `Reset()` before `Put()`; reduces GC pressure |
 | `sync.Once` | One-time initialization | Go 1.21+: `OnceFunc`, `OnceValue`, `OnceValues` |
-| `sync.WaitGroup` | Wait for goroutine completion | `Add` before `go`; Go 1.24+: `wg.Go()` simplifies usage |
+| `sync.WaitGroup` | Wait for goroutine completion | `Add` before `go`; Go 1.25+: `wg.Go()` simplifies usage |
 | `x/sync/singleflight` | Deduplicate concurrent calls | Cache stampede prevention |
 | `x/sync/errgroup` | Goroutine group + errors | `SetLimit(n)` replaces hand-rolled worker pools |
 

@@ -4,9 +4,9 @@ description: Write, validate, and optimise PromQL queries for Prometheus and Gra
 license: Apache-2.0
 metadata:
   upstream-id: grafana-skills
-  upstream-rev: d124c434391b7e3d24f57c865cad3462dae596dd
+  upstream-rev: 03c7b81fd296fc01c00e8477a0595f0e99cdef3f
   upstream-path: grafana-core/promql
-  upstream-imported: 2026-05-12
+  upstream-imported: 2026-06-22
 ---
 
 # PromQL Query Patterns
