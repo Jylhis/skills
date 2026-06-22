@@ -1,0 +1,12 @@
+{
+  "name": "jylhis-hermes-tweet",
+  "description": "Hermes Tweet skill for installing and validating the Hermes Agent X/Twitter plugin.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/hermes-tweet"
+  ]
+}
