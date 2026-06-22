@@ -31,7 +31,7 @@ only when the user opts in. See `docs/install.md` for install instructions.
   topic deep dives: security, taste), `services` (specific named platforms
   and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
   on specific named technologies: filesystems), `productivity` (handoff,
-  humanizer, caveman), `personal` (Obsidian and knowledge-management
+  humanizer), `personal` (Obsidian and knowledge-management
   workflows), and `misc` (uncategorised). Umbrella-style skills carry
   sub-topic guidance under the skill's `references/` directory. Skill files
   are NEVER moved out of this tree.
