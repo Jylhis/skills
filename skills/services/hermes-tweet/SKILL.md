@@ -29,8 +29,8 @@ wants the Hermes Agent plugin.
 
 ## Setup
 
-1. Open the source repository:
-   `https://github.com/Xquik-dev/hermes-tweet`.
+1. Open the
+   [Hermes Tweet source repository](https://github.com/Xquik-dev/hermes-tweet).
 2. Read the repository README and plugin manifest before changing install
    instructions.
 3. Install the plugin through Hermes Agent's supported plugin-install flow.

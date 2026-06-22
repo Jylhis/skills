@@ -84,7 +84,7 @@
     {
       "name": "jylhis-hermes-tweet",
       "source": "./plugins/jylhis-hermes-tweet",
-      "description": "Hermes Tweet skill for installing and validating the Hermes Agent X/Twitter plugin.",
+      "description": "Hermes Tweet skill for installing, validating, and safely routing Hermes Agent X/Twitter explore, read, and guarded action workflows.",
       "category": "Productivity"
     },
     {
