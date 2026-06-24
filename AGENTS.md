@@ -18,8 +18,9 @@ Per-language, per-service, and per-tool plugins
 (`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-jvm`,
 `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`, `jylhis-gitlab`,
 `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`, `jylhis-grafana`,
-`jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
-only when the user opts in. See `docs/install.md` for install instructions.
+`jylhis-hermes-tweet`, `jylhis-taste`, `jylhis-duckdb`) are discoverable
+through the marketplace UI but installed only when the user opts in. See
+`docs/install.md` for install instructions.
 
 ## Layout
 
@@ -125,7 +126,7 @@ tool plugin from the same marketplace:
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
 `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
-`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
+`jylhis-grafana`, `jylhis-hermes-tweet`, `jylhis-taste`, `jylhis-duckdb`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 
