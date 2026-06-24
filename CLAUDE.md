@@ -30,3 +30,17 @@ to the skills listed by the runtime:
   `plugins/jylhis-skills-core/commands/`.
 - LSP wiring is per-language-plugin via `plugins/jylhis-<lang>/.lsp.json`;
   `/lsp-status` reports only what the user has opted into.
+
+## Output style
+
+This file is symlinked to `~/.claude/CLAUDE.md`, so these conventions apply
+to text Claude generates (chat replies, code, shell scripts) in every
+project, not just this repo. They govern new output, not a rewrite of
+existing committed prose.
+
+- Do not use em dashes (the "—" character) in generated output. Prefer a
+  comma, a colon, parentheses, a sentence break, or "and" / "but".
+  Exceptions: quoting source text verbatim, or literal `--` CLI flags.
+- Do not use a run of `=` characters as a section divider in shell output,
+  here-docs, or chat. Use blank lines, a single `#` heading line, or a short
+  `[label]` marker instead.
