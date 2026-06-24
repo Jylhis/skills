@@ -104,6 +104,7 @@ by default.
 | `jylhis-grafana` | Grafana observability skill |
 | `jylhis-taste` | UI/UX design taste and critique skill |
 | `jylhis-duckdb` | DuckDB query / attach / spatial skill set |
+| `jylhis-learning` | AI tutoring — spaced-repetition engine + German, Thai, Rust, jj tutors |
 
 Install one (example: `jylhis-python`):
 

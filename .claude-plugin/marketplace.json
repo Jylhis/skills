@@ -92,6 +92,12 @@
       "source": "./plugins/jylhis-duckdb",
       "description": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
       "category": "Coding"
+    },
+    {
+      "name": "jylhis-learning",
+      "source": "./plugins/jylhis-learning",
+      "description": "AI tutoring — agent-native spaced-repetition (FSRS) engine plus German, Thai, Rust, and Jujutsu (jj) subject tutors that track per-subject progress.",
+      "category": "Productivity"
     }
   ]
 }
