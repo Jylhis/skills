@@ -8,7 +8,7 @@
   "repository": "https://github.com/Jylhis/skills",
   "skills": [
     "./skills/ast-grep",
-    "./skills/commit-stories",
+    "./skills/commit-messages",
     "./skills/diagnose",
     "./skills/git-surgeon",
     "./skills/grill-with-docs",
