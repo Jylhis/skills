@@ -32,7 +32,7 @@ through the marketplace UI but installed only when the user opts in. See
   topic deep dives: security, taste), `services` (specific named platforms
   and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
   on specific named technologies: filesystems), `productivity` (handoff,
-  humanizer, caveman), `personal` (Obsidian and knowledge-management
+  humanizer), `personal` (Obsidian and knowledge-management
   workflows), and `misc` (uncategorised). Umbrella-style skills carry
   sub-topic guidance under the skill's `references/` directory. Skill files
   are NEVER moved out of this tree.
@@ -147,7 +147,8 @@ carry none of this layer.
   Code spawns each entry on demand for matching file extensions). One file
   per language plugin: `jylhis-nix` registers `nixd`, `jylhis-python`
   registers `basedpyright`, `jylhis-typescript` registers
-  `typescript-language-server`, `jylhis-go` registers `gopls`. Each uses
+  `typescript-language-server`, `jylhis-go` registers `gopls`,
+  `jylhis-rust` registers `rust-analyzer`. Each uses
   `nix shell nixpkgs#<server> -c <binary>` so the host needs Nix but no
   pre-installed LSP. Installing a language plugin wires its LSP; not
   installing it leaves Claude Code unaware of that language.

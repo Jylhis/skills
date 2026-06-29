@@ -28,6 +28,12 @@
       "category": "Coding"
     },
     {
+      "name": "jylhis-rust",
+      "source": "./plugins/jylhis-rust",
+      "description": "Rust — typed boundaries and newtypes, exhaustive enums, error discipline (n0-error), deterministic testing via injected host context, channel-first concurrency; plus the Leptos 0.8 UI contract.",
+      "category": "Coding"
+    },
+    {
       "name": "jylhis-jvm",
       "source": "./plugins/jylhis-jvm",
       "description": "JVM build/test — Gradle 8.10+ Kotlin DSL, version catalogs, Maven Central, JUnit 5, kotest, Testcontainers.",

@@ -9,7 +9,7 @@ metadata:
 
 # Feature Flags
 
-Hard Rule #4 at Jylhis. PostHog is the **only** canonical flag provider. See [references/posthog.md](references/posthog.md) for PostHog-specific mechanics.
+Hard Rule #4 at Jylhis. PostHog is the **only** canonical flag provider *for the Jylhis team and marketplace standard*. That is a team default, not an assumption about every consumer's stack. The discipline in this skill (required metadata, default-OFF, kill-switch path, cleanup checklist) is provider-agnostic; if your org standardizes on a different flag system, keep the discipline and treat the PostHog steps below as the worked example to translate. See [references/posthog.md](references/posthog.md) for PostHog-specific mechanics.
 
 ## When a flag is required
 
