@@ -16,6 +16,8 @@ The `.out-of-scope/` directory in a repo stores persistent records of rejected f
 
 One file per **concept**, not per issue. Multiple issues requesting the same thing are grouped under one file.
 
+This applies to enhancement PRs exactly as it does to issues — a rejected PR is recorded here so the same request doesn't return as fresh code. Do **not** write here when something is closed as `wontfix` because it's **already implemented**: that's a built feature, not a rejected one, and recording it would poison the dedup checks with false rejections. Instead, the closing comment points to where the feature already lives.
+
 ## File format
 
 The file should be written in a relaxed, readable style — more like a short design document than a database entry. Use paragraphs, code samples, and examples to make the reasoning clear and useful to someone encountering it for the first time.

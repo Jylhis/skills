@@ -18,7 +18,7 @@ committing one logical change out of a dirty tree, discarding a stray
 debug edit without touching the rest of a file, or reshaping a messy
 branch before review. It is the mechanical primitive layer; for the
 narrative side of history (commit subjects/bodies, what to squash and
-why) pair it with the `commit-stories` skill.
+why) pair it with the `commit-messages` skill.
 
 ## Install
 

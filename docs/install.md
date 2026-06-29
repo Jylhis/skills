@@ -93,6 +93,7 @@ by default.
 | `jylhis-python` | Python skill + `basedpyright` LSP |
 | `jylhis-typescript` | TypeScript skill + `typescript-language-server` LSP |
 | `jylhis-go` | Go skill + `gopls` LSP |
+| `jylhis-rust` | Rust + Leptos skills + `rust-analyzer` LSP |
 | `jylhis-jvm` | Java/Kotlin skill |
 | `jylhis-emacs` | Emacs Lisp skill |
 | `jylhis-nix` | Nix skill + `nixd` LSP |
