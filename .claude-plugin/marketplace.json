@@ -88,6 +88,12 @@
       "category": "Coding"
     },
     {
+      "name": "jylhis-hermes-tweet",
+      "source": "./plugins/jylhis-hermes-tweet",
+      "description": "Hermes Tweet skill for installing, validating, and safely routing Hermes Agent X/Twitter explore, read, and guarded action workflows.",
+      "category": "Productivity"
+    },
+    {
       "name": "jylhis-taste",
       "source": "./plugins/jylhis-taste",
       "description": "Taste skill — UI/UX design taste, visual hierarchy, design critique.",

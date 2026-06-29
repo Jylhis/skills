@@ -15,11 +15,12 @@ cross-cutting engineering and productivity skills (security, ast-grep,
 offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
 Per-language, per-service, and per-tool plugins
-(`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-rust`,
-`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
-`jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
-`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
-only when the user opts in. See `docs/install.md` for install instructions.
+(`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-jvm`,
+`jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`, `jylhis-gitlab`,
+`jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`, `jylhis-grafana`,
+`jylhis-hermes-tweet`, `jylhis-taste`, `jylhis-duckdb`) are discoverable
+through the marketplace UI but installed only when the user opts in. See
+`docs/install.md` for install instructions.
 
 ## Layout
 
@@ -123,9 +124,9 @@ tool plugin from the same marketplace:
 | Pi          | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` (then re-run `just install` to refresh) |
 
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
-`jylhis-rust`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
-`jylhis-filesystems`, `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`,
-`jylhis-obsidian`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
+`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
+`jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
+`jylhis-grafana`, `jylhis-hermes-tweet`, `jylhis-taste`, `jylhis-duckdb`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 

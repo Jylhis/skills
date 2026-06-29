@@ -103,6 +103,7 @@ by default.
 | `jylhis-azure` | Azure cloud skill |
 | `jylhis-obsidian` | Obsidian note-taking and knowledge management skill |
 | `jylhis-grafana` | Grafana observability skill |
+| `jylhis-hermes-tweet` | Hermes Agent X/Twitter plugin workflow skill |
 | `jylhis-taste` | UI/UX design taste and critique skill |
 | `jylhis-duckdb` | DuckDB query / attach / spatial skill set |
 
