@@ -1,0 +1,18 @@
+{
+  "name": "jylhis-product",
+  "description": "Product-management skills \u2014 competitive briefs, metrics reviews, product brainstorming, roadmap updates, sprint planning, stakeholder updates, and user-research synthesis.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/competitive-brief",
+    "./skills/metrics-review",
+    "./skills/product-brainstorming",
+    "./skills/roadmap-update",
+    "./skills/sprint-planning",
+    "./skills/stakeholder-update",
+    "./skills/synthesize-research"
+  ]
+}

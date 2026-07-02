@@ -31,8 +31,11 @@ only when the user opts in. See `docs/install.md` for install instructions.
   topic deep dives: security, taste), `services` (specific named platforms
   and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
   on specific named technologies: filesystems), `productivity` (handoff,
-  humanizer), `personal` (Obsidian and knowledge-management
-  workflows), and `misc` (uncategorised). Umbrella-style skills carry
+  humanizer, task/memory management), `product` (product-management
+  practices: roadmaps, specs, research synthesis, metrics), `business`
+  (small-business operations: finance, CRM, marketing, HR, contracts, tax),
+  `personal` (Obsidian and knowledge-management workflows), and `misc`
+  (uncategorised). Umbrella-style skills carry
   sub-topic guidance under the skill's `references/` directory. Skill files
   are NEVER moved out of this tree.
 - `plugins/<plugin-name>/` — one directory per published plugin, each
@@ -179,11 +182,12 @@ Claude-only files do not need to be excluded explicitly.
   Skills are not copied — each plugin has a `skills/` directory of symlinks
   pointing into the canonical `skills/<category>/<name>/` source tree.
 - Skills are two levels deep on disk: `skills/<category>/<name>/SKILL.md`.
-  The eight categories are `engineering` (practices), `languages`
+  The ten categories are `engineering` (practices), `languages`
   (per-language guidance), `domains` (cross-cutting topic deep dives),
   `services` (specific named platforms), `stack` (deep dives on
-  specific named technologies), `productivity`, `personal`, and
-  `misc`. An umbrella skill (one that gathers sub-topics) keeps those
+  specific named technologies), `productivity`, `product`
+  (product-management practices), `business` (small-business operations),
+  `personal`, and `misc`. An umbrella skill (one that gathers sub-topics) keeps those
   under its own `references/<topic>.md` (and nested
   `references/<topic>/...md` for multi-file topics).
 - When **adding a new skill**: drop it under `skills/<category>/<name>/`,
