@@ -25,7 +25,19 @@ import _lib as L
 def confirm_cherry_pick(args: argparse.Namespace) -> int:
     data = L.parse_manifest()
     src = L.find_source(data, args.source_id)
-    upstream_sha = args.confirm[0]
+    cache = L.cache_path(src["id"])
+    if not cache.exists():
+        print(f"upstream-tracker: no cache at {cache.relative_to(L.ROOT)} — "
+              f"run fetch.py first", file=sys.stderr)
+        return 2
+    # The upstream sha is typed by a human; expand it to the full 40-char
+    # form so it matches the decision-log keys advance_cursor compares
+    # against (a short sha silently strands the cursor).
+    try:
+        upstream_sha = L.resolve_sha(cache, args.confirm[0])
+    except ValueError as exc:
+        print(f"upstream-tracker: {exc}", file=sys.stderr)
+        return 2
     local_sha = args.confirm[1]
     L.decisions_append(src["id"], upstream_sha,
                        f"cherry-picked:{local_sha}",
@@ -61,23 +73,38 @@ def cherry_pick_apply(cache: Path, src: dict, sha: str) -> str | None:
             ["grep", "-q", upstream_full, str(patch_path)],
             check=False,
         )
-        if check.returncode == 0:
-            skill_local = mapping["local"]
-            target_dir = L.ROOT / "skills" / mapping["local"]
-            depth = upstream_full.count("/") + 1
-            apply_rc = subprocess.run(
-                ["git", "apply",
-                 f"-p{depth}",
-                 f"--directory=skills/{mapping['local']}",
-                 str(patch_path)],
-                cwd=str(L.ROOT), check=False,
-            ).returncode
-            if apply_rc != 0:
-                print(f"  patch did not apply cleanly to {target_dir.relative_to(L.ROOT)}",
-                      file=sys.stderr)
-                print(f"  patch saved at {patch_path}", file=sys.stderr)
-                return None
-            break
+        if check.returncode != 0:
+            continue
+        local = L.mapping_local(mapping)
+        if local is None:
+            print(f"  mapping for {mapping.get('upstream')!r} has no "
+                  f"category+name; skipping auto-apply", file=sys.stderr)
+            continue
+        # The re-root apply below preserves the upstream file layout under
+        # skills/<local>/, which is only correct for standalone vendoring.
+        # umbrella-references entries fold a single body into
+        # references/<topic>.md, so their patches must be applied by hand.
+        if mapping.get("merge-strategy") == "umbrella-references":
+            print(f"  {upstream_full} is umbrella-references; apply the "
+                  f"patch to skills/{local}/references/ by hand", file=sys.stderr)
+            print(f"  patch saved at {patch_path}", file=sys.stderr)
+            return None
+        skill_local = local
+        target_dir = L.ROOT / "skills" / local
+        depth = upstream_full.count("/") + 1
+        apply_rc = subprocess.run(
+            ["git", "apply",
+             f"-p{depth}",
+             f"--directory=skills/{local}",
+             str(patch_path)],
+            cwd=str(L.ROOT), check=False,
+        ).returncode
+        if apply_rc != 0:
+            print(f"  patch did not apply cleanly to {target_dir.relative_to(L.ROOT)}",
+                  file=sys.stderr)
+            print(f"  patch saved at {patch_path}", file=sys.stderr)
+            return None
+        break
 
     patch_path.unlink(missing_ok=True)
     return skill_local
