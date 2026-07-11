@@ -55,13 +55,16 @@ canonical tree, which is what keeps the pool portable.
    `${CLAUDE_PLUGIN_ROOT}` paths) never reach `~/.pi/agent/skills/`.
 
 5. Helpers a plugin-local skill invokes via `${CLAUDE_PLUGIN_ROOT}` must
-   ship inside the plugin directory. `remember-correction` runs
-   `${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go`, so a vendored
-   copy of the repo-root `scripts/append-correction.go` lives at
-   `plugins/jylhis-skills-core/scripts/append-correction.go` (a symlink
-   pointing outside the plugin dir may not survive plugin install).
-   Tradeoff: the two copies must be kept in sync by hand; each carries a
-   header comment naming the canonical source.
+   ship as real files inside the plugin directory (a symlink pointing
+   outside the plugin dir may not survive plugin install).
+   `remember-correction` runs
+   `${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go`, so the
+   canonical location of that helper moved INTO the plugin:
+   `plugins/jylhis-skills-core/scripts/append-correction.go` is the one
+   real copy, and repo-root `scripts/append-correction.go` is a relative
+   symlink to it. Repo-root usage (`go run scripts/append-correction.go`
+   per AGENTS.md) follows the symlink; the plugin install gets the real
+   file. Single-sourced, so there is no copy to drift.
 
 ## Consequences
 
@@ -89,5 +92,3 @@ canonical tree, which is what keeps the pool portable.
 - The Pi-mirror exclude list interpolates raw directory basenames into
   rsync `--exclude` patterns, so plugin-local skill names must avoid
   rsync wildcard characters (`*`, `?`, `[`).
-- The vendored helper copy (Decision 5) can drift from the repo-root
-  canonical source; nothing enforces the sync yet.

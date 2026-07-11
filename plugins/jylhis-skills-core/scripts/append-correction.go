@@ -1,8 +1,7 @@
 // Append a single correction entry to the improvement-memory JSONL.
 //
-// VENDORED COPY: canonical source is scripts/append-correction.go at the repo
-// root. This copy exists so ${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go
-// resolves for marketplace installs of jylhis-skills-core. Keep in sync.
+// Canonical location (repo-root scripts/append-correction.go is a symlink
+// here, so the ${CLAUDE_PLUGIN_ROOT} path resolves in plugin installs).
 //
 // Default path: ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 //
