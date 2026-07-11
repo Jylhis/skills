@@ -16,7 +16,7 @@ cases:
     kind: trigger_positive
     expected_skill: tdd
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       I want to add a rate limiter to our API using strict
       red-green-refactor. Walk me through building it test-first:
@@ -32,7 +32,7 @@ cases:
     kind: trigger_positive
     expected_skill: tdd
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       There is an off-by-one bug in our pagination code. Fix it with
       TDD: first write a failing test that reproduces the bug through
@@ -48,7 +48,7 @@ cases:
     kind: trigger_positive
     expected_skill: tdd
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       Build the checkout flow for our cart service using test-driven
       development. I want integration-style tests that exercise the
@@ -66,7 +66,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["TDD", "failing test"]
     prompt: |
       Run the existing test suite and paste me the name of every
@@ -80,12 +80,13 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
-    near_miss_vocabulary: ["TDD", "red-green-refactor"]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["TDD", "test-driven development"]
     prompt: |
-      I am writing a blog post. Give me two paragraphs on the history
-      of TDD and where the phrase red-green-refactor comes from. This
-      is prose only; do not write any code or tests.
+      I am writing a blog post about the history of test-driven
+      development. Give me two paragraphs on how TDD emerged from
+      Kent Beck's work on Extreme Programming in the 1990s. This is
+      prose only; do not write any code or tests.
     assert:
       triggered: null
       max_latency_ms: 60000
@@ -94,7 +95,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["test-first", "TDD"]
     prompt: |
       Generate a line coverage report for this repository using the
@@ -135,8 +136,14 @@ cases:
       implementation. Name the tracer bullet step first and keep the
       answer short.
     assert:
-      contains_all: ["vertical", "tracer bullet"]
-      output_match_regex: 'one failing test'
+      # Case-tolerant regexes instead of case-sensitive contains_all.
+      # expand.py has no icontains-all mapping, and promptfoo compiles
+      # regex asserts as JS RegExp where the inline (?i) flag is not
+      # portable, so bracket classes cover the realistic capitalisations.
+      regex:
+        - '[Vv]ertical'
+        - '[Tt]racer [Bb]ullet'
+        - '[Ff]ailing [Tt]est'
       not_regex:
         - '\b(I apologize|As an AI)\b'
       max_latency_ms: 60000

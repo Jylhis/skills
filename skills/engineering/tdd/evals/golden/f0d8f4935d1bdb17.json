@@ -11,6 +11,6 @@
     "recorded_at": "1970-01-01T00:00:00Z",
     "temperature": 0
   },
-  "text": "TDD grew out of Kent Beck's work on Extreme Programming in the late 1990s, when he rediscovered test-first programming and codified it in 'Test-Driven Development: By Example'.\nThe phrase red-green-refactor describes the cycle's rhythm: a failing test shows red, the minimal implementation turns the bar green, and the refactor step cleans up while staying green.\n",
+  "text": "Test-driven development grew out of Kent Beck's work on Extreme Programming in the late 1990s, when he rediscovered older test-before-code practices and codified them in 'Test-Driven Development: By Example'.\nFrom there TDD spread through the agile community, becoming a staple of XP practice and later a mainstream engineering habit far beyond its origins.\n",
   "triggered": null
 }
