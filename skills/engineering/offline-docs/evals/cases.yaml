@@ -137,7 +137,7 @@ cases:
       no prose.
     assert:
       contains_all: ["man -k compress", "man -w gzip"]
-      output_match_regex: 'man -k compress'
+      output_match_regex: '\bman -k compress\b[\s\S]*\bman -w gzip\b'
       not_regex:
         - '\b(I apologize|As an AI)\b'
       max_latency_ms: 60000
