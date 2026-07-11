@@ -17,7 +17,7 @@ cases:
     kind: trigger_positive
     expected_skill: offline-docs
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       What exactly does the `-R` flag of rsync do on this machine? I want
       the answer for the installed version, not whatever a web search
@@ -32,7 +32,7 @@ cases:
     kind: trigger_positive
     expected_skill: offline-docs
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       I'm editing /etc/ssh/sshd_config and I need the authoritative
       reference for its file format and every option it accepts. Is
@@ -47,7 +47,7 @@ cases:
     kind: trigger_positive
     expected_skill: offline-docs
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       I have `zstd` installed but I have no idea what documentation
       exists for it on this box. How do I find out what docs are
@@ -66,7 +66,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["man page", "roff", "documentation"]
     prompt: |
       Write a man page for my new CLI tool `frobnicate` in classic roff
@@ -80,7 +80,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["man page", "documentation", "local docs"]
     prompt: |
       Skip the local docs entirely. There is no man page for the Stripe
@@ -95,7 +95,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["man pages", "documentation"]
     prompt: |
       Our release pipeline needs to convert the man pages under
