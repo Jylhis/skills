@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: Use for TypeScript 5.9+ on Node 22 LTS — code style (naming, ESM-first, import order, readonly), type system depth (generics, conditional types, infer, narrowing, satisfies, branded types), async (Promise, AbortController, async iterators, structured concurrency), error handling (Error subclassing, Result types, AggregateError), Node patterns (fs/promises, child_process, streams, workers, pino, graceful shutdown), Zod runtime validation at trust boundaries (safeParse, z.infer, refinements, discriminated unions), Prettier formatting, ESLint 9 flat config, packaging (pnpm workspaces, exports), and Vitest testing. Read the matching reference before acting.
+description: "Use for TypeScript 5.9+ on Node 22 LTS: code style (naming, ESM-first, import order), type system depth (generics, conditional types, infer, narrowing, satisfies, branded types), async (AbortController, async iterators), error handling (Error subclassing, Result types, AggregateError), Node patterns (fs/promises, child_process, streams, workers, pino), Zod validation at trust boundaries, Prettier, ESLint 9 flat config, packaging (pnpm workspaces, exports), and Vitest testing. Read the matching reference before acting."
 ---
 
 # TypeScript skill index

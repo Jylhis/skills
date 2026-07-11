@@ -481,12 +481,59 @@ def _check_scripts_advisory(strict: bool) -> tuple[int, int]:
     return warnings, (warnings if strict else 0)
 
 
+# ── Optional: skill size advisory pass ─────────────────────────────────
+
+
+DESC_ADVISORY_MAX = 600
+FILE_ADVISORY_MAX_LINES = 500
+
+
+def _check_size_advisory(skill_files: list[Path], strict: bool) -> tuple[int, int]:
+    """Returns (warnings, hard_errors).
+
+    Advisory by default: emits to stderr and never raises the exit code.
+    Strict mode promotes warnings to hard errors.
+
+    Descriptions are level-1 progressive disclosure: always loaded, and
+    truncated in combined listings, so they should stay well under the
+    1024-char platform cap. Oversized SKILL.md files (frontmatter plus
+    body) should move detail into references/.
+    """
+    desc_count = 0
+    file_count = 0
+    for skill_md in skill_files:
+        rel = skill_md.relative_to(REPO_ROOT)
+        text = skill_md.read_text(errors="replace")
+        parsed = parse_frontmatter(text)
+        if parsed is not None:
+            desc = parsed[0].get("description")
+            if isinstance(desc, str) and len(desc) > DESC_ADVISORY_MAX:
+                desc_count += 1
+                print(f"{rel}: description length {len(desc)} exceeds advisory "
+                      f"limit {DESC_ADVISORY_MAX}; front-load the trigger and compact",
+                      file=sys.stderr)
+        lines = len(text.splitlines())
+        if lines > FILE_ADVISORY_MAX_LINES:
+            file_count += 1
+            print(f"{rel}: SKILL.md is {lines} lines, over the advisory limit of "
+                  f"{FILE_ADVISORY_MAX_LINES}; move detail into references/",
+                  file=sys.stderr)
+
+    warnings = desc_count + file_count
+    if warnings:
+        print(f"validate.py: size: {desc_count} oversized description(s), "
+              f"{file_count} oversized SKILL.md file(s) (advisory)",
+              file=sys.stderr)
+    return warnings, (warnings if strict else 0)
+
+
 # ── Entry point ────────────────────────────────────────────────────────
 
 
 def main() -> int:
     strict_upstream = "--strict-upstream" in sys.argv[1:]
     strict_scripts = "--strict-scripts" in sys.argv[1:]
+    strict_size = "--strict-size" in sys.argv[1:]
 
     if not SKILLS_DIR.is_dir():
         print(f"validate.py: skills/ not found at {SKILLS_DIR}", file=sys.stderr)
@@ -514,6 +561,7 @@ def main() -> int:
 
     upstream_warnings, upstream_hard = _check_upstream_advisory(skill_files, strict_upstream)
     scripts_warnings, scripts_hard = _check_scripts_advisory(strict_scripts)
+    size_warnings, size_hard = _check_size_advisory(skill_files, strict_size)
 
     if all_errors:
         for err in all_errors:
@@ -531,11 +579,18 @@ def main() -> int:
               file=sys.stderr)
         return 1
 
+    if size_hard:
+        print(f"\nvalidate.py: {size_hard} size advisory error(s) (strict mode)",
+              file=sys.stderr)
+        return 1
+
     suffix = ""
     if upstream_warnings:
         suffix += f"; {upstream_warnings} upstream advisory warning(s)"
     if scripts_warnings:
         suffix += f"; {scripts_warnings} scripts advisory warning(s)"
+    if size_warnings:
+        suffix += f"; {size_warnings} size advisory warning(s)"
     print(f"validate.py: OK ({len(all_skill_files)} skill(s)){suffix}")
     return 0
 

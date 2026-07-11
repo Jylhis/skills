@@ -1,6 +1,6 @@
 ---
 name: azure-storage
-description: "Azure Storage Services including Blob Storage, File Shares, Queue Storage, Table Storage, and Data Lake. Answers questions about storage access tiers (hot, cool, cold, archive), when to use each tier, and tier comparison. Provides object storage, SMB file shares, async messaging, NoSQL key-value, and big data analytics. Includes lifecycle management. USE FOR: blob storage, file shares, queue storage, table storage, data lake, upload files, download blobs, storage accounts, access tiers, storage tiers, hot cool cold archive, storage tier comparison, when to use storage tiers, lifecycle management, Azure Storage concepts. DO NOT USE FOR: SQL databases, Cosmos DB (use azure-prepare), messaging with Event Hubs or Service Bus (use azure-messaging)."
+description: "Use for Azure Storage questions and tasks: Blob Storage, File Shares, Queue Storage, Table Storage, Data Lake, storage accounts, uploading files, downloading blobs, access tiers (hot, cool, cold, archive), tier comparison and when to use each tier, and lifecycle management. Covers object storage, SMB file shares, async messaging queues, NoSQL key-value, and big data analytics. DO NOT USE FOR: SQL databases or Cosmos DB (use azure-prepare), Event Hubs or Service Bus messaging (use azure-messaging)."
 license: MIT
 metadata:
   author: Microsoft

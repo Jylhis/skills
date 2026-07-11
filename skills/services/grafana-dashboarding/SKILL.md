@@ -1,6 +1,6 @@
 ---
 name: grafana-dashboarding
-description: Create, modify, and organise Grafana dashboards including panels, variables, transformations, and alerting. Use when the user asks to create a Grafana dashboard, add a panel, configure a time series or stat panel, add template variables, set up dashboard linking, use transformations, configure thresholds, build a dashboard for a service, or export dashboard JSON. Triggers on phrases like "create dashboard", "add panel", "time series panel", "Grafana dashboard JSON", "template variables", "dashboard variable", "panel transformation", "threshold", "stat panel", "table panel", "Grafana annotations", or "dashboard folder".
+description: "Use when creating, modifying, or organising Grafana dashboards: panels, template variables, transformations, thresholds, dashboard links, folders, annotations, and dashboard JSON export. Triggers on \"create dashboard\", \"add panel\", \"time series panel\", \"stat panel\", \"table panel\", \"Grafana dashboard JSON\", \"dashboard variable\", \"panel transformation\", \"threshold\", or \"build a dashboard for a service\"."
 license: Apache-2.0
 metadata:
   upstream-id: grafana-skills
