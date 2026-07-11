@@ -41,9 +41,10 @@ scope for migration.
 1. ~~Add a Go toolchain to `devenv.nix`.~~ Done (`devenv.nix` now ships
    Go + Bun + TypeScript via `languages.*` options).
 2. ~~Port the smallest helper first: `scripts/append-correction.py`.~~
-   Done — see `scripts/append-correction.go`. The slash command at
-   `plugins/jylhis-skills-core/commands/remember-correction.md`
-   invokes it via `go run`.
+   Done — see `scripts/append-correction.go`. The plugin-local skill at
+   `plugins/jylhis-skills-core/skills/remember-correction/SKILL.md`
+   (invoked as `/jylhis-skills-core:remember-correction`) invokes it via
+   `go run`.
 3. Port `meta/upstream-tracker/scripts/` next — small, internal,
    no end-user impact.
 4. Port `skills/services/gitlab/scripts/` as a group; one PR per

@@ -136,11 +136,17 @@ devenv -O packages:pkgs "ripgrep fd" shell -- rg pattern
 ## Claude runtime layer
 
 Claude-only plugin artefacts ship inside per-plugin directories, not at the
-repo root. Pi discovers skills by scanning for `SKILL.md` and ignores the
-non-skill artefacts (`agents/`, `commands/`, `.lsp.json`, `.mcp.json`);
-`install.sh` mirrors only each plugin's `skills/` into `~/.pi/agent/skills/`,
-so these files never reach Pi. claude.ai Skills are skills-only too — they
-carry none of this layer.
+repo root. Pi discovers skills by scanning for `SKILL.md` and ignores
+non-skill artefacts (`agents/`, `.lsp.json`, `.mcp.json`), but Claude-only
+plugin-local skills are themselves `SKILL.md` files inside the plugin's
+`skills/` dir, so ignoring by file type is not enough. The real invariant:
+`sync_pi_plugin_skills()` in `scripts/install.sh` mirrors only the
+SYMLINKED entries of each plugin's `skills/` into `~/.pi/agent/skills/`
+(symlinks point into the portable tree; real directories are Claude-only
+and are excluded), so target-native content never reaches Pi. claude.ai
+Skills are packaged from the portable `skills/<category>/<name>` tree only,
+so they carry none of this layer either. See
+`docs/adr-claude-extensions.md`.
 
 - `plugins/jylhis-<lang>/.lsp.json` — native LSP plugin format (Claude
   Code spawns each entry on demand for matching file extensions). One file
@@ -155,13 +161,21 @@ carry none of this layer.
   callable as `@reviewer`, `@explorer`, `@debugger`. Frontmatter is
   `name` + `description` only; per the plugin reference, plugin-shipped
   agents may not declare `mcpServers`, `hooks`, or `permissionMode`.
-- `plugins/jylhis-skills-core/commands/<name>.md` — slash commands
-  (`/explore`, `/lsp-status`, `/remember-correction`). Plain markdown with
-  optional `description`, `argument-hint`, `allowed-tools` frontmatter.
-  The body is the prompt; `$ARGUMENTS` receives the user's command line.
-  `/lsp-status` discovers every installed language plugin's `.lsp.json` at
-  runtime, so it reflects only the LSPs the user has opted into.
-  `/remember-correction` appends to the improvement-memory JSONL via
+- `plugins/jylhis-skills-core/skills/<name>/SKILL.md` (real directories,
+  not symlinks): Claude-only plugin-local skills (`explore`, `lsp-status`,
+  `remember-correction`), invoked as `/jylhis-skills-core:<name>`. These
+  replace the former `commands/` slash commands: Claude Code now creates a
+  command from every skill. Their frontmatter may use Claude-only fields
+  (`allowed-tools`, `argument-hint`, `context: fork`, `agent`,
+  `disable-model-invocation`); `$ARGUMENTS` in the body receives the
+  user's command line. They live outside the portable
+  `skills/<category>/<name>` tree and are NOT listed in `plugin.json`
+  `skills[]` (Claude Code auto-discovers every entry in the plugin's
+  `skills/` directory; see `docs/adr-claude-extensions.md`).
+  `/jylhis-skills-core:lsp-status` discovers every installed language
+  plugin's `.lsp.json` at runtime, so it reflects only the LSPs the user
+  has opted into. `/jylhis-skills-core:remember-correction` appends to the
+  improvement-memory JSONL via
   `go run "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go" --json -`.
 - `.mcp.json` is intentionally absent — the LSP work that would
   otherwise need an MCP bridge (e.g. `mcp-language-server`) is handled
@@ -237,7 +251,7 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 Schema reference: `meta/skill-improver/references/schema.md`.
 Use `go run scripts/append-correction.go --json -` (one JSON object on
 stdin) to append safely under a file lock. The user can invoke the same
-path via `/remember-correction <note>`.
+path via `/jylhis-skills-core:remember-correction <note>`.
 
 The file lives outside the repo, in the XDG state directory — it is
 host-private, not committed, not synced. This JSONL is the machine-

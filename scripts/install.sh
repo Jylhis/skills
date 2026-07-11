@@ -29,6 +29,7 @@ OPTIN_PLUGINS=(
   jylhis-python
   jylhis-typescript
   jylhis-go
+  jylhis-rust
   jylhis-jvm
   jylhis-emacs
   jylhis-nix
@@ -88,10 +89,19 @@ link() {
 # directories for SKILL.md. Mirror a plugin's skills/ symlink farm into
 # ~/.pi/agent/skills/<plugin>/ as real files (rsync -L resolves the symlinks to
 # the canonical skills/<category>/<name>/ tree). evals/ are recording fixtures,
-# not skill content, so they are excluded.
+# not skill content, so they are excluded. Only SYMLINKED entries are mirrored:
+# real directories inside a plugin's skills/ are Claude-only plugin-local
+# skills (see docs/adr-claude-extensions.md) and must never reach Pi.
 sync_pi_plugin_skills() {
   local pi_dir="$1" plugin="$2"
   local dest="$pi_dir/skills/$plugin"
+  local entry
+  local claude_only_excludes=()
+
+  for entry in "$REPO_ROOT/plugins/$plugin/skills"/*; do
+    [[ -e "$entry" || -L "$entry" ]] || continue
+    [[ -L "$entry" ]] || claude_only_excludes+=(--exclude "/$(basename "$entry")")
+  done
 
   # Back up any existing symlink / non-directory before creating the dir, so a
   # broken symlink at $dest can't make `mkdir -p` fail.
@@ -101,6 +111,7 @@ sync_pi_plugin_skills() {
   fi
   run mkdir -p "$dest"
   run rsync -aL --delete --delete-excluded \
+    ${claude_only_excludes[@]+"${claude_only_excludes[@]}"} \
     --exclude .git \
     --exclude .devenv \
     --exclude .direnv \
@@ -250,9 +261,9 @@ else
 pi (pi-coding-agent) not found on PATH. Install it with:
   npm install -g @earendil-works/pi-coding-agent
   # or: curl -fsSL https://pi.dev/install.sh | sh
-Then re-run this script, or sync the default plugin manually:
-  mkdir -p "$PI_DIR/skills/${DEFAULT_PLUGIN}"
-  rsync -aL --delete "$REPO_ROOT/plugins/${DEFAULT_PLUGIN}/skills/" "$PI_DIR/skills/${DEFAULT_PLUGIN}/"
+Then re-run this script. Do not raw-rsync a plugin's skills/ dir into Pi:
+it can contain Claude-only plugin-local skill directories, and only this
+script's mirror (symlinked entries only) keeps those out of Pi.
 EOF
 fi
 
@@ -267,8 +278,9 @@ Available opt-in plugins: ${OPTIN_PLUGINS[*]}
 
 To install one (example: jylhis-python):
   Claude Code:  /plugin install jylhis-python@jylhis-skills
-  Pi:           rsync -aL --delete "$REPO_ROOT/plugins/jylhis-python/skills/" "$PI_DIR/skills/jylhis-python/"
-                # then re-run scripts/install.sh to keep it refreshed
+  Pi:           mkdir -p "$PI_DIR/skills/jylhis-python" && bash "$REPO_ROOT/scripts/install.sh"
+                # install.sh refreshes every plugin whose Pi dir exists,
+                # mirroring only the symlinked (portable) skill entries
 
 claude.ai Skills (upload channel): run \`just package\` and upload
 dist/skills/<name>.zip via claude.ai → Settings → Capabilities → Skills.

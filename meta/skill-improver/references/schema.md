@@ -1,8 +1,9 @@
 # improvement-memory JSONL schema
 
 This file is the single source of truth for the schema written by
-`scripts/append-correction.py` and the `/remember-correction` slash
-command. The JSONL lives at
+`scripts/append-correction.go` and the
+`/jylhis-skills-core:remember-correction` plugin-local skill. The
+JSONL lives at
 `${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl`
 — deliberately outside the repo, so machine-private corrections never
 leak into commits, marketplaces, or shared diffs.
