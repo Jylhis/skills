@@ -69,7 +69,7 @@ eval-smoke suite="":
     set -euo pipefail
     suites="{{suite}}"
     if [ -z "$suites" ]; then
-        suites="$(python3 -c 'import sys; sys.path.insert(0, "evals/scripts"); from _paths import discover_suites; print("\n".join(discover_suites()))')"
+        suites="$(python3 scripts/list_suites.py)"
     fi
     for suite in $suites; do
         python3 evals/scripts/expand.py "$suite" --stub-sut --no-rubric

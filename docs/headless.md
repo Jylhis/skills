@@ -20,12 +20,17 @@ network, no promptfoo). To run it without just, loop over the discovered
 suites directly:
 
 ```sh
-suites="$(python3 -c 'import sys; sys.path.insert(0, "evals/scripts"); from _paths import discover_suites; print("\n".join(discover_suites()))')"
+set -e
+suites="$(python3 scripts/list_suites.py)"
 for suite in $suites; do
     python3 evals/scripts/expand.py "$suite" --stub-sut --no-rubric
     python3 evals/scripts/invariants.py --provider stub --judge stub --suite "$suite"
 done
 ```
+
+`scripts/list_suites.py` prints one suite name per line and exits 1
+with a stderr message when no suites exist, so an empty tree fails the
+step instead of silently passing an empty loop.
 
 ## Full local gate (requires devenv)
 
@@ -60,13 +65,12 @@ Scope it to exactly the commands the gate needs and nothing else.
 
 ```sh
 claude -p "Run python3 scripts/validate.py. Then list the eval suites \
-with a python3 -c one-liner that adds evals/scripts to sys.path and \
-prints _paths.discover_suites(). For each suite run python3 \
+with python3 scripts/list_suites.py. For each suite run python3 \
 evals/scripts/expand.py <suite> --stub-sut --no-rubric and python3 \
 evals/scripts/invariants.py --provider stub --judge stub --suite \
 <suite>. Report pass/fail per step; on failure include the command \
 and its output." \
-  --allowedTools "Bash(python3 scripts/validate.py),Bash(python3 evals/scripts/expand.py:*),Bash(python3 evals/scripts/invariants.py:*),Bash(python3 -c:*)"
+  --allowedTools "Bash(python3 scripts/validate.py),Bash(python3 scripts/list_suites.py),Bash(python3 evals/scripts/expand.py:*),Bash(python3 evals/scripts/invariants.py:*)"
 ```
 
 Inside a devenv shell the allowlist can be even tighter, since just
@@ -82,8 +86,11 @@ Notes for unattended use:
 - `Bash(cmd:*)` allows `cmd` plus arguments; `Bash(cmd)` allows only the
   exact string. Prefer exact entries where the command takes no
   arguments.
-- Do not add broad entries like `Bash(*)`; that defeats the purpose of
-  the allowlist on a run with no human in the loop.
+- Do not add broad entries like `Bash(*)` or `Bash(python3 -c:*)`; an
+  entry that permits arbitrary code defeats the purpose of the allowlist
+  on a run with no human in the loop. Wrap ad-hoc logic in a checked-in
+  script (as `scripts/list_suites.py` does for suite discovery) and
+  allowlist that exact command instead.
 - Add `--output-format json` if a wrapper script needs to parse the
   result (exit status, cost, final message).
 
