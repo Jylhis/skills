@@ -1,7 +1,7 @@
 // Append a single correction entry to the improvement-memory JSONL.
 //
-// Canonical location (repo-root scripts/append-correction.go is a symlink
-// here, so the ${CLAUDE_PLUGIN_ROOT} path resolves in plugin installs).
+// Canonical location: this file lives in the plugin so the
+// ${CLAUDE_PLUGIN_ROOT}/scripts path resolves in plugin installs.
 //
 // Default path: ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 //

@@ -60,11 +60,12 @@ canonical tree, which is what keeps the pool portable.
    `remember-correction` runs
    `${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go`, so the
    canonical location of that helper moved INTO the plugin:
-   `plugins/jylhis-skills-core/scripts/append-correction.go` is the one
-   real copy, and repo-root `scripts/append-correction.go` is a relative
-   symlink to it. Repo-root usage (`go run scripts/append-correction.go`
-   per AGENTS.md) follows the symlink; the plugin install gets the real
-   file. Single-sourced, so there is no copy to drift.
+   `plugins/jylhis-skills-core/scripts/append-correction.go` is the only
+   copy, and repo-root callers run
+   `go run plugins/jylhis-skills-core/scripts/append-correction.go`
+   directly (no repo-root symlink: duplicate-code analyzers index a
+   symlinked Go file as a second identical file). Single-sourced, so
+   there is no copy to drift.
 
 ## Consequences
 

@@ -131,7 +131,7 @@ When the user corrects your behaviour on something skill-related, append
 one entry to the improvement-memory JSONL. The canonical reference is in
 AGENTS.md § Recording corrections; the schema is at
 `meta/skill-improver/references/schema.md`; the helper is
-`scripts/append-correction.go`; the user-facing invocation is
+`plugins/jylhis-skills-core/scripts/append-correction.go`; the user-facing invocation is
 `/jylhis-skills-core:remember-correction`.
 
 The `skill-improver` meta-skill consumes the JSONL when iterating on a

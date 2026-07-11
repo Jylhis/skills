@@ -249,7 +249,7 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 ```
 
 Schema reference: `meta/skill-improver/references/schema.md`.
-Use `go run scripts/append-correction.go --json -` (one JSON object on
+Use `go run plugins/jylhis-skills-core/scripts/append-correction.go --json -` (one JSON object on
 stdin) to append safely under a file lock. The user can invoke the same
 path via `/jylhis-skills-core:remember-correction <note>`.
 

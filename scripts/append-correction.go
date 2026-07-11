@@ -1,1 +1,0 @@
-../plugins/jylhis-skills-core/scripts/append-correction.go

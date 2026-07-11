@@ -98,6 +98,12 @@ sync_pi_plugin_skills() {
   local entry
   local claude_only_excludes=()
 
+  # A deleted/renamed plugin dir must not crash the script under set -e.
+  if [[ ! -d "$REPO_ROOT/plugins/$plugin/skills" ]]; then
+    echo "skip pi:$plugin (no plugins/$plugin/skills directory)"
+    return 0
+  fi
+
   for entry in "$REPO_ROOT/plugins/$plugin/skills"/*; do
     [[ -e "$entry" || -L "$entry" ]] || continue
     [[ -L "$entry" ]] || claude_only_excludes+=(--exclude "/$(basename "$entry")")

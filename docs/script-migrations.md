@@ -24,7 +24,7 @@ scope for migration.
 |------|---------|--------|----------|-----------|
 | `scripts/install.sh` (321 lines) | bash | Go | medium | Real installer with multiple registration paths; would benefit from typed config + tests. |
 | `scripts/validate.py` (533 lines) | typed Python (advisory-clean) | Go | low | Bootstrap concern — the validator can't validate itself if rewritten in Go yet. Already typed; keep as the typed-Python exemplar until Go is in `devenv.nix`. |
-| `scripts/append-correction.go` | Go | — | done | Ported from Python. Byte-identical JSONL output. The reference Go port. |
+| `plugins/jylhis-skills-core/scripts/append-correction.go` | Go | — | done | Ported from Python. Byte-identical JSONL output. The reference Go port. |
 | `evals/scripts/cassette.py` | Python | typed Python (exemption) | defer | Heavy YAML + jsonschema reliance; rewriting in Go is high-effort, low-value. Keep but ensure `mypy --strict` clean. |
 | `evals/scripts/expand.py` | Python | typed Python (exemption) | defer | Same — PyYAML-driven case expansion. |
 | `evals/scripts/invariants.py` | Python | typed Python (exemption) | defer | Same — jsonschema-driven invariants. |
@@ -41,7 +41,7 @@ scope for migration.
 1. ~~Add a Go toolchain to `devenv.nix`.~~ Done (`devenv.nix` now ships
    Go + Bun + TypeScript via `languages.*` options).
 2. ~~Port the smallest helper first: `scripts/append-correction.py`.~~
-   Done — see `scripts/append-correction.go`. The plugin-local skill at
+   Done — see `plugins/jylhis-skills-core/scripts/append-correction.go`. The plugin-local skill at
    `plugins/jylhis-skills-core/skills/remember-correction/SKILL.md`
    (invoked as `/jylhis-skills-core:remember-correction`) invokes it via
    `go run`.
