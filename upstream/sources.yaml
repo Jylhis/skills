@@ -220,7 +220,7 @@ sources:
     subpath: .github/plugins/azure-skills/skills
     license: MIT
     upstream-rev: c33193b1b2dd14d5946e3c6213fd095ffa5b31df
-    reviewed-rev: f39093a2538d8180055a48d68f26c284361116e1
+    reviewed-rev: 506c7a7a24809efbbdc0c3cc5cf0fbfb3450a86f
     last-fetched: "2026-07-11T19:53:04Z"
     skills:
       - upstream: azure-deploy
@@ -259,7 +259,7 @@ sources:
     subpath: .github/skills
     license: MIT
     upstream-rev: c33193b1b2dd14d5946e3c6213fd095ffa5b31df
-    reviewed-rev: 2909352da0a88bf12cfa9922feff6ca288ea770e
+    reviewed-rev: 34f5e11a53a6914d7e8e3659e93eef485b76b7cc
     last-fetched: "2026-07-11T19:53:08Z"
     skills:
       - upstream: microsoft-docs
@@ -307,7 +307,7 @@ sources:
     subpath: skills
     license: AGPL-3.0
     upstream-rev: 7155edc7040b23186bd25dd23a7a1b95375ff6c3
-    reviewed-rev: 03c7b81fd296fc01c00e8477a0595f0e99cdef3f
+    reviewed-rev: f3f6a3b715a4768c9e492dc9f112e574900092db
     last-fetched: "2026-07-11T19:53:10Z"
     skills:
       - upstream: grafana-core/grafana-oss
