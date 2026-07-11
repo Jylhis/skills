@@ -126,7 +126,7 @@ cases:
       replacement code, no prose.
     assert:
       contains_all: ["host"]
-      output_match_regex: 'subprocess\.run\(\['
+      output_match_regex: 'subprocess\.run\(\s*\['
       not_regex:
         - 'shell\s*=\s*True'
         - '\b(I apologize|As an AI)\b'
@@ -143,7 +143,10 @@ cases:
       pinning the resolved IP, and blocking private ranges plus the
       cloud metadata IP; name that IP explicitly. Bullet list only.
     assert:
-      contains_all: ["169.254.169.254", "allowlist", "private"]
+      contains_all: ["169.254.169.254"]
+      regex:
+        - '[Aa]llow[- ]?list'
+        - '[Pp]rivate'
       not_regex:
         - '\b(I apologize|As an AI)\b'
       max_latency_ms: 60000
