@@ -10,9 +10,10 @@ Code (CLI and web) primarily, with Pi (`pi-coding-agent`) portability.
 Method: a fan-out deep-research pipeline (5 search angles, 21 sources
 fetched, 105 candidate claims extracted, 25 adversarially verified with
 3-vote refutation panels: 24 confirmed unanimously, 1 refuted) merged with
-a full local audit of this repository (memory files, all 65 SKILL.md files,
-16 plugin manifests, agents, commands, validation, CI, evals, upstream
-tracking).
+a full local audit of this repository (memory files, all 65 SKILL.md files
+(60 published under `skills/` plus 5 repo-only under `meta/`), 16 plugin
+manifests, agents, commands, validation, CI, evals, upstream tracking).
+Line counts throughout are `wc -l`.
 
 ## Part 1: Verified best practices
 
@@ -219,7 +220,8 @@ topic directories, 21 files, directly under the skill dir instead of
 
 ### P2: Description hygiene for trigger quality
 
-All 60 descriptions currently pass the 50-1024 lint (max is azure-cost at
+All 60 published-skill descriptions currently pass the 50-1024 lint
+(the lint covers `skills/` only, not `meta/`) (max is azure-cost at
 970 chars), but several push toward both the 1,024-char hard limit and the
 1,536-char listing truncation window: azure-cost 970, grafana-oss 921,
 grafana-alerting 863, upstream-tracker (meta) 843, azure-deploy 808,
