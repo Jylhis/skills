@@ -1,0 +1,16 @@
+{
+  "elapsed_ms": 1234,
+  "family": "anthropic",
+  "provenance": {
+    "cli": "synthetic-bootstrap",
+    "cli_version": "0.0.0",
+    "host": "synthetic",
+    "model_snapshot": "default",
+    "note": "Synthetic placeholder so CI can run before a real `just eval-record` against claude. Replace with real recording before treating any score as a measurement.",
+    "platform": "synthetic",
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "temperature": 0
+  },
+  "text": "Add this build step to the release pipeline:\nfor f in docs/man/*.1; do\n  pandoc -f man -t html5 -s \"$f\" -o \"site/${f##*/}.html\"\ndone\n",
+  "triggered": null
+}
