@@ -2,7 +2,8 @@
 #
 # Schema: see evals/scripts/expand.py for the full contract.
 # - kind: trigger_positive | trigger_negative | output_quality
-# - providers: which targets the case runs against (default per kind)
+# - providers: recording hint only; expand.py always schedules every
+#   case against all providers (see default_providers in expand.py)
 # - near_miss_vocabulary: required for trigger_negative (Doc 2 §4)
 # - assert.triggered: diagnose | null  (claude-only signal)
 # - assert.contains_all / regex / not_regex / output_match_regex: deterministic
@@ -18,7 +19,7 @@ cases:
     kind: trigger_positive
     expected_skill: diagnose
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       Our checkout service intermittently returns HTTP 500 about once
       every thirty requests in staging, and I cannot reproduce it
@@ -34,7 +35,7 @@ cases:
     kind: trigger_positive
     expected_skill: diagnose
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       After yesterday's deploy, p95 latency on the /search endpoint
       jumped from 120ms to 900ms. Nothing in the diff looks obviously
@@ -50,7 +51,7 @@ cases:
     kind: trigger_positive
     expected_skill: diagnose
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     prompt: |
       The CSV importer is throwing "KeyError: 'amount'" for some
       customer files but not others, and the failing files look
@@ -68,7 +69,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["bisect", "debug", "regression"]
     prompt: |
       Explain how `git bisect run` works under the hood for a blog
@@ -83,7 +84,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["regression test", "failing", "bug"]
     prompt: |
       Add a happy-path unit test for the discount-code feature I just
@@ -97,7 +98,7 @@ cases:
     kind: trigger_negative
     expected_skill: null
     providers: [claude]
-    pass_threshold: 0.5
+    pass_threshold: 1.0
     near_miss_vocabulary: ["post-mortem", "root cause", "bug"]
     prompt: |
       Tidy up the wording of this already-written post-mortem
@@ -123,7 +124,7 @@ cases:
       list, no other prose.
     assert:
       contains_all: ["1.", "2.", "3."]
-      output_match_regex: 'If .+ is the cause, then .+'
+      output_match_regex: 'If [\s\S]+? is the cause, then [\s\S]+'
       not_regex:
         - '\b(I apologize|As an AI)\b'
       max_latency_ms: 60000
@@ -139,8 +140,7 @@ cases:
       form [DEBUG-<4 hex chars>] so every probe can be grepped out
       later in one pass. Output only the code line, no prose.
     assert:
-      contains_all: ["[DEBUG-"]
-      output_match_regex: 'console\.error\([^\n]*\[DEBUG-[0-9a-f]{4}\]'
+      output_match_regex: 'console\.error\([^\n]*\[DEBUG-[0-9A-Fa-f]{4}\]'
       not_regex:
         - '\b(I apologize|As an AI)\b'
       max_latency_ms: 60000
