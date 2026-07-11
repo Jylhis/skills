@@ -190,7 +190,8 @@ error with `--strict-scripts`. Migration plan: `docs/script-migrations.md`.
 When a user corrects skill-related behaviour, append one entry to the
 host-private improvement-memory JSONL at
 `${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl`
-using `go run scripts/append-correction.go --json -` (one JSON object on
-stdin; also reachable via `/remember-correction <note>`). It is scoped to
+using `go run plugins/jylhis-skills-core/scripts/append-correction.go
+--json -` (one JSON object on stdin; also reachable via
+`/remember-correction <note>`). It is scoped to
 skill iteration (the `skill-improver` meta-skill reads it), not a general
 scratchpad. Schema reference: `meta/skill-improver/references/schema.md`.
