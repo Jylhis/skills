@@ -1,0 +1,16 @@
+{
+  "elapsed_ms": 1234,
+  "family": "unknown",
+  "provenance": {
+    "cli": "synthetic-bootstrap",
+    "cli_version": "0.0.0",
+    "host": "synthetic",
+    "model_snapshot": "default",
+    "note": "Synthetic placeholder so CI can run before a real `just eval-record` against pi. Replace with real recording before treating any score as a measurement.",
+    "platform": "synthetic",
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "temperature": 0
+  },
+  "text": "Phishing: a fraudulent message that impersonates a trusted party to trick someone into revealing credentials or taking a harmful action. Social engineering: manipulating people, rather than machines, into handing over access or confidential information.\n",
+  "triggered": null
+}

@@ -1,0 +1,149 @@
+# Eval suite for the `security` skill (skills/domains/security).
+#
+# Schema: see evals/scripts/expand.py for the full contract.
+# - kind: trigger_positive | trigger_negative | output_quality
+# - providers: recording hint only; expand.py schedules every case
+#   against all providers regardless. invariants.py rejects non-claude
+#   entries in this field on trigger_* cases.
+# - near_miss_vocabulary: required for trigger_negative; at least one
+#   term must appear in the prompt text
+# - assert.triggered: security | null (skill-name-or-null signal from
+#   the provider trace)
+# - assert.contains_all / regex / not_regex / output_match_regex:
+#   deterministic checks (this suite is deterministic-only, no rubric)
+
+cases:
+  # Trigger positives (claude only). Each prompt is a code-security
+  # review ask squarely inside the skill's description: untrusted
+  # input flowing into shell, outbound HTTP, or deserialization.
+
+  - id: trigger-pos-subprocess-injection
+    kind: trigger_positive
+    expected_skill: security
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      Review this Python HTTP handler for vulnerabilities before I
+      merge it. It builds a shell command from a user-supplied
+      hostname: subprocess.run(f"ping -c 1 {hostname}", shell=True).
+      The hostname comes straight from the request body, untrusted.
+    assert:
+      triggered: security
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-node-ssrf-fetch
+    kind: trigger_positive
+    expected_skill: security
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      Audit this Node.js endpoint: it takes a `url` query parameter
+      from the client and passes it directly to fetch() to proxy the
+      response back. I am worried about SSRF against internal
+      services and the cloud metadata endpoint. What must change?
+    assert:
+      triggered: security
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-java-deserialization
+    kind: trigger_positive
+    expected_skill: security
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      Security-review this Java service before release: it reads
+      bytes off a message queue and feeds them to
+      ObjectInputStream.readObject() without any filtering. The queue
+      accepts messages from partner systems we do not control.
+    assert:
+      triggered: security
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  # Trigger negatives (claude only). Near-misses: they carry
+  # security-adjacent vocabulary but the right answer is infra
+  # plumbing, prose writing, or ops work, not a code security review.
+
+  - id: trigger-neg-terraform-security-group
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["security group", "firewall"]
+    prompt: |
+      Add an ingress rule to the AWS security group in my Terraform
+      module so port 443 is reachable from the office CIDR block.
+      Routine firewall plumbing in infrastructure code; I am not
+      asking for an application code review.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-glossary-definitions
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["phishing", "social engineering"]
+    prompt: |
+      For a training slide deck glossary, write one-sentence
+      plain-English definitions of phishing and social engineering.
+      This is prose for non-engineers; there is no code to review.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-certbot-renewal
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["certificate", "HTTPS"]
+    prompt: |
+      The HTTPS certificate for nginx on our web host expired this
+      morning. Walk me through renewing it with certbot and reloading
+      nginx. Pure server ops; no application code is involved.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  # Output quality (cross-CLI lane, deterministic asserts only).
+
+  - id: output-quality-argv-rewrite
+    kind: output_quality
+    expected_skill: security
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      Rewrite this Python line to remove the command injection risk
+      by switching to an argv-array call with subprocess.run and no
+      shell: os.system(f"ping -c 1 {host}"). Output only the
+      replacement code, no prose.
+    assert:
+      contains_all: ["host"]
+      output_match_regex: 'subprocess\.run\(\['
+      not_regex:
+        - 'shell\s*=\s*True'
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: output-quality-ssrf-guards
+    kind: output_quality
+    expected_skill: security
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      List the outbound-request guards a Node.js service needs before
+      fetching a user-supplied URL. Cover the scheme allowlist,
+      pinning the resolved IP, and blocking private ranges plus the
+      cloud metadata IP; name that IP explicitly. Bullet list only.
+    assert:
+      contains_all: ["169.254.169.254", "allowlist", "private"]
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
