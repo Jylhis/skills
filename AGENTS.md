@@ -13,7 +13,8 @@ marketplace), **Pi** (`pi-coding-agent`), and **claude.ai Skills** (per-skill
 `.zip` upload). The default plugin (`jylhis-skills-core`) ships
 cross-cutting engineering and productivity skills (security, ast-grep,
 semgrep, tdd, diagnose, triage, handoff, humanizer, and more) plus the
-shipped subagents and slash commands.
+shipped subagents and plugin-local command skills (invoked as
+`/jylhis-skills-core:<name>`).
 Per-language, per-service, and per-tool plugins (`jylhis-python`,
 `jylhis-go`, `jylhis-nix`, `jylhis-gitlab`, `jylhis-obsidian`, and ten
 more) are discoverable through the marketplace UI but installed only when
@@ -35,8 +36,8 @@ instructions.
   containing its own `.claude-plugin/plugin.json` and a `skills/` directory
   of symlinks pointing back into `skills/<category>/<name>`. The default
   plugin `plugins/jylhis-skills-core/` additionally ships `agents/` and
-  `commands/`; language plugins ship a per-language `.lsp.json` (see
-  Claude runtime layer below).
+  plugin-local Claude-only skills; language plugins ship a per-language
+  `.lsp.json` (see Claude runtime layer below).
 - `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
   `upstream-tracker`, `using-skills`, `skill-extractor`). **Not** shipped
   via any plugin and not auto-loaded by any tool; only relevant when

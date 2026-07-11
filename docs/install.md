@@ -115,7 +115,7 @@ Install one (example: `jylhis-python`):
 | Tool | Command |
 |---|---|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills` |
-| Pi | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` — then re-run `just install` (or `bash scripts/install.sh`) to keep it refreshed |
+| Pi | run `just install` (or `bash scripts/install.sh`); the installer mirrors each installed plugin's symlinked skills into `~/.pi/agent/skills/` |
 | claude.ai | `just package jylhis-python` is not a unit; package individual skills (`just package <name>`) and upload the `.zip` |
 
 ## Development
