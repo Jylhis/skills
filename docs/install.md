@@ -8,8 +8,12 @@ targets: **Claude Code** (CLI + Claude Code on the web), **Pi**
 ## Quick install
 
 ```bash
+just install
+# without just:
 bash scripts/install.sh
 ```
+
+Both run the same script; `just install` is the devenv-shell shortcut.
 
 Idempotent; backs up anything it would overwrite under `~/.skills-backup-<ts>/`.
 Pass `--dry-run` to preview. Installs the default plugin only — opt-in plugins
@@ -69,7 +73,7 @@ npm install -g @earendil-works/pi-coding-agent
 # or: curl -fsSL https://pi.dev/install.sh | sh
 ```
 
-then re-run `bash scripts/install.sh`. Override the agent dir with
+then re-run `just install` (or `bash scripts/install.sh`). Override the agent dir with
 `PI_AGENT_DIR=… bash scripts/install.sh`.
 
 ### claude.ai Skills
@@ -111,7 +115,7 @@ Install one (example: `jylhis-python`):
 | Tool | Command |
 |---|---|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills` |
-| Pi | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` — then re-run `bash scripts/install.sh` to keep it refreshed |
+| Pi | run `just install` (or `bash scripts/install.sh`); the installer mirrors each installed plugin's symlinked skills into `~/.pi/agent/skills/` |
 | claude.ai | `just package jylhis-python` is not a unit; package individual skills (`just package <name>`) and upload the `.zip` |
 
 ## Development
