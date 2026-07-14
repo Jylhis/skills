@@ -40,6 +40,7 @@ OPTIN_PLUGINS=(
   jylhis-grafana
   jylhis-taste
   jylhis-duckdb
+  jylhis-learning
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 
