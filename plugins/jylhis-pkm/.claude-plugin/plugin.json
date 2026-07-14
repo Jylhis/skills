@@ -7,6 +7,7 @@
   },
   "repository": "https://github.com/Jylhis/skills",
   "skills": [
+    "./skills/graphify",
     "./skills/llm-wiki",
     "./skills/para-method",
     "./skills/qmd"
