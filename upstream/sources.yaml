@@ -274,7 +274,7 @@ sources:
     license: MIT
     upstream-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
     reviewed-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
-    last-fetched: "2026-06-22T07:59:53Z"
+    last-fetched: "2026-07-14T19:43:45Z"
     skills:
       - upstream: obsidian-markdown
         category: personal
@@ -388,6 +388,20 @@ sources:
         category: services
         name: spatial
         target-plugin: jylhis-duckdb
+        merge-strategy: standalone
+  - id: qmd
+    repo: "https://github.com/tobi/qmd"
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: e428df76bc0274d9e93eb7ca3e95673315c42e90
+    reviewed-rev: e428df76bc0274d9e93eb7ca3e95673315c42e90
+    last-fetched: "2026-07-14T19:45:26Z"
+    skills:
+      - upstream: qmd
+        category: personal
+        name: qmd
+        target-plugin: jylhis-pkm
         merge-strategy: standalone
   - id: taste-skill
     repo: "https://github.com/Leonxlnx/taste-skill"

@@ -6,5 +6,7 @@
     "name": "Jylhis"
   },
   "repository": "https://github.com/Jylhis/skills",
-  "skills": []
+  "skills": [
+    "./skills/qmd"
+  ]
 }
