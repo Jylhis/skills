@@ -403,6 +403,20 @@ sources:
         name: qmd
         target-plugin: jylhis-pkm
         merge-strategy: standalone
+  - id: andrej-karpathy-skills
+    repo: "https://github.com/multica-ai/andrej-karpathy-skills"
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: 2c606141936f1eeef17fa3043a72095b4765b9c2
+    reviewed-rev: 2c606141936f1eeef17fa3043a72095b4765b9c2
+    last-fetched: "2026-07-14T19:47:04Z"
+    skills:
+      - upstream: karpathy-guidelines
+        category: engineering
+        name: karpathy-guidelines
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
   - id: taste-skill
     repo: "https://github.com/Leonxlnx/taste-skill"
     branch: main
