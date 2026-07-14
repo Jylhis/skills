@@ -37,6 +37,7 @@ OPTIN_PLUGINS=(
   jylhis-terraform
   jylhis-azure
   jylhis-obsidian
+  jylhis-pkm
   jylhis-grafana
   jylhis-taste
   jylhis-duckdb

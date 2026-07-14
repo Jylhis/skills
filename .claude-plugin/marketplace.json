@@ -82,6 +82,12 @@
       "category": "Productivity"
     },
     {
+      "name": "jylhis-pkm",
+      "source": "./plugins/jylhis-pkm",
+      "description": "Personal knowledge management skills: LLM-maintained markdown wiki, PARA organization method, qmd local search, graphify knowledge graphs.",
+      "category": "Productivity"
+    },
+    {
       "name": "jylhis-grafana",
       "source": "./plugins/jylhis-grafana",
       "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",

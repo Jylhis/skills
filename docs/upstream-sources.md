@@ -59,6 +59,18 @@ then run
 | `waza` | github:tw93/Waza | `waza` | `skills/` | |
 | `mattpocock-skills` | github:mattpocock/skills | `mattpocock` | `skills/` | excludes `design-an-interface`, `edit-article`, `obsidian-vault`, `qa`, `request-refactor-plan`, `ubiquitous-language` |
 
+## Adapted sources (not tracked in `sources.yaml`)
+
+These upstreams cannot flow through `import.py` (no importable
+`skills/<name>/SKILL.md` layout), so their content was manually adapted
+into locally authored skills. Re-check them by hand when refreshing.
+
+| Source | Adapted into | Notes |
+|---|---|---|
+| github:Graphify-Labs/graphify (MIT) | `skills/personal/graphify` | upstream ships a single lowercase `graphify/skill.md` inside the Python package; workflow adapted, not vendored |
+| gist:karpathy/442a6bf555914893e9891c11519de94f | `skills/personal/llm-wiki` | pattern document, no license stated; concepts adapted in original prose |
+| fortelabs.com/blog/para (copyrighted) | `skills/personal/para-method` | method described in original prose with attribution |
+
 ## Anthropic-published skills (rely on upstream distribution)
 
 The following skills were vendored into `staging/` but have been removed in
