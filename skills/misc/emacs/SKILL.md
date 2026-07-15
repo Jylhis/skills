@@ -1,6 +1,6 @@
 ---
 name: emacs
-description: Use for Emacs and Emacs Lisp work — modern Elisp conventions (lexical-binding, use-package, keymap-set, setopt, defvar-keymap, if-let*, tree-sitter ts-mode), authoring major modes (define-derived-mode, font-lock, indent-line-function, syntax tables, treesit-simple-indent-rules), package publishing (MELPA / GNU ELPA / NonGNU ELPA, ;;;###autoload, package-lint, checkdoc), code review (linting, byte-compile, obsolete API detection), ERT testing, debugging (--debug-init, Edebug, profiler, native-comp), gptel + MCP integration, introspection (describe-*, apropos, find-function), and keybinding design (keymap layers, key-valid-p). Read the matching reference before acting.
+description: "Use for Emacs and Emacs Lisp work: modern Elisp conventions (lexical-binding, use-package, keymap-set, setopt, defvar-keymap, tree-sitter ts-mode), authoring major modes (define-derived-mode, font-lock, indentation), package publishing (MELPA, GNU/NonGNU ELPA, package-lint, checkdoc), Elisp code review, ERT testing, debugging (--debug-init, Edebug, profiler, native-comp), gptel and MCP integration, introspection (describe-*, apropos, find-function), and keybinding design. Read the matching reference before acting."
 ---
 
 # Emacs skill index

@@ -1,6 +1,6 @@
 ---
 name: grafana-alerting
-description: Configure Grafana Alerting, Incident Response Management (IRM), and SLOs end-to-end — provisions Grafana-managed and data-source-managed alert rules, contact points (Slack/PagerDuty/email/webhook), notification policies with hierarchical matchers, silences, mute timings, on-call schedules and escalation chains, incident-management integrations, and SLOs with multi-window burn-rate alerts. Use when configuring alerts, debugging notification routing, setting up on-call rotations, declaring or managing incidents, defining SLOs, provisioning alerting via YAML or API, picking matchers for a notification policy, building a PagerDuty/Slack webhook receiver, or troubleshooting why an alert isn't firing — even when the user says "page me on errors", "alert me when X happens", "route this to the platform team", or "set up an SLO" without naming Alerting or IRM.
+description: "Use when configuring Grafana Alerting, IRM, or SLOs: alert rules (Grafana-managed or data-source-managed), contact points (Slack, PagerDuty, email, webhook), notification policies and matchers, silences, mute timings, on-call schedules, escalation chains, incident management, SLOs with burn-rate alerts, provisioning alerting via YAML or API, or debugging why an alert is not firing or routing. Applies even to \"page me on errors\", \"alert me when X happens\", or \"set up an SLO\" without naming Alerting or IRM."
 license: Apache-2.0
 metadata:
   upstream-id: grafana-skills

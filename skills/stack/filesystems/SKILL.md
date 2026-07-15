@@ -1,6 +1,6 @@
 ---
 name: filesystems
-description: Use for low-level filesystem topics on macOS, Linux, and NixOS — APFS (clonefile, copy-on-write, Spotlight exclusion, Time Machine snapshots, /nix synthetic mounts, dedicated APFS volumes), Btrfs (flat subvolume layout, impermanence + erase-your-darlings root rollback, compress=zstd, NOCOW vs SQLite WAL, bees deduplication, cross-subvolume reflinks), and ZFS / OpenZFS (pool / dataset layout, recordsize, ashift, compression, ARC sizing, block cloning, mirrors vs RAIDZ, sanoid / syncoid replication, NixOS generations + ZFS snapshots). Read the matching reference before recommending filesystem changes.
+description: "Use for low-level filesystem topics on macOS, Linux, and NixOS: APFS (clonefile, copy-on-write, Spotlight exclusion, Time Machine snapshots, /nix volumes), Btrfs (flat subvolume layout, impermanence and erase-your-darlings rollback, compress=zstd, NOCOW vs SQLite WAL, bees dedup, reflinks), and ZFS/OpenZFS (pool and dataset layout, recordsize, ashift, compression, ARC sizing, block cloning, mirrors vs RAIDZ, sanoid/syncoid replication, NixOS generations with ZFS snapshots). Read the matching reference before recommending filesystem changes."
 ---
 
 # Filesystems skill index
