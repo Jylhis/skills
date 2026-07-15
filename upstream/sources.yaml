@@ -64,6 +64,20 @@ sources:
         merge-strategy: umbrella-references
         umbrella: go
         topic: naming
+      - upstream: golang-gopls
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: gopls
+      - upstream: golang-pkg-go-dev
+        category: languages
+        name: go
+        target-plugin: jylhis-go
+        merge-strategy: umbrella-references
+        umbrella: go
+        topic: pkg-go-dev
   - id: trailofbits-skills
     repo: "https://github.com/trailofbits/skills"
     branch: main
