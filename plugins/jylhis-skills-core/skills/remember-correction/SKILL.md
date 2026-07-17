@@ -1,7 +1,9 @@
 ---
-description: Append a correction note to the improvement-memory JSONL.
+name: remember-correction
+description: Append a correction note to the improvement-memory JSONL. Side-effectful append, so it is user-invoked only, as /jylhis-skills-core:remember-correction <note>.
 argument-hint: <short note describing the correction>
 allowed-tools: Bash(go run "${CLAUDE_PLUGIN_ROOT}/scripts/append-correction.go":*), Bash(date:*), Read
+disable-model-invocation: true
 ---
 
 Record a user correction as one schema-v1 entry in the
@@ -18,7 +20,7 @@ Steps:
    - `schema_version`: `1`.
    - `timestamp`: shell out to `date -u +%FT%TZ`.
    - `session_id`: `null` (Claude Code does not expose a stable id to
-     slash commands; do not fabricate).
+     skill invocations; do not fabricate).
    - `skill`: best inference from the recent transcript, else `null`.
      Use the on-disk skill directory basename (e.g. `python`,
      `skill-creator-lang`).
@@ -38,7 +40,7 @@ Steps:
 
 4. On exit 0, print one acknowledgement line showing the resolved file
    path (the helper prints it on stdout). On non-zero exit, surface
-   the helper's stderr verbatim — do not retry.
+   the helper's stderr verbatim; do not retry.
 
 Example invocation:
 

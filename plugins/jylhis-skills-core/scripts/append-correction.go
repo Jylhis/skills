@@ -1,5 +1,8 @@
 // Append a single correction entry to the improvement-memory JSONL.
 //
+// Canonical location: this file lives in the plugin so the
+// ${CLAUDE_PLUGIN_ROOT}/scripts path resolves in plugin installs.
+//
 // Default path: ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 //
 // Schema v1 keys: schema_version (=1), timestamp (RFC3339 UTC), session_id,
