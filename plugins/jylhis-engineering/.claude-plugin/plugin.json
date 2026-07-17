@@ -1,6 +1,6 @@
 {
   "name": "jylhis-engineering",
-  "description": "Engineering workflow skills \u2014 architecture decision records, code review, deploy checklists, technical documentation, incident response, standups, system design, and tech-debt audits.",
+  "description": "Engineering workflow skills — architecture decision records, code review, deploy checklists, technical documentation, incident response, standups, system design, and tech-debt audits.",
   "version": "1.0.0",
   "author": {
     "name": "Jylhis"
