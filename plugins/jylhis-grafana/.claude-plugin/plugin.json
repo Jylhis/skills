@@ -1,6 +1,6 @@
 {
   "name": "jylhis-grafana",
-  "description": "Grafana skill \u2014 observability, dashboards, PromQL, alerts, OnCall.",
+  "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
   "version": "0.1.0",
   "author": {
     "name": "Jylhis"
