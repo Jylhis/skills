@@ -8,13 +8,16 @@
   "repository": "https://github.com/Jylhis/skills",
   "skills": [
     "./skills/ast-grep",
-    "./skills/caveman",
-    "./skills/commit-stories",
+    "./skills/bash",
+    "./skills/code-comments",
+    "./skills/commit-messages",
     "./skills/diagnose",
+    "./skills/feature-flags",
     "./skills/git-surgeon",
     "./skills/grill-with-docs",
     "./skills/handoff",
     "./skills/humanizer",
+    "./skills/karpathy-guidelines",
     "./skills/microsoft-docs",
     "./skills/offline-docs",
     "./skills/prototype",
@@ -23,8 +26,6 @@
     "./skills/tdd",
     "./skills/to-prd",
     "./skills/triage",
-    "./skills/trunk-based-development",
-    "./skills/feature-flags",
-    "./skills/zoom-out"
+    "./skills/trunk-based-development"
   ]
 }

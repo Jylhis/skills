@@ -1,0 +1,9 @@
+{
+  "rust": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#rust-analyzer", "-c", "rust-analyzer"],
+    "extensionToLanguage": {
+      ".rs": "rust"
+    }
+  }
+}

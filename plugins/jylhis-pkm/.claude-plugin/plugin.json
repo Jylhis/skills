@@ -1,0 +1,15 @@
+{
+  "name": "jylhis-pkm",
+  "description": "Personal knowledge management: LLM-maintained wiki (llm-wiki), PARA method (para-method), local markdown search (qmd), knowledge graphs (graphify).",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/graphify",
+    "./skills/llm-wiki",
+    "./skills/para-method",
+    "./skills/qmd"
+  ]
+}

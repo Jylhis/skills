@@ -50,7 +50,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 EVALS_DIR = REPO_ROOT / "evals"
 GENERATED_DIR = EVALS_DIR / ".generated"
 
-ALL_PROVIDERS = ["claude", "codex", "pi"]
+ALL_PROVIDERS = ["claude", "pi"]
 
 
 def default_providers(case: dict) -> list[str]:
@@ -58,7 +58,7 @@ def default_providers(case: dict) -> list[str]:
 
     The cases.yaml field ``providers`` is purely a recording hint (which
     CLIs to *record* against); it does not restrict which providers
-    appear in the promptfoo matrix.  We always expand to all three
+    appear in the promptfoo matrix.  We always expand to all
     providers so that promptfoo's top-level × test cross-product has a
     cassette for every cell.
     """

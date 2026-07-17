@@ -201,6 +201,23 @@ def find_source(data: dict[str, Any], source_id: str) -> dict[str, Any]:
     sys.exit(2)
 
 
+def mapping_local(mapping: dict[str, Any]) -> str | None:
+    """Return the ``<category>/<name>`` local path for a skills[] entry.
+
+    Accepts the preferred ``category:`` + ``name:`` shape or the legacy
+    ``local: <category>/<name>``. Returns ``None`` when neither is present
+    (e.g. a malformed entry) so callers can skip rather than crash.
+    """
+    category = mapping.get("category")
+    name = mapping.get("name")
+    if isinstance(category, str) and isinstance(name, str):
+        return f"{category}/{name}"
+    legacy = mapping.get("local")
+    if isinstance(legacy, str) and legacy.count("/") == 1:
+        return legacy
+    return None
+
+
 # ── Frontmatter helpers (skill SKILL.md) ───────────────────────────────
 
 
@@ -378,6 +395,22 @@ def git(*args: str, cwd: Path | None = None, check: bool = True,
         capture_output=capture,
         text=True,
     )
+
+
+def resolve_sha(cache: Path, rev: str) -> str:
+    """Expand an abbreviated rev to its full 40-char commit sha.
+
+    Cursor advance matches decision-log keys against the full shas emitted
+    by ``git log``, so any sha accepted from a human (e.g. ``--confirm``)
+    must be normalised to full length before it is recorded. Raises
+    ``ValueError`` if the rev is unknown in the cache clone.
+    """
+    result = git("rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}",
+                 cwd=cache, check=False)
+    full = result.stdout.strip()
+    if result.returncode != 0 or not full:
+        raise ValueError(f"unknown rev {rev!r} in {cache}")
+    return full
 
 
 def ensure_clone(src: dict[str, Any]) -> Path:

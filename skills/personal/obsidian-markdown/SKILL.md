@@ -3,7 +3,7 @@ name: obsidian-markdown
 description: Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.
 metadata:
   upstream-id: obsidian-skills
-  upstream-rev: ac9398734fe719565809f7a6048b05c36b1ca38f
+  upstream-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
   upstream-path: obsidian-markdown
   upstream-imported: 2026-05-12
 ---

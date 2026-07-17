@@ -59,6 +59,29 @@ then run
 | `waza` | github:tw93/Waza | `waza` | `skills/` | |
 | `mattpocock-skills` | github:mattpocock/skills | `mattpocock` | `skills/` | excludes `design-an-interface`, `edit-article`, `obsidian-vault`, `qa`, `request-refactor-plan`, `ubiquitous-language` |
 
+## Adapted sources (not tracked in `sources.yaml`)
+
+These upstreams cannot flow through `import.py` (no importable
+`skills/<name>/SKILL.md` layout), so their content was manually adapted
+into locally authored skills. Re-check them by hand when refreshing.
+
+| Source | Adapted into | Notes |
+|---|---|---|
+| github:Graphify-Labs/graphify (MIT) | `skills/personal/graphify` | upstream ships a single lowercase `graphify/skill.md` inside the Python package; workflow adapted, not vendored |
+| gist:karpathy/442a6bf555914893e9891c11519de94f | `skills/personal/llm-wiki` | pattern document, no license stated; concepts adapted in original prose |
+| fortelabs.com/blog/para (copyrighted) | `skills/personal/para-method` | method described in original prose with attribution |
+
+## Evaluated candidates (decided, not adopted)
+
+Candidates surfaced during upstream review that were evaluated and
+consciously **not** vendored, recorded here so they don't resurface as
+open questions.
+
+| Candidate | Source | Decision | Reason |
+|---|---|---|---|
+| `golang-refactoring` | `cc-skills-golang` (MIT) | deferred (2026-07-15) | Its substance lives in a multi-file upstream `references/` subdir that the `umbrella-references` flatten drops; the SKILL.md body is mostly `ultracode`/worktree/PR orchestration persona plus a "Community default" banner, so flattening now yields a hollow topic. Revisit only if folding the subfiles in by hand. Its siblings `golang-gopls` and `golang-pkg-go-dev` were adopted into the `go` umbrella. |
+| `rust-review` | `trailofbits-skills` (AGPL-3.0) | skip (2026-07-15) | Plugin orchestrator, not a self-contained skill: 1 of 86 files is the SKILL.md, and every phase shells out to sibling `scripts/*.py`, `agents/*.md`, `prompts/clusters/*` that a standalone import leaves behind (it aborts at plugin-root resolution on invocation). Does not fit the skills-only marketplace model; only viable as a whole-plugin vendor, out of scope for now. |
+
 ## Anthropic-published skills (rely on upstream distribution)
 
 The following skills were vendored into `staging/` but have been removed in

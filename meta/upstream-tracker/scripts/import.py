@@ -294,7 +294,6 @@ def _wire_plugin(plugin: str, category: str, name: str) -> list[str]:
         else:
             out.append(f"  claude manifest ok: {entry} already listed")
 
-    # Codex manifest uses recursive `skills: "./skills/"` — symlink alone is enough.
     return out
 
 

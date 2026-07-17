@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-rust",
+  "description": "Rust implementation contract — typed boundaries and newtypes, exhaustive enums as single source of truth, error discipline (typed public APIs, n0-error), deterministic testing via injected host context, channel-first concurrency. Bundles the Leptos 0.8 UI contract for Rust/WASM front-ends.",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": ["./skills/rust", "./skills/leptos"]
+}
