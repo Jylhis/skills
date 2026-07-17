@@ -13,7 +13,10 @@ __pycache__/
 *.pyc
 
 # Per-machine tool install/runtime state — install scripts regenerate these.
-.claude/
+# Keep the shared hook config tracked; everything else in .claude/ is local.
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 .pi/
 
 # Generated claude.ai skill archives (`just package`).
