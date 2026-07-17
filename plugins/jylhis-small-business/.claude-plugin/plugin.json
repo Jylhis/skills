@@ -1,0 +1,28 @@
+{
+  "name": "jylhis-small-business",
+  "description": "Small-business operations skills — cash-flow forecasting, month-end close, invoice chasing, payroll planning, CRM upkeep, lead triage, marketing campaigns, contract review, tax prep, and customer support.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jylhis"
+  },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": [
+    "./skills/business-pulse",
+    "./skills/cash-flow-snapshot",
+    "./skills/crm-cleanup",
+    "./skills/crm-maintenance",
+    "./skills/customer-pulse",
+    "./skills/invoice-chase",
+    "./skills/job-post-builder",
+    "./skills/lead-triage",
+    "./skills/margin-analyzer",
+    "./skills/month-end-prep",
+    "./skills/plan-payroll",
+    "./skills/quarterly-review",
+    "./skills/review-contract",
+    "./skills/run-campaign",
+    "./skills/sales-brief",
+    "./skills/tax-season-organizer",
+    "./skills/ticket-deflector"
+  ]
+}

@@ -104,6 +104,30 @@
       "source": "./plugins/jylhis-duckdb",
       "description": "DuckDB skills — read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
       "category": "Coding"
+    },
+    {
+      "name": "jylhis-engineering",
+      "source": "./plugins/jylhis-engineering",
+      "description": "Engineering workflow skills — ADRs, code review, deploy checklists, documentation, incident response, standups, system design, tech-debt audits.",
+      "category": "Coding"
+    },
+    {
+      "name": "jylhis-product",
+      "source": "./plugins/jylhis-product",
+      "description": "Product-management skills — competitive briefs, metrics reviews, brainstorming, roadmaps, sprint planning, stakeholder updates, research synthesis.",
+      "category": "Productivity"
+    },
+    {
+      "name": "jylhis-productivity",
+      "source": "./plugins/jylhis-productivity",
+      "description": "Workplace productivity skills — two-tier working memory and shared-file task management.",
+      "category": "Productivity"
+    },
+    {
+      "name": "jylhis-small-business",
+      "source": "./plugins/jylhis-small-business",
+      "description": "Small-business operations skills — finance, CRM, marketing, HR, contracts, tax, and customer support workflows.",
+      "category": "Productivity"
     }
   ]
 }
