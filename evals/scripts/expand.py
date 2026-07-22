@@ -188,7 +188,7 @@ def build_assertions(case: dict, suite: str, judge: str | None,
     ]
 
 
-def _triggered_assert_body(expected) -> str:
+def _triggered_assert_body(expected: str | None) -> str:
     """JS body for a promptfoo `javascript` assertion.
 
     Reads the wrapper's stderr trace JSON via

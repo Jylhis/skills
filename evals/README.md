@@ -4,7 +4,7 @@ Offline, no-API-key evaluation harness for the `jylhis-skills` catalogue.
 Drives the two agent-skill CLIs (Claude Code and
 `pi-coding-agent`) through `promptfoo` `exec:` providers, with
 deterministic assertions as the merge gate and an optional LLM-as-a-judge
-layer for rubric-style checks. See `docs/skills-spec-v3.md` §10 for the
+layer for rubric-style checks. See `docs/skills-spec-v4.md` §8 for the
 overall design and `cases.yaml` schema; see this README for how to
 actually run anything.
 

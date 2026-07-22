@@ -14,23 +14,26 @@ marketplace), **Pi** (`pi-coding-agent`), and **claude.ai Skills** (per-skill
 cross-cutting engineering and productivity skills (security, ast-grep,
 offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
-Per-language, per-service, and per-tool plugins
+Opt-in plugins spanning languages, services, tools, and workflows
 (`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-rust`,
 `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
 `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`,
-`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`) are discoverable through the marketplace UI but installed
-only when the user opts in. See `docs/install.md` for install instructions.
+`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`, `jylhis-engineering`,
+`jylhis-product`, `jylhis-productivity`, `jylhis-small-business`) are
+discoverable through the marketplace UI but installed only when the user
+opts in. See `docs/install.md` for install instructions.
 
 ## Layout
 
 - `skills/` — canonical SKILL.md tree, source of truth. Skills live at
   `skills/<category>/<name>/SKILL.md`. Categories are
   `engineering` (practices and workflows: ast-grep, semgrep, tdd,
-  diagnose, prototype, triage, microsoft-docs), `languages` (per-language
-  guidance: python, typescript, go, jvm, nix), `domains` (cross-cutting
-  topic deep dives: security, taste), `services` (specific named platforms
-  and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
-  on specific named technologies: filesystems), `productivity` (handoff,
+  diagnose, architecture, system-design, code-review, incident-response, …),
+  `languages` (per-language guidance: python, typescript, go, rust, jvm,
+  nix, bash), `domains` (cross-cutting topic deep dives: security, taste),
+  `services` (specific named platforms and ecosystems: gitlab, azure,
+  grafana, terraform, duckdb, …), `stack` (deep dives
+  on specific named technologies: filesystems, leptos), `productivity` (handoff,
   humanizer, task/memory management), `product` (product-management
   practices: roadmaps, specs, research synthesis, metrics), `business`
   (small-business operations: finance, CRM, marketing, HR, contracts, tax),
@@ -79,7 +82,7 @@ only when the user opts in. See `docs/install.md` for install instructions.
   deterministic-first assertions driven through `promptfoo` `exec:`
   providers, optional cross-vendor LLM-as-a-judge layer, hash-keyed
   VCR cassettes for CI replay. See `evals/README.md` for recipes and
-  the spec-v3 §10 mapping.
+  the spec-v4 §8 mapping.
 
 For the workflow that operates on `upstream/`, see the
 `upstream-tracker` skill in `meta/` (project-local).
@@ -117,8 +120,8 @@ just validate # portable skill lint + plugin-manifest cross-check
 
 ## Installing opt-in plugins
 
-`just install` only deploys `jylhis-skills-core`. To pull in a language or
-tool plugin from the same marketplace:
+`just install` only deploys `jylhis-skills-core`. To pull in an opt-in
+plugin from the same marketplace:
 
 | Tool        | Command                                                                |
 |-------------|------------------------------------------------------------------------|
@@ -128,7 +131,9 @@ tool plugin from the same marketplace:
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-rust`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
 `jylhis-filesystems`, `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`,
-`jylhis-obsidian`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
+`jylhis-obsidian`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`,
+`jylhis-engineering`, `jylhis-product`, `jylhis-productivity`,
+`jylhis-small-business`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 

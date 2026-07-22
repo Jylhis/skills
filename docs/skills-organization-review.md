@@ -4,6 +4,12 @@ Brief recommendation memo per the upstream-import plan, after
 vendoring 9 of Matt Pocock's skills into `skills/engineering/` and
 `skills/productivity/`.
 
+> **Historical snapshot.** The category names and counts below are frozen at
+> the time of that import pass and are not maintained. The repo has since grown
+> to 10 categories (adds `product` and `business`) and many more skills. For the
+> current taxonomy see `AGENTS.md` and `docs/install.md`; for the authoritative
+> plugin set see `.claude-plugin/marketplace.json`.
+
 ## What mattpocock does
 
 `mattpocock/skills` organises around 3 top-level categories:

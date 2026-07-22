@@ -36,7 +36,7 @@ Full instructions, opt-in plugins, and scope options: **[`docs/install.md`](docs
 
 - **`skills/<category>/<name>/`** — the canonical, portable skill pool (source of
   truth). Categories: `engineering`, `languages`, `domains`, `services`,
-  `stack`, `productivity`, `personal`, `misc`.
+  `stack`, `productivity`, `product`, `business`, `personal`, `misc`.
 - **`plugins/<plugin>/`** — distribution units for Claude Code. Each has a
   `.claude-plugin/plugin.json` and a `skills/` farm of symlinks into the pool.
   The default plugin also ships subagents (`@reviewer`, `@explorer`,

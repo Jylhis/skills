@@ -3,14 +3,26 @@ default:
 
 # Lint shell scripts and portable skill frontmatter
 check:
-    shellcheck scripts/install.sh evals/providers/*.sh evals/judges/*.sh
+    git ls-files '*.sh' | xargs shellcheck
     python3 scripts/validate.py
 
 # Portable skill lint only
 validate:
     python3 scripts/validate.py
 
-# Symlink repo root as plugin into each tool's plugin directory
+# Vet and test every Go module in the repo (one go.mod per module dir)
+test-go:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # --cached --others --exclude-standard: tracked plus not-yet-committed
+    # modules, still honouring .gitignore (skips .devenv, caches).
+    for modfile in $(git ls-files --cached --others --exclude-standard '*go.mod'); do
+        mod=$(dirname "$modfile")
+        echo "# $mod"
+        (cd "$mod" && go vet ./... && go test ./...)
+    done
+
+# Register the marketplace and install jylhis-skills-core into each tool
 install:
     bash scripts/install.sh
 

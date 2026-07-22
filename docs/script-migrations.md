@@ -33,8 +33,8 @@ scope for migration.
 | `meta/upstream-tracker/scripts/fetch.py` | typed Python | Go | low | git fetch wrapper; trivial Go rewrite. |
 | `meta/upstream-tracker/scripts/import.py` | typed Python | Go | low | Tree walk + frontmatter inject; doable in Go. |
 | `meta/upstream-tracker/scripts/review.py` | typed Python | Go | low | Append-only decision log; trivial Go rewrite. |
-| `skills/services/gitlab/scripts/ci-debug.sh` | bash | Go | medium | GitLab API call + JSON manipulation — Go is the right shape (`net/http` + `encoding/json`). |
-| `skills/services/gitlab/scripts/sync-fork.sh` | bash | Go | medium | Same. |
+| `skills/services/gitlab/scripts/ci-debug/` | Go | — | done | Ported from bash. Shells to `glab`, parses pipeline JSON and filters failed jobs in-process; table-driven tests. |
+| `skills/services/gitlab/scripts/sync-fork/` | Go | — | done | Ported from bash. Git orchestration behind an injected commander; table-driven tests. |
 
 ## Order of operations
 
@@ -46,8 +46,10 @@ scope for migration.
    invokes it via `go run`.
 3. Port `meta/upstream-tracker/scripts/` next — small, internal,
    no end-user impact.
-4. Port `skills/services/gitlab/scripts/` as a group; one PR per
-   script or a single PR if the diff stays reviewable.
+4. ~~Port `skills/services/gitlab/scripts/` as a group.~~ Done —
+   `sync-fork/` and `ci-debug/` are Go with table-driven tests under a
+   scoped `go.mod` in that directory. Kept the `glab` dependency (faithful
+   wrapper); an API-based `net/http` rewrite remains a possible refinement.
 5. Port `scripts/install.sh` once a Go port of `validate.py` exists
    (so `just check` can shell out to one Go binary instead of two).
 6. Port `scripts/validate.py` last; rewriting it in Go closes the

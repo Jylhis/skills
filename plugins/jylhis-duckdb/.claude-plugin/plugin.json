@@ -1,7 +1,7 @@
 {
   "name": "jylhis-duckdb",
   "description": "DuckDB skills \u2014 read any data file, query and attach DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": {
     "name": "Jylhis"
   },

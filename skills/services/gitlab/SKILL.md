@@ -17,9 +17,12 @@ Pick the topic and read its reference first.
 | CI/CD (.gitlab-ci.yml) | pipeline templates, components, downstream pipelines, Docker builds, caching, runner config, artifacts vs cache, pipeline inputs | `references/cicd.md` (+ `cicd/pipeline-templates.md`) |
 | glab CLI | creating MRs, listing your own MRs, checking pipeline status, `glab ci` commands | `references/glab.md` |
 
-Helper scripts under `scripts/`:
+Helper scripts under `scripts/` (Go, run with `go run`):
 
-- `sync-fork.sh` — fetch upstream, fast-forward merge, push to origin.
-- `ci-debug.sh` — list failed jobs in a pipeline and tail their logs.
+- `sync-fork/` — fetch upstream, fast-forward merge, push to origin.
+  Run: `go run scripts/sync-fork/main.go [branch] [upstream-remote]`
+  (defaults: `main`, `upstream`).
+- `ci-debug/` — list failed jobs in a pipeline and tail their logs.
+  Run: `go run scripts/ci-debug/main.go <pipeline-id>`.
 
 After reading the reference, follow its guidance for the task.

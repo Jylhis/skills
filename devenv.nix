@@ -27,9 +27,8 @@
 
   enterTest = ''
     set -e
-    shellcheck scripts/install.sh
-    shellcheck evals/providers/*.sh evals/judges/*.sh
-    python3 scripts/validate.py
+    just check
+    just test-go
     just eval-smoke
   '';
 }

@@ -23,25 +23,34 @@ run() { if [[ $DRY_RUN -eq 1 ]]; then echo "DRY: $*"; else "$@"; fi; }
 
 BACKUP_ROOT="$HOME/.skills-backup-$TS"
 
-# Plugin set published by the marketplace.
+# Plugin set published by the marketplace. marketplace.json is the single
+# source of truth: the opt-in set is every published plugin except the default,
+# read at runtime so this list never drifts from the manifest.
 DEFAULT_PLUGIN="jylhis-skills-core"
-OPTIN_PLUGINS=(
-  jylhis-python
-  jylhis-typescript
-  jylhis-go
-  jylhis-jvm
-  jylhis-emacs
-  jylhis-nix
-  jylhis-filesystems
-  jylhis-gitlab
-  jylhis-terraform
-  jylhis-azure
-  jylhis-obsidian
-  jylhis-grafana
-  jylhis-taste
-  jylhis-duckdb
-)
+MARKETPLACE_JSON="$REPO_ROOT/.claude-plugin/marketplace.json"
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
+
+list_optin_plugins() {
+  python3 - "$MARKETPLACE_JSON" "$DEFAULT_PLUGIN" <<'PY' 2>/dev/null || true
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+except (OSError, ValueError):
+    sys.exit(0)
+default = sys.argv[2]
+for plugin in data.get("plugins", []):
+    name = plugin.get("name")
+    if name and name != default:
+        print(name)
+PY
+}
+
+# Populate without `mapfile` — that is bash 4+, absent from stock macOS bash 3.2.
+OPTIN_PLUGINS=()
+while IFS= read -r _plugin; do
+  [[ -n "$_plugin" ]] && OPTIN_PLUGINS+=("$_plugin")
+done < <(list_optin_plugins)
 
 # Iterate $INSTALLED (Claude) for jylhis-* plugins currently installed in this scope.
 # Used to refresh all installed plugins, not just the default, after a structural

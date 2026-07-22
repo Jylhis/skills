@@ -85,7 +85,7 @@ Each archive is self-contained (`SKILL.md` + `scripts/`/`references/`/`assets/`)
 
 ## Opt-in plugins
 
-The marketplace publishes these language and tool plugins; none are installed
+The marketplace publishes these opt-in plugins; none are installed
 by default.
 
 | Plugin | Adds |
@@ -97,14 +97,18 @@ by default.
 | `jylhis-jvm` | Java/Kotlin skill |
 | `jylhis-emacs` | Emacs Lisp skill |
 | `jylhis-nix` | Nix skill + `nixd` LSP |
-| `jylhis-filesystems` | DuckDB / filesystem tooling skill |
+| `jylhis-filesystems` | APFS / Btrfs / ZFS filesystem skill |
 | `jylhis-gitlab` | GitLab push + MR-create skill |
-| `jylhis-terraform` | Terraform skill |
-| `jylhis-azure` | Azure cloud skill |
+| `jylhis-terraform` | Terraform skill set |
+| `jylhis-azure` | Azure cloud skill set |
 | `jylhis-obsidian` | Obsidian note-taking and knowledge management skill |
-| `jylhis-grafana` | Grafana observability skill |
+| `jylhis-grafana` | Grafana observability skill set |
 | `jylhis-taste` | UI/UX design taste and critique skill |
 | `jylhis-duckdb` | DuckDB query / attach / spatial skill set |
+| `jylhis-engineering` | Engineering-practice skills (architecture, system design, code review, deploy checklist, incident response, standup, tech debt, documentation) |
+| `jylhis-product` | Product-management skills (roadmaps, specs, metrics, research synthesis, sprint planning, stakeholder updates) |
+| `jylhis-productivity` | Productivity skills (memory and task management) |
+| `jylhis-small-business` | Small-business operations skills (finance, CRM, marketing, HR, contracts, tax) |
 
 Install one (example: `jylhis-python`):
 
@@ -139,7 +143,8 @@ To add a skill:
 
 1. Create `skills/<category>/<name>/SKILL.md` with two-field YAML frontmatter
    (`name`, `description`). Categories: `engineering`, `languages`,
-   `domains`, `services`, `stack`, `productivity`, `personal`, `misc`.
+   `domains`, `services`, `stack`, `productivity`, `product`, `business`,
+   `personal`, `misc`.
 2. Decide which plugin owns it. For a brand-new plugin, create
    `plugins/jylhis-<plugin>/` with `.claude-plugin/plugin.json`, plus a
    `skills/<name>` symlink with relative target

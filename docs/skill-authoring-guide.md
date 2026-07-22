@@ -3,12 +3,12 @@
 A skill is a directory under `skills/` containing a `SKILL.md` and
 optional helper material. This repo follows the
 [Agent Skills](https://agentskills.io) open standard with a strict
-portability profile (see [`skills-spec-v3.md`](skills-spec-v3.md)).
+portability profile (see [`skills-spec-v4.md`](skills-spec-v4.md) §4).
 
 ## Directory shape
 
 ```
-skills/<skill-name>/
+skills/<category>/<skill-name>/
 ├── SKILL.md           # required
 ├── references/        # optional — task-specific reference docs
 ├── scripts/           # optional — deterministic helper scripts
@@ -72,9 +72,9 @@ ${CLAUDE_PLUGIN_ROOT}, ${CLAUDE_SKILL_DIR}, ${extensionPath},
 ${workspacePath}, !`...`, !{...}
 ```
 
-If a skill genuinely requires target-specific behavior, fork it into
-`target-skills/<target>/<name>/SKILL.md` (not yet wired in this repo —
-see `docs/skills-spec-v3.md` §8).
+If a skill genuinely requires target-specific behavior, ship it as a
+target-native overlay rather than a portable skill (see
+`docs/skills-spec-v4.md` §4).
 
 ## Body shape
 
@@ -98,8 +98,8 @@ just validate    # portable skill lint
 just check       # full validation (lint + nix + markdown + shellcheck)
 ```
 
-`scripts/validate.py` ignores `staging/` — only catalogue skills under
-`skills/` are linted.
+`scripts/validate.py` lints every `SKILL.md` under `skills/` and flags
+any not at `skills/<category>/<name>/`.
 
 ## Evals
 
@@ -107,7 +107,7 @@ Eval-driven iteration on a skill — test cases, deterministic and
 LLM-as-judge assertions, grading, train/validation splits, the
 `trigger_rate` metric, and benchmark replay — is covered end-to-end by
 [`evals/README.md`](../evals/README.md) and
-[`docs/skills-spec-v3.md`](skills-spec-v3.md) §10. The harness reuses
+[`docs/skills-spec-v4.md`](skills-spec-v4.md) §8. The harness reuses
 hash-keyed VCR cassettes so CI replays without API keys.
 _Source: https://agentskills.io/skill-creation/evaluating-skills, reviewed 2026-05-11_
 
@@ -197,7 +197,7 @@ recall.
 
 For measuring trigger quality, `evals/scripts/expand.py` produces a
 `trigger_rate` metric per skill against a labelled set; see
-`docs/skills-spec-v3.md` §10 for the surrounding harness.
+`docs/skills-spec-v4.md` §8 for the surrounding harness.
 
 _Source: https://agentskills.io/skill-creation/optimizing-descriptions, reviewed 2026-05-11_
 

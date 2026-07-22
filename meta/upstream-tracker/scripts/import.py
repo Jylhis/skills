@@ -32,6 +32,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterator
 from datetime import date
 from pathlib import Path
 
@@ -116,7 +117,7 @@ def _resolve_dest(mapping: dict) -> tuple[str, str]:
 
 
 @contextlib.contextmanager
-def _extracted_upstream(cache: Path, sha: str, upstream_full: str):
+def _extracted_upstream(cache: Path, sha: str, upstream_full: str) -> Iterator[Path]:
     """Yield Path to the extracted ``upstream_full`` tree at ``sha``.
 
     Uses ``git archive | tar -x`` into a temporary directory that is

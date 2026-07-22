@@ -3,7 +3,7 @@
 
 Walks `skills/` at two levels deep (`skills/<category>/<name>/SKILL.md`) and
 validates every SKILL.md against the portability profile from
-docs/skills-spec-v3.md §6.
+docs/skills-spec-v4.md §4.
 
 Also cross-checks the multi-plugin layout under `plugins/*/.claude-plugin/
 plugin.json` against the filesystem: every on-disk skill must be referenced
@@ -32,6 +32,12 @@ CORE_PLUGIN_NAME = "jylhis-skills-core"
 # skills. Additional skills may be present (e.g. imported via
 # meta/upstream-tracker); the check is a subset, not equality.
 CORE_PLUGIN_REQUIRED_SKILLS = {"security", "ast-grep", "offline-docs"}
+
+# Docs that enumerate the published plugin set. marketplace.json is the single
+# source of truth; every plugin it lists must be named in each of these so the
+# plugin list cannot silently drift out of the docs. README.md is intentionally
+# excluded: it defers plugin enumeration to docs/install.md.
+DOC_FILES_REQUIRING_PLUGINS = ("AGENTS.md", "docs/install.md")
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DESC_MIN = 50
@@ -267,6 +273,7 @@ def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
         )
 
     errors.extend(_check_marketplace_manifest(plugin_manifests))
+    errors.extend(_check_docs_reference_plugins())
     return errors
 
 
@@ -304,6 +311,48 @@ def _check_marketplace_manifest(plugin_manifests: list[Path]) -> list[str]:
             f"{rel}: plugin dir {path.relative_to(REPO_ROOT)} not listed in marketplace.json"
         )
 
+    return errors
+
+
+def _check_docs_reference_plugins() -> list[str]:
+    """Every published plugin must be named in the plugin-enumerating docs.
+
+    marketplace.json is the single source of truth for the plugin set. This
+    guard fails when a plugin is added to the manifest but a doc that lists
+    plugins (AGENTS.md, docs/install.md) is not updated, catching the
+    plugin-list drift class before it ships.
+    """
+    if not MARKETPLACE_JSON.exists():
+        return []
+    manifest, err = _load_json(MARKETPLACE_JSON)
+    if err or manifest is None:
+        return [err] if err else []
+
+    names = [
+        entry["name"]
+        for entry in manifest.get("plugins", [])
+        if isinstance(entry, dict) and isinstance(entry.get("name"), str)
+    ]
+
+    errors: list[str] = []
+    for rel in DOC_FILES_REQUIRING_PLUGINS:
+        path = REPO_ROOT / rel
+        try:
+            text = path.read_text()
+        except OSError as exc:
+            errors.append(f"{rel}: cannot read to verify plugin coverage: {exc}")
+            continue
+        # Word-boundary match so `jylhis-product` is not satisfied by
+        # `jylhis-productivity` (a superstring).
+        missing = [
+            name for name in names
+            if not re.search(rf"(?<![\w-]){re.escape(name)}(?![\w-])", text)
+        ]
+        if missing:
+            errors.append(
+                f"{rel}: does not mention published plugin(s) {sorted(missing)} "
+                f"(marketplace.json is the source of truth; update the doc)"
+            )
     return errors
 
 
@@ -392,7 +441,6 @@ SCRIPT_GLOBS = (
 
 SH_WRAPPER_PREFIXES = ("nix ", "exec ", "nix run", "nix shell")
 SH_WRAPPER_MAX_BYTES = 200
-PY_TYPED_LINES = 50
 PY_RETURN_ANNOTATION_RE = re.compile(r"def\s+\w+\s*\([^)]*\)\s*->\s")
 
 
@@ -419,9 +467,12 @@ def _is_typed_python(path: Path) -> bool:
         return False
     if "# type: validated" in text:
         return True
-    head = text.splitlines()[:PY_TYPED_LINES]
-    has_future = any("from __future__ import annotations" in line for line in head)
-    has_return_ann = any(PY_RETURN_ANNOTATION_RE.search(line) for line in head)
+    # Scan the whole file, not a fixed head window: a long module docstring can
+    # push `from __future__ import annotations` and the first annotated def well
+    # past any cutoff, which would false-flag an otherwise fully-annotated file.
+    lines = text.splitlines()
+    has_future = any("from __future__ import annotations" in line for line in lines)
+    has_return_ann = any(PY_RETURN_ANNOTATION_RE.search(line) for line in lines)
     return has_future and has_return_ann
 
 
