@@ -268,8 +268,6 @@ unattended runs.
 
 ### P3: Housekeeping
 
-- `plugins/jylhis-rust/.codex-plugin/plugin.json` is a leftover Codex
-  artifact that spec-v4 §9 explicitly lists as dropped. Remove it.
 - `AGENTS.md` claims validation runs on every commit; until the P1 hook
   exists, the prose overstates reality. Fix whichever direction you
   choose.
