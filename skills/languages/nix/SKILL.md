@@ -12,7 +12,7 @@ sub-references go deeper where needed.
 | Topic | When to read | Reference |
 |---|---|---|
 | Language fundamentals | syntax, lambdas, attrsets, builtins, derivations, lib, callPackage, lazy eval, RFCs | `references/language.md` (+ `language/advanced.md`, `language/rfcs.md`) |
-| Flakes | flake.nix, inputs, outputs, devShells, packages, follows, flake-parts, dendritic pattern | `references/flakes.md` (+ `flakes/flake-parts.md`) |
+| Flakes | flake.nix, inputs, outputs, devShells, packages, follows, flake-parts, dendritic pattern, offline/restricted-network fetching | `references/flakes.md` (+ `flakes/flake-parts.md`, `flakes/offline-fetching.md`) |
 | Nixpkgs packaging | mkDerivation, callPackage, overlays, override, fetchers, builders, cross-compilation | `references/nixpkgs.md` (+ `nixpkgs/builders.md`, `nixpkgs/cross-compilation.md`) |
 | NixOS modules | configuration.nix, mkOption, services, systemd, agenix/sops-nix, impermanence | `references/nixos-modules.md` (+ `nixos-modules/type-system.md`, `nixos-modules/testing.md`) |
 | nix-darwin | macOS system, system.defaults, launchd, Homebrew cask integration | `references/darwin.md` (+ `darwin/defaults.md`) |

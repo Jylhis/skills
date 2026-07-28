@@ -118,6 +118,19 @@ Understand these before adopting flakes for a project:
 - **Entire directory copied to store.** The flake source is copied to `/nix/store` as a whole. Large repos with build artifacts or data files bloat the store unless `.gitignore` excludes them (Nix respects `.gitignore` for git flakes).
 - **Git staging requirement.** Only files tracked by git (at least staged with `git add`) are visible inside the flake. New untracked files silently disappear, causing confusing "file not found" errors.
 
+## Network Access During Evaluation
+
+Flake inputs name their own origin host: a `github:` input is fetched
+from GitHub's tarball endpoints at evaluation time, unlike channels,
+which resolve through NixOS-run infrastructure. The lock file's
+`narHash` was designed to allow inputs to be substituted from binary
+caches, but stock Nix only short-circuits on inputs already in the
+local store or fetcher cache; it does not substitute them from remote
+caches at eval time. For offline evaluation, air-gapped or
+egress-filtered environments (`nix flake archive`, pre-seeding the
+store by narHash, fetchTarball vs. fetchTree cache behavior), see
+`flakes/offline-fetching.md`.
+
 ## Non-Flake CLI Equivalences
 
 When working outside flakes or converting legacy commands:

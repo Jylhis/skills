@@ -156,6 +156,12 @@ Use `github:nix-community/flake-compat` — the historical `edolstra/flake-compa
 ).defaultNix
 ```
 
+Because this shim uses `builtins.fetchTarball` with the lock file's
+`narHash` as `sha256`, it short-circuits on a pre-seeded store path
+and works offline; the flake CLI's `fetchTree`-based `github:` fetcher
+does not. See `flakes/offline-fetching.md` in the **nix** skill for
+restricted-network workflows.
+
 This returns the full flake outputs attrset. Non-flake consumers use:
 
 ```bash
