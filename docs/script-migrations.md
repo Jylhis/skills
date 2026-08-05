@@ -18,6 +18,10 @@ hard errors for use in CI gates once enough has migrated.
 Shell stays only for ~5-line `nix run` wrappers. Everything bigger is in
 scope for migration.
 
+Note: the TypeScript + Bun tier currently has no assigned migration
+targets in the inventory below. It remains available for future scripts
+in ecosystems that are strongly TS-shaped.
+
 ## Inventory
 
 | Path | Current | Target | Priority | Rationale |
