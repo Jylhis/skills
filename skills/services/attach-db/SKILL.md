@@ -87,7 +87,15 @@ HOME_STATE_DIR="$HOME/.duckdb-skills/$PROJECT_ID"
 PROJECT_STATE_DIR=".duckdb-skills"
 
 test -f "$HOME_STATE_DIR/state.sql" && STATE_DIR="$HOME_STATE_DIR"
-test -z "$STATE_DIR" && test -f "$PROJECT_STATE_DIR/state.sql" && STATE_DIR="$PROJECT_STATE_DIR"
+if test -z "$STATE_DIR" && test -f "$PROJECT_STATE_DIR/state.sql"; then
+  if test -f "$PROJECT_STATE_DIR/TRUSTED_BY_USER" && \
+     ! git ls-files --error-unmatch "$PROJECT_STATE_DIR/TRUSTED_BY_USER" >/dev/null 2>&1; then
+    STATE_DIR="$PROJECT_STATE_DIR"
+  else
+    echo "Refusing to auto-use $PROJECT_STATE_DIR/state.sql: missing local trust marker."
+    echo "Migrate reviewed statements to $HOME_STATE_DIR/state.sql or create an untracked TRUSTED_BY_USER marker after review."
+  fi
+fi
 ```
 
 If `STATE_DIR` is still empty, ask where to store state:
