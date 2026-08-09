@@ -1,0 +1,16 @@
+{
+  "elapsed_ms": 1234,
+  "family": "anthropic",
+  "provenance": {
+    "cli": "synthetic-bootstrap",
+    "cli_version": "0.0.0",
+    "host": "synthetic",
+    "model_snapshot": "default",
+    "note": "Synthetic placeholder so CI can run before a real `just eval-record` against claude. Replace with real recording before treating any score as a measurement.",
+    "platform": "synthetic",
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "temperature": 0
+  },
+  "text": "Rework the plan as vertical slices instead of five tests up front.\nTracer bullet first: one failing test for the first behavior, then the minimal implementation to pass it, proving the path end-to-end.\nThen repeat per behavior: one failing test, then the minimal implementation, never batching tests ahead of code. The tracer bullet plus vertical slicing keeps each test grounded in real behavior.\n",
+  "triggered": "tdd"
+}

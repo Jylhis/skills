@@ -1,0 +1,149 @@
+# Eval suite for the `tdd` skill (skills/engineering/tdd).
+#
+# Schema: see evals/scripts/expand.py for the full contract.
+# - kind: trigger_positive | trigger_negative | output_quality
+# - providers: which targets the case runs against (default per kind)
+# - near_miss_vocabulary: required for trigger_negative (Doc 2 §4)
+# - assert.triggered: tdd | null, a claude-only signal
+# - assert.contains_all / regex / not_regex / output_match_regex: deterministic
+#
+# All output_quality asserts are deterministic; no rubric.md needed.
+
+cases:
+  # [trigger positives, Claude only]
+
+  - id: trigger-pos-red-green-feature
+    kind: trigger_positive
+    expected_skill: tdd
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      I want to add a rate limiter to our API using strict
+      red-green-refactor. Walk me through building it test-first:
+      start with one failing test, then the minimal code to pass,
+      and repeat until the feature is done.
+    assert:
+      triggered: tdd
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-bugfix-failing-test
+    kind: trigger_positive
+    expected_skill: tdd
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      There is an off-by-one bug in our pagination code. Fix it with
+      TDD: first write a failing test that reproduces the bug through
+      the public interface, then make it pass with the smallest
+      possible change.
+    assert:
+      triggered: tdd
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-integration-behavior
+    kind: trigger_positive
+    expected_skill: tdd
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      Build the checkout flow for our cart service using test-driven
+      development. I want integration-style tests that exercise the
+      public API and describe behavior, not implementation details.
+    assert:
+      triggered: tdd
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  # [trigger negatives, Claude only. MUST be near-misses: they use
+  #  TDD-adjacent vocabulary but the right answer is not the tdd skill.]
+
+  - id: trigger-neg-run-suite
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["TDD", "failing test"]
+    prompt: |
+      Run the existing test suite and paste me the name of every
+      failing test. Do not write any new tests or code. I am not
+      asking for TDD, just the current pass/fail status.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-history-writeup
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["TDD", "test-driven development"]
+    prompt: |
+      I am writing a blog post about the history of test-driven
+      development. Give me two paragraphs on how TDD emerged from
+      Kent Beck's work on Extreme Programming in the 1990s. This is
+      prose only; do not write any code or tests.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-coverage-report
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["test-first", "TDD"]
+    prompt: |
+      Generate a line coverage report for this repository using the
+      existing tests. We do not practice test-first development here,
+      so do not add tests; just show me coverage numbers per module.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  # [output quality, cross-CLI comparable lane, deterministic asserts only]
+
+  - id: output-quality-cycle-steps
+    kind: output_quality
+    expected_skill: tdd
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      Outline exactly one TDD cycle for adding an `isValidEmail`
+      function. Label the phases RED, GREEN, and REFACTOR in that
+      order, one line each, and keep the test focused on observable
+      behavior through the public interface.
+    assert:
+      contains_all: ["RED", "GREEN", "REFACTOR"]
+      output_match_regex: 'RED[\s\S]*GREEN[\s\S]*REFACTOR'
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: output-quality-vertical-slices
+    kind: output_quality
+    expected_skill: tdd
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      A teammate plans to write all five tests up front and only then
+      start the implementation. Rewrite their plan as vertical slices:
+      pair each behavior with one failing test followed by the minimal
+      implementation. Name the tracer bullet step first and keep the
+      answer short.
+    assert:
+      # Case-tolerant regexes instead of case-sensitive contains_all.
+      # expand.py has no icontains-all mapping, and promptfoo compiles
+      # regex asserts as JS RegExp where the inline (?i) flag is not
+      # portable, so bracket classes cover the realistic capitalisations.
+      regex:
+        - '[Vv]ertical'
+        - '[Tt]racer [Bb]ullet'
+        - '[Ff]ailing [Tt]est'
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000

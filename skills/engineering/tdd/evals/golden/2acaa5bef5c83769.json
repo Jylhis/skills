@@ -1,0 +1,16 @@
+{
+  "elapsed_ms": 1234,
+  "family": "unknown",
+  "provenance": {
+    "cli": "synthetic-bootstrap",
+    "cli_version": "0.0.0",
+    "host": "synthetic",
+    "model_snapshot": "default",
+    "note": "Synthetic placeholder so CI can run before a real `just eval-record` against pi. Replace with real recording before treating any score as a measurement.",
+    "platform": "synthetic",
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "temperature": 0
+  },
+  "text": "Start by reproducing the bug with a failing test through the public pagination interface.\nRED: the new test fails on the off-by-one boundary.\nGREEN: apply the smallest fix that makes it pass, then keep the test as a regression guard.\n",
+  "triggered": "tdd"
+}
