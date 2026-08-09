@@ -14,6 +14,15 @@ validate:
 install:
     bash scripts/install.sh
 
+# Evaluate the flake and prove the aiTooling catalogue serialises to JSON
+nix-check:
+    nix flake check --no-warn-dirty
+
+# Dump the aiTooling catalogue (skills/agents/commands/lspServers/mcpServers/plugins)
+nix-list kind="":
+    @if [ -z "{{kind}}" ]; then nix run --no-warn-dirty .#list; \
+     else nix run --no-warn-dirty .#list -- --kind {{kind}}; fi
+
 # List discovered skills (one SKILL.md per skill directory)
 list:
     @find skills -name SKILL.md | sort
