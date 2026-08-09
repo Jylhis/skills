@@ -62,8 +62,17 @@ eval-record suite="ast-grep" provider="claude":
     python3 evals/scripts/cassette.py record --suite {{suite}} --provider {{provider}}
 
 # Lightweight Python-only smoke test for the harness itself; useful in CI
-# even when promptfoo or the CLIs aren't available.
-eval-smoke suite="ast-grep":
-    python3 evals/scripts/expand.py {{suite}} --stub-sut --no-rubric
-    python3 evals/scripts/invariants.py --provider stub --judge stub --suite {{suite}}
-    @echo "eval-smoke OK"
+# even when promptfoo or the CLIs aren't available. With no argument it
+# runs every discovered suite (skills/*/*/evals/cases.yaml).
+eval-smoke suite="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    suites="{{suite}}"
+    if [ -z "$suites" ]; then
+        suites="$(python3 scripts/list_suites.py)"
+    fi
+    for suite in $suites; do
+        python3 evals/scripts/expand.py "$suite" --stub-sut --no-rubric
+        python3 evals/scripts/invariants.py --provider stub --judge stub --suite "$suite"
+        echo "eval-smoke OK: $suite"
+    done
