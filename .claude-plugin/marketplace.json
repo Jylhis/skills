@@ -6,7 +6,7 @@
     {
       "name": "jylhis-skills-core",
       "source": "./plugins/jylhis-skills-core",
-      "description": "Default Jylhis bundle: cross-cutting security review, ast-grep structural search, offline documentation lookup. Ships @reviewer / @explorer / @debugger subagents and the /explore + /lsp-status commands.",
+      "description": "Default Jylhis bundle: cross-cutting security review, ast-grep structural search, offline documentation lookup. Ships @reviewer / @explorer / @debugger subagents plus the plugin-local skills /jylhis-skills-core:explore, /jylhis-skills-core:lsp-status, and /jylhis-skills-core:remember-correction.",
       "category": "Coding"
     },
     {

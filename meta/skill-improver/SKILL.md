@@ -68,8 +68,8 @@ Iterate on an existing skill using recorded user corrections.
 - This meta-skill lives under `meta/` and is **not auto-loaded by
   any tool**. It's only relevant when developing inside this repo; invoke
   it by name. The user-facing JSONL append path is the
-  `/remember-correction` slash command (shipped by `jylhis-skills-core`)
-  and `AGENTS.md § Recording corrections`.
+  `/jylhis-skills-core:remember-correction` plugin-local skill (shipped
+  by `jylhis-skills-core`) and `AGENTS.md § Recording corrections`.
 - This skill is advisory: it never edits `SKILL.md` files directly.
   The user decides which proposals to apply.
 - The JSONL is host-private. Do not paste entries into shared diffs,

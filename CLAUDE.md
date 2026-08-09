@@ -26,10 +26,12 @@ to the skills listed by the runtime:
 
 - Subagents (read-only): `@reviewer`, `@explorer`, `@debugger` —
   `plugins/jylhis-skills-core/agents/`.
-- Slash commands: `/explore`, `/lsp-status`, `/remember-correction` —
-  `plugins/jylhis-skills-core/commands/`.
+- Plugin-local skills (Claude-only, real directories under
+  `plugins/jylhis-skills-core/skills/`): `explore`, `lsp-status`,
+  `remember-correction`, invoked as `/jylhis-skills-core:<name>`.
 - LSP wiring is per-language-plugin via `plugins/jylhis-<lang>/.lsp.json`;
-  `/lsp-status` reports only what the user has opted into.
+  `/jylhis-skills-core:lsp-status` reports only what the user has opted
+  into.
 
 ## Output style
 

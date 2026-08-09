@@ -38,10 +38,14 @@ Full instructions, opt-in plugins, and scope options: **[`docs/install.md`](docs
   truth). Categories: `engineering`, `languages`, `domains`, `services`,
   `stack`, `productivity`, `personal`, `misc`.
 - **`plugins/<plugin>/`** — distribution units for Claude Code. Each has a
-  `.claude-plugin/plugin.json` and a `skills/` farm of symlinks into the pool.
-  The default plugin also ships subagents (`@reviewer`, `@explorer`,
-  `@debugger`) and commands (`/explore`, `/lsp-status`, `/remember-correction`);
-  language plugins ship an `.lsp.json`.
+  `.claude-plugin/plugin.json` and a `skills/` dir of mostly symlinks into
+  the pool, plus real Claude-only plugin-local skill dirs in
+  `jylhis-skills-core`. The default plugin also ships subagents
+  (`@reviewer`, `@explorer`,
+  `@debugger`) and plugin-local skills invoked as
+  `/jylhis-skills-core:explore`, `/jylhis-skills-core:lsp-status`, and
+  `/jylhis-skills-core:remember-correction`; language plugins ship an
+  `.lsp.json`.
 - **`meta/`** — repo-only maintenance skills (skill-creator, skill-improver,
   upstream-tracker, …); not shipped to any target.
 - **`evals/`** — offline, deterministic-first eval harness (providers: `claude`,
