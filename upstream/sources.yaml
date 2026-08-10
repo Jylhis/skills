@@ -445,6 +445,22 @@ sources:
         name: taste
         target-plugin: jylhis-taste
         merge-strategy: standalone
+  - id: jetbrains-skills
+    repo: "https://github.com/JetBrains/skills"
+    branch: main
+    subpath: .
+    license: mixed (per-skill upstream licenses; Kotlin org skills MIT)
+    upstream-rev: e0f258b5cfed145015cb3e48da9a97947f7c4ed7
+    reviewed-rev: e0f258b5cfed145015cb3e48da9a97947f7c4ed7
+    last-fetched: "2026-08-10T20:39:09Z"
+    skills:
+      - upstream: stacktrace-log-triage
+        category: languages
+        name: jvm
+        target-plugin: jylhis-jvm
+        merge-strategy: umbrella-references
+        umbrella: jvm
+        topic: stacktrace-log-triage
   - id: anthropics-knowledge-work
     repo: "https://github.com/anthropics/knowledge-work-plugins"
     branch: main
