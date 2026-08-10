@@ -10,8 +10,8 @@ Deliver an actionable AppSec-grade threat model that is specific to the reposito
 - Repo root path and any in-scope paths.
 - Intended usage, deployment model, internet exposure, and auth expectations (if known).
 - Any existing repository summary or architecture spec.
-- Use prompts in `references/prompt-template.md` to generate a repository summary.
-- Follow the required output contract in `references/prompt-template.md`. Use it verbatim when possible.
+- Use prompts in `references/threat-model/prompt-template.md` to generate a repository summary.
+- Follow the required output contract in `references/threat-model/prompt-template.md`. Use it verbatim when possible.
 
 ## Workflow
 
@@ -61,7 +61,7 @@ Deliver an actionable AppSec-grade threat model that is specific to the reposito
 - Confirm runtime vs CI/dev separation.
 - Confirm user clarifications (or explicit non-responses) are reflected.
 - Confirm assumptions and open questions are explicit.
-- Confirm that the format of the report matches closely the required output format defined in prompt template: `references/prompt-template.md`
+- Confirm that the format of the report matches closely the required output format defined in prompt template: `references/threat-model/prompt-template.md`
 - Write the final Markdown to a file named `<repo-or-dir-name>-threat-model.md` (use the basename of the repo root, or the in-scope directory if you were asked to model a subpath).
 
 
@@ -72,7 +72,7 @@ Deliver an actionable AppSec-grade threat model that is specific to the reposito
 
 ## References
 
-- Output contract and full prompt template: `references/prompt-template.md`
-- Optional controls/asset list: `references/security-controls-and-assets.md`
+- Output contract and full prompt template: `references/threat-model/prompt-template.md`
+- Optional controls/asset list: `references/threat-model/security-controls-and-assets.md`
 
 Only load the reference files you need. Keep the final result concise, grounded, and reviewable.
