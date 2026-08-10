@@ -461,6 +461,41 @@ sources:
         merge-strategy: umbrella-references
         umbrella: jvm
         topic: stacktrace-log-triage
+  - id: ponytail
+    repo: "https://github.com/DietrichGebert/ponytail"
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: 2ed6c52c9d7e5e56942508591085fd45dea277d3
+    reviewed-rev: 2ed6c52c9d7e5e56942508591085fd45dea277d3
+    last-fetched: "2026-08-10T20:55:49Z"
+    skills:
+      - upstream: ponytail
+        category: engineering
+        name: ponytail
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone
+      - upstream: ponytail-review
+        category: engineering
+        name: ponytail
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: ponytail
+        topic: review
+      - upstream: ponytail-audit
+        category: engineering
+        name: ponytail
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: ponytail
+        topic: audit
+      - upstream: ponytail-debt
+        category: engineering
+        name: ponytail
+        target-plugin: jylhis-skills-core
+        merge-strategy: umbrella-references
+        umbrella: ponytail
+        topic: debt
   - id: anthropics-knowledge-work
     repo: "https://github.com/anthropics/knowledge-work-plugins"
     branch: main
