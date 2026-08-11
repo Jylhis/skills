@@ -1,0 +1,4 @@
+- Diagnose troubleshoot skill
+- Extract learnings from job-post-builder to job search skills
+- Iterate on domains taste
+- move terraform to languages
