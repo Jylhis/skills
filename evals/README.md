@@ -119,8 +119,8 @@ Eval suites live next to the skill they exercise, at
 
 1. `mkdir -p skills/<category>/<name>/evals/{fixtures,golden}` (next to
    the skill's `SKILL.md`).
-2. Write `skills/<category>/<name>/evals/cases.yaml` (see
-   `skills/engineering/ast-grep/evals/cases.yaml`).
+2. Write `skills/<category>/<name>/evals/cases.yaml` (see the
+   `cases.yaml` shape documented in `evals/scripts/expand.py`).
 3. Write `skills/<category>/<name>/evals/rubric.md` (only required if
    any case uses an LLM-judge `rubric:` block; otherwise deterministic
    asserts are enough).

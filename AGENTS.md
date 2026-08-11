@@ -11,8 +11,8 @@ that publishes one default plugin and several opt-in plugins. Supported
 targets are **Claude Code** (CLI and Claude Code on the web — same plugin
 marketplace), **Pi** (`pi-coding-agent`), and **claude.ai Skills** (per-skill
 `.zip` upload). The default plugin (`jylhis-skills-core`) ships
-cross-cutting engineering and productivity skills (security, ast-grep,
-offline-docs, semgrep, microsoft-docs, tdd, diagnose, prototype, triage,
+cross-cutting engineering and productivity skills (security,
+offline-docs, microsoft-docs, tdd, diagnose,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
 Per-language, per-service, and per-tool plugins
 (`jylhis-python`, `jylhis-typescript`, `jylhis-go`, `jylhis-rust`,
@@ -25,8 +25,8 @@ only when the user opts in. See `docs/install.md` for install instructions.
 
 - `skills/` — canonical SKILL.md tree, source of truth. Skills live at
   `skills/<category>/<name>/SKILL.md`. Categories are
-  `engineering` (practices and workflows: ast-grep, semgrep, tdd,
-  diagnose, prototype, triage, microsoft-docs), `languages` (per-language
+  `engineering` (practices and workflows: tdd, diagnose,
+  code-review, microsoft-docs), `languages` (per-language
   guidance: python, typescript, go, jvm, nix), `domains` (cross-cutting
   topic deep dives: security, taste), `services` (specific named platforms
   and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives

@@ -2,7 +2,7 @@
 
 Each eval suite lives at ``skills/<category>/<name>/evals/`` next to the
 skill it exercises. Suite names (the ``--suite`` CLI argument and the
-``EVAL_SUITE`` env var) remain a single token like ``ast-grep`` —
+``EVAL_SUITE`` env var) remain a single token (the skill name) —
 the resolver globs the canonical skill tree to find the owning dir.
 
 Skill names are globally unique (enforced by ``scripts/validate.py``)

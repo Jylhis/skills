@@ -233,14 +233,13 @@ in the first sentence; consider tightening the lint's advisory ceiling
 
 ### P2: Eval coverage is 1 of 60, on synthetic data
 
-Only `engineering/ast-grep` has `evals/cases.yaml`, and its 24 cassettes
-are explicit synthetic placeholders ("Replace with real recording before
-treating any score as a measurement"). The harness design is aligned with
-best practice; the loop is not yet closed. Recommended order: record real
-cassettes for ast-grep first, then add cases for the highest-traffic core
-skills (security, offline-docs, tdd, diagnose), using eval failures as the
-trigger for skill edits via `skill-improver`, which is exactly the
-Anthropic authoring loop.
+At the time of this report a single skill carried an `evals/cases.yaml`
+with synthetic-placeholder cassettes; that suite has since been removed, so
+no skill currently ships a live eval suite. The harness design is aligned
+with best practice; the loop is not yet closed. Recommended order: add
+cases for the highest-traffic core skills (security, offline-docs, tdd,
+diagnose), using eval failures as the trigger for skill edits via
+`skill-improver`, which is exactly the Anthropic authoring loop.
 
 ### P3: Decide a policy on Claude-only invocation controls
 

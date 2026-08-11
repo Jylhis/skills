@@ -1,4 +1,0 @@
-# Hash-keyed cassette goldens land here after `just eval-record`.
-# Filenames are <16-hex-key>.json and <16-hex-key>.judge.json.
-# Provenance metadata in each cassette must be complete or
-# evals/scripts/invariants.py will reject the run.

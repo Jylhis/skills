@@ -7,7 +7,7 @@ Input shape (canonical, per spec-v3 §10 + this plan's extensions):
       - id: trigger-positive-1
         kind: trigger_positive          # trigger_positive | trigger_negative | output_quality
         prompt: "..."
-        expected_skill: ast-grep
+        expected_skill: <skill>
         providers: [claude]             # default: trigger_* -> [claude], output_quality -> all three
         fixtures_subdir: ts-snippet     # optional path under suite's fixtures/
         pass_threshold: 0.5
@@ -17,7 +17,7 @@ Input shape (canonical, per spec-v3 §10 + this plan's extensions):
           contains_all: ["...", "..."]
           regex: ["..."]
           not_regex: ["..."]
-          triggered: ast-grep
+          triggered: <skill>
           output_match_regex: "..."
           max_latency_ms: 30000
           rubric: ["criterion 1", "criterion 2"]    # optional g-eval

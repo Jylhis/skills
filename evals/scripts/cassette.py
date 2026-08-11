@@ -69,7 +69,7 @@ def compute_key(provider: str, prompt: str, model_snapshot: str,
                 fixtures_dir: Path | None = None) -> str:
     # Normalize prompt: strip trailing whitespace so the key is stable
     # regardless of whether the caller preserves YAML block-scalar
-    # trailing newlines (seed_synthetic, expand.py) or not (promptfoo
+    # trailing newlines (expand.py) or not (promptfoo
     # exec: providers, which strip trailing newlines from argv).
     prompt = prompt.rstrip()
     parts = [provider, prompt, model_snapshot, fixtures_digest(fixtures_dir)]

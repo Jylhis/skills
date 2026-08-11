@@ -102,10 +102,10 @@ by default.
 | `jylhis-terraform` | Terraform skill |
 | `jylhis-azure` | Azure cloud skill |
 | `jylhis-obsidian` | Obsidian note-taking and knowledge management skill |
-| `jylhis-pkm` | Personal knowledge management: llm-wiki, PARA method, qmd search, graphify graphs |
+| `jylhis-pkm` | Personal knowledge management: llm-wiki, PARA method, graphify graphs |
 | `jylhis-grafana` | Grafana observability skill |
 | `jylhis-taste` | UI/UX design taste and critique skill |
-| `jylhis-duckdb` | DuckDB query / attach / spatial skill set |
+| `jylhis-duckdb` | DuckDB query / spatial skill set |
 
 Install one (example: `jylhis-python`):
 

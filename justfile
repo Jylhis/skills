@@ -24,14 +24,14 @@ package *names:
     python3 scripts/package-skill.py {{names}}
 
 # Run evals against stubbed SUT + stubbed judge (CI-safe; no network)
-eval-stub suite="ast-grep":
+eval-stub suite:
     python3 evals/scripts/expand.py {{suite}} --stub-sut --stub-judge --no-rubric
     python3 evals/scripts/invariants.py --provider stub --judge stub --suite {{suite}}
     promptfoo eval --config evals/.generated/{{suite}}.yaml --no-cache --output evals/results/{{suite}}-stub.json
 
 # Default: deterministic-only live run. No LLM judge — no API keys or
 # judge CLIs required. Rubric-based g-eval assertions are elided.
-eval suite="ast-grep":
+eval suite:
     python3 evals/scripts/expand.py {{suite}} --no-rubric
     python3 evals/scripts/invariants.py --provider claude --judge stub --suite {{suite}}
     promptfoo eval --config evals/.generated/{{suite}}.yaml --no-cache --output evals/results/{{suite}}.json
@@ -40,30 +40,30 @@ eval suite="ast-grep":
 # CI-safe by default; pass judge=claude|pi to enable
 # rubric-based g-eval assertions against a live judge CLI (which must
 # be logged in).
-eval-judged suite="ast-grep" judge="stub":
+eval-judged suite judge="stub":
     python3 evals/scripts/expand.py {{suite}} --judge {{judge}}
     python3 evals/scripts/invariants.py --provider claude --judge {{judge}} --suite {{suite}}
     promptfoo eval --config evals/.generated/{{suite}}.yaml --no-cache --output evals/results/{{suite}}-judged.json
 
 # Single-provider live run; useful for triaging one CLI in isolation.
-eval-one suite="ast-grep" provider="claude" judge="stub":
+eval-one suite provider="claude" judge="stub":
     python3 evals/scripts/expand.py {{suite}} --judge {{judge}}
     python3 evals/scripts/invariants.py --provider {{provider}} --judge {{judge}} --suite {{suite}}
     promptfoo eval --config evals/.generated/{{suite}}.yaml --filter-providers {{provider}} --no-cache --output evals/results/{{suite}}-{{provider}}.json
 
 # Half-live: stubbed SUT, live judge — useful for tuning rubric.md
-eval-judge suite="ast-grep" judge="stub":
+eval-judge suite judge="stub":
     python3 evals/scripts/expand.py {{suite}} --stub-sut --judge {{judge}}
     python3 evals/scripts/invariants.py --provider stub --judge {{judge}} --suite {{suite}}
     promptfoo eval --config evals/.generated/{{suite}}.yaml --no-cache --output evals/results/{{suite}}-judge-{{judge}}.json
 
 # Record fresh goldens against a real CLI (replaces synthetic placeholders)
-eval-record suite="ast-grep" provider="claude":
+eval-record suite provider="claude":
     python3 evals/scripts/cassette.py record --suite {{suite}} --provider {{provider}}
 
 # Lightweight Python-only smoke test for the harness itself; useful in CI
 # even when promptfoo or the CLIs aren't available.
-eval-smoke suite="ast-grep":
+eval-smoke suite:
     python3 evals/scripts/expand.py {{suite}} --stub-sut --no-rubric
     python3 evals/scripts/invariants.py --provider stub --judge stub --suite {{suite}}
     @echo "eval-smoke OK"

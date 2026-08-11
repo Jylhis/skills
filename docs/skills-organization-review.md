@@ -31,7 +31,7 @@ After this import pass, the 8-category layout is:
 
 ```
 skills/
-  engineering/  - 11 skills (mattpocock-style practices + ast-grep, offline-docs, semgrep, microsoft-docs)
+  engineering/  - mattpocock-style practices + offline-docs, microsoft-docs
   languages/    - 5 umbrella skills (python, typescript, go, jvm, nix)
   domains/      - 2 umbrella skills (security, taste)
   services/     - 16 skills (gitlab, terraform-*, azure-*, grafana-*)
@@ -57,15 +57,15 @@ Two structural differences from mattpocock:
 
 ## What works well from mattpocock's pattern
 
-- **Practices as standalone skills.** `tdd`, `diagnose`, `triage`,
-  `prototype` are each a distinct skill, and the agent picks the
+- **Practices as standalone skills.** `tdd`, `diagnose`, `to-prd`
+  are each a distinct skill, and the agent picks the
   right verb for the situation. Easier to discover, easier to
   evaluate, easier to evolve independently. Now adopted in our
   `engineering/` category for the 9 mattpocock imports.
 - **Tight `SKILL.md` bodies.** Mattpocock's bodies are short and
   link out to `references/` for depth — the entry-point is
   discoverability-shaped, not encyclopedia-shaped. We already
-  follow this for `engineering/ast-grep` and the language umbrellas.
+  follow this for the mattpocock imports and the language umbrellas.
 - **No `agents/` or `hooks/` inside a skill folder.** Skills stay
   portable. We already enforce this via `scripts/validate.py`.
 

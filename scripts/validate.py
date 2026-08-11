@@ -31,7 +31,7 @@ CORE_PLUGIN_NAME = "jylhis-skills-core"
 # The core plugin must always declare these baseline cross-cutting
 # skills. Additional skills may be present (e.g. imported via
 # meta/upstream-tracker); the check is a subset, not equality.
-CORE_PLUGIN_REQUIRED_SKILLS = {"security", "ast-grep", "offline-docs"}
+CORE_PLUGIN_REQUIRED_SKILLS = {"security", "offline-docs"}
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DESC_MIN = 50

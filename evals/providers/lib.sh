@@ -48,7 +48,7 @@ trace_provenance() {
 
 emit_trace() {
   # args: triggered_value(json) elapsed_ms family cli cli_version model_snapshot
-  # `triggered_value` must already be a JSON value (e.g. "\"ast-grep\"" or "null").
+  # `triggered_value` must already be a JSON value (e.g. "\"<skill>\"" or "null").
   local triggered="$1" elapsed="$2" family="$3" cli="$4" version="$5" model="$6"
   local provenance
   provenance="$(trace_provenance "$cli" "$version" "$model")"
