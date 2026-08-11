@@ -27,9 +27,9 @@ only when the user opts in. See `docs/install.md` for install instructions.
   `skills/<category>/<name>/SKILL.md`. Categories are
   `engineering` (practices and workflows: tdd, diagnose,
   code-review, microsoft-docs), `languages` (per-language
-  guidance: python, typescript, go, jvm, nix), `domains` (cross-cutting
+  guidance: python, typescript, go, jvm, nix, terraform), `domains` (cross-cutting
   topic deep dives: security, taste), `services` (specific named platforms
-  and ecosystems: gitlab, azure, grafana, terraform), `stack` (deep dives
+  and ecosystems: gitlab, azure, grafana), `stack` (deep dives
   on specific named technologies: filesystems), `productivity` (handoff,
   humanizer, caveman, task/memory management), `product` (product-management
   practices: roadmaps, specs, research synthesis, metrics), `business`

@@ -1,7 +1,3 @@
----
-name: terraform-style-guide-security
-description: Generate Terraform HCL code following HashiCorp's security practices
----
 
 # Terraform Style Guide - Security
 

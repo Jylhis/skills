@@ -1,12 +1,3 @@
----
-name: terraform-style-guide
-description: Generate Terraform HCL code following HashiCorp's official style conventions and best practices. Use when writing, reviewing, or generating Terraform configurations.
-metadata:
-  upstream-id: hashicorp-agent-skills
-  upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
-  upstream-path: code-generation/skills/terraform-style-guide
-  upstream-imported: 2026-05-12
----
 
 # Terraform Style Guide
 
@@ -227,7 +218,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu" {
 
 ## Security Best Practices
 
-Refer to SECURITY.md. It includes guidance on encrypting resources,
+Refer to `security.md`. It includes guidance on encrypting resources,
 preventing sensitive data in state, and secure configurations.
 
 ## Version Pinning

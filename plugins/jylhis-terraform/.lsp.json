@@ -1,0 +1,10 @@
+{
+  "terraform": {
+    "command": "nix",
+    "args": ["shell", "nixpkgs#terraform-ls", "-c", "terraform-ls", "serve"],
+    "extensionToLanguage": {
+      ".tf": "terraform",
+      ".tfvars": "terraform"
+    }
+  }
+}

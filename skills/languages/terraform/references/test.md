@@ -1,14 +1,3 @@
----
-name: terraform-test
-description: Comprehensive guide for writing and running Terraform tests. Use when creating test files (.tftest.hcl), writing test scenarios with run blocks, validating infrastructure behavior with assertions, mocking providers and data sources, testing module outputs and resource configurations, or troubleshooting Terraform test syntax and execution.
-metadata:
-  copyright: Copyright IBM Corp. 2026
-  version: 0.0.2
-  upstream-id: hashicorp-agent-skills
-  upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
-  upstream-path: code-generation/skills/terraform-test
-  upstream-imported: 2026-05-12
----
 
 # Terraform Test
 
@@ -16,9 +5,9 @@ Terraform's built-in testing framework validates that configuration updates don'
 
 ## Reference Files
 
-- `references/MOCK_PROVIDERS.md` — Mock provider syntax, common defaults, when to use mocks (Terraform 1.7.0+ only — skip if the user's version is below 1.7)
-- `references/CI_CD.md` — GitHub Actions and GitLab CI pipeline examples
-- `references/EXAMPLES.md` — Complete example test suite (unit, integration, and mock tests for a VPC module)
+- `test/MOCK_PROVIDERS.md` — Mock provider syntax, common defaults, when to use mocks (Terraform 1.7.0+ only — skip if the user's version is below 1.7)
+- `test/CI_CD.md` — GitHub Actions and GitLab CI pipeline examples
+- `test/EXAMPLES.md` — Complete example test suite (unit, integration, and mock tests for a VPC module)
 
 Read the relevant reference file when the user asks about mocking, CI/CD integration, or wants a full example.
 
@@ -429,14 +418,14 @@ terraform test -no-cleanup                           # skip resource cleanup
 1. **Naming**: `*_unit_test.tftest.hcl` for plan mode, `*_integration_test.tftest.hcl` for apply mode
 2. **Test naming**: Use descriptive run block names that explain the scenario being tested
 3. **Default to plan**: Use `command = plan` unless you need to test real resource behavior
-4. **Use mocks** for external dependencies — faster and no credentials needed (see `references/MOCK_PROVIDERS.md`)
+4. **Use mocks** for external dependencies — faster and no credentials needed (see `test/MOCK_PROVIDERS.md`)
 5. **Error messages**: Make them specific enough to diagnose failures without running the test again
 6. **Negative tests**: Use `expect_failures` to verify validation rules reject bad inputs
 7. **Variable coverage**: Test different variable combinations to validate all code paths — test variables have the highest precedence and override all other sources
 8. **Module sources**: Test files only support local paths and registry modules — not git or HTTP URLs
 9. **Parallel execution**: Use `parallel = true` for independent tests with different state files
 10. **Cleanup**: Integration tests destroy resources in reverse run block order automatically; use `-no-cleanup` for debugging
-11. **CI/CD**: Run unit tests on every PR, integration tests on merge (see `references/CI_CD.md`)
+11. **CI/CD**: Run unit tests on every PR, integration tests on merge (see `test/CI_CD.md`)
 
 ## Troubleshooting
 

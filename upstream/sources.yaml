@@ -189,25 +189,33 @@ sources:
     last-fetched: "2026-07-11T19:53:03Z"
     skills:
       - upstream: code-generation/skills/terraform-test
-        category: services
-        name: terraform-test
+        category: languages
+        name: terraform
         target-plugin: jylhis-terraform
-        merge-strategy: standalone
+        merge-strategy: umbrella-references
+        umbrella: terraform
+        topic: test
       - upstream: code-generation/skills/terraform-style-guide
-        category: services
-        name: terraform-style-guide
+        category: languages
+        name: terraform
         target-plugin: jylhis-terraform
-        merge-strategy: standalone
+        merge-strategy: umbrella-references
+        umbrella: terraform
+        topic: style-guide
       - upstream: module-generation/skills/refactor-module
-        category: services
-        name: terraform-refactor-module
+        category: languages
+        name: terraform
         target-plugin: jylhis-terraform
-        merge-strategy: standalone
+        merge-strategy: umbrella-references
+        umbrella: terraform
+        topic: refactor-module
       - upstream: module-generation/skills/terraform-stacks
-        category: services
-        name: terraform-stacks
+        category: languages
+        name: terraform
         target-plugin: jylhis-terraform
-        merge-strategy: standalone
+        merge-strategy: umbrella-references
+        umbrella: terraform
+        topic: stacks
   - id: microsoft-azure-skills
     repo: "https://github.com/microsoft/skills"
     branch: main
