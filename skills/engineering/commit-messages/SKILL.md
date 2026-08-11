@@ -62,6 +62,8 @@ Format: one blank line after the subject, wrap at about 72 columns, prose paragr
 
 Make it searchable: include the exact error string, tool name, or symbol a future maintainer would grep for. Link the issue or PR in a footer rather than writing an essay; the tracker thread holds unlimited context (`Closes #123`, `Refs JYL-140`). A body that just restates the diff is noise.
 
+Never add any code diff to the commit.
+
 ## Step 4: One commit = one change
 
 The 50 to 500 line range is a rhythm, not a rule. The real test:
