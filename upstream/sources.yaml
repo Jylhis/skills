@@ -405,9 +405,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: b17742737e796305d829b3ad39eda3add0d79060
+    upstream-rev: e988add20dab0fa97d7a76781c48961c8184288e
     reviewed-rev: 06d6028b5c623016c59ce8536f578e5a1127b499
-    last-fetched: "2026-07-11T19:53:13Z"
+    last-fetched: "2026-08-11T09:42:02Z"
     skills:
       - upstream: taste-skill
         category: domains
