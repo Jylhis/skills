@@ -39,7 +39,7 @@ skills/
   productivity/ - 3 skills (humanizer, handoff, caveman)
   personal/     - 5 skills (obsidian-*)
   misc/         - 1 skill (emacs)
-  ...meta/skill-extractor (relocated from skills/misc/)
+  ....claude/skills/skill-extractor (relocated from skills/misc/)
 ```
 
 Two structural differences from mattpocock:

@@ -26,7 +26,7 @@ Iterate on an existing skill using recorded user corrections.
 ## Steps
 
 1. **Resolve the target.** Confirm the skill exists on disk under
-   `skills/<category>/<name>/SKILL.md` or `meta/<name>/SKILL.md`.
+   `skills/<category>/<name>/SKILL.md` or `.claude/skills/<name>/SKILL.md`.
    If the name is ambiguous (e.g. `gitlab` matches both an umbrella and
    nothing else), pick the on-disk match; if no match, surface the
    typo and stop.
@@ -65,9 +65,10 @@ Iterate on an existing skill using recorded user corrections.
 
 ## Limits
 
-- This meta-skill lives under `meta/` and is **not auto-loaded by
-  any tool**. It's only relevant when developing inside this repo; invoke
-  it by name. The user-facing JSONL append path is the
+- This meta-skill lives under `.claude/skills/`, so Claude Code
+  **auto-loads it when this repo is open**; it is not shipped via any
+  published plugin (`.claude/` is excluded from `install.sh`), so it stays
+  a repo-development skill only. The user-facing JSONL append path is the
   `/remember-correction` slash command (shipped by `jylhis-skills-core`)
   and `AGENTS.md § Recording corrections`.
 - This skill is advisory: it never edits `SKILL.md` files directly.
@@ -77,6 +78,6 @@ Iterate on an existing skill using recorded user corrections.
 
 ## References
 
-- `meta/skill-improver/references/schema.md` — JSONL schema v1.
+- `.claude/skills/skill-improver/references/schema.md` — JSONL schema v1.
 - `docs/skill-authoring-guide.md` § Patterns — gotchas, templates,
   validation loops; the shapes a proposed edit should slot into.

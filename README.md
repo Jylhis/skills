@@ -42,8 +42,9 @@ Full instructions, opt-in plugins, and scope options: **[`docs/install.md`](docs
   The default plugin also ships subagents (`@reviewer`, `@explorer`,
   `@debugger`) and commands (`/explore`, `/lsp-status`, `/remember-correction`);
   language plugins ship an `.lsp.json`.
-- **`meta/`** — repo-only maintenance skills (skill-creator, skill-improver,
-  upstream-tracker, …); not shipped to any target.
+- **`.claude/skills/`** — repo-maintenance meta skills (skill-creator,
+  skill-improver, upstream-tracker, …); auto-loaded by Claude Code when this
+  repo is open, but not shipped to any target.
 - **`evals/`** — offline, deterministic-first eval harness (providers: `claude`,
   `pi`, `stub`) with hash-keyed cassettes for CI replay.
 

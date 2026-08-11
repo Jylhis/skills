@@ -130,7 +130,7 @@ sources:
         merge-strategy: standalone
 ```
 
-After running `python3 meta/upstream-tracker/scripts/import.py
+After running `python3 .claude/skills/upstream-tracker/scripts/import.py
 grafana-skills`, the three auto-populated fields fill in and the
 imported skill appears at `skills/services/grafana/SKILL.md` with the
 `metadata.upstream-*` block injected. The importer also creates

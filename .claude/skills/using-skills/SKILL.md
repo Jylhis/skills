@@ -34,7 +34,7 @@ skills/                          ← published catalogue (jylhis-skills plugin)
 ├── productivity/                reserved category (currently empty)
 └── personal/                    reserved category (currently empty)
 
-meta/                      ← repo-only, not shipped to users
+.claude/skills/            ← repo-dev skills, auto-loaded in-repo, not shipped to users
 ├── skill-creator-lang/          Authoring new language/stack skills
 ├── skill-improver/              Surface improvement notes from the JSONL log
 ├── upstream-tracker/            Tracking external upstream skill repos
@@ -69,11 +69,12 @@ If the umbrella exists but no sub-topic matches, fall back to the
 umbrella body's general guidance — or proceed without a skill if the
 task is trivial.
 
-## Repo-only meta skills
+## Repo-development meta skills
 
-`meta/` is **not** shipped via any published plugin. The skills are
-repo-local and only relevant when developing skills *inside* this repo.
-They are not auto-loaded by any tool; invoke them by name when needed.
+`.claude/skills/` holds the repo-maintenance skills. Claude Code
+**auto-loads them when this repo is open**, but they are **not** shipped
+via any published plugin (`.claude/` is excluded from `install.sh`), so
+they stay relevant only when developing skills *inside* this repo.
 
 - `skill-creator-lang` — authoring new language / stack skills.
 - `skill-improver` — surface improvement notes from the correction JSONL.
@@ -130,7 +131,7 @@ validate only at system boundaries.
 When the user corrects your behaviour on something skill-related, append
 one entry to the improvement-memory JSONL. The canonical reference is in
 AGENTS.md § Recording corrections; the schema is at
-`meta/skill-improver/references/schema.md`; the helper is
+`.claude/skills/skill-improver/references/schema.md`; the helper is
 `scripts/append-correction.py`; the slash command is `/remember-correction`.
 
 The `skill-improver` meta-skill consumes the JSONL when iterating on a

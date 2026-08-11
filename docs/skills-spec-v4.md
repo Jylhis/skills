@@ -82,7 +82,7 @@ repo/
 ├── tools/<name>/                         # [Planned] Claude Agent SDK in-process tools
 ├── extensions/<name>/                    # [Planned] Pi-native TS extensions
 │
-├── meta/<name>/                          # repo-only maintenance skills (not shipped)
+├── .claude/skills/<name>/                 # repo-maintenance skills (auto-loaded in-repo, not shipped)
 ├── upstream/                             # upstream-tracker manifest + decision logs
 ├── evals/                                # promptfoo harness (providers: claude, pi, stub)
 ├── docs/                                 # this spec, install, authoring, migrations…
@@ -141,9 +141,9 @@ production write tools by default, paginate, keep credentials out of committed
 config, smoke-test startup, transport `stdio` or Streamable HTTP (SSE is
 deprecated per MCP spec 2025-06-18).
 
-A repo meta-skill `meta/tool-creator/` **[Planned]** scaffolds the correct
-artifact from a short spec — the "define my own Tools" workflow, sibling to
-`meta/skill-creator-lang`.
+A repo meta-skill `.claude/skills/tool-creator/` **[Planned]** scaffolds the
+correct artifact from a short spec — the "define my own Tools" workflow, sibling
+to `.claude/skills/skill-creator-lang`.
 
 ## 6. Role-forward marketplace **[Planned]**
 
@@ -197,7 +197,7 @@ L3 live smoke (just eval) · L4 failure-log regression [Planned] · L5 external 
 cross-provider aggregation), and hash-keyed VCR cassettes for CI replay. The
 same-family judge guard still applies (`pi` advertises family `unknown`).
 
-A SkillOpt / "Ralph-loop" scoring layer atop `evals/` + `meta/skill-improver`
+A SkillOpt / "Ralph-loop" scoring layer atop `evals/` + `.claude/skills/skill-improver`
 (held-out cases, bounded edits gated on score) is **[Planned]**.
 
 ## 9. Dropped from v3
@@ -214,7 +214,7 @@ flake.nix (use devenv.nix)          universal command/hook/MCP compilers (still 
 1. [done]    Remove Codex surface; retarget docs; spec v4; README.
 2. [done]    Pi as a first-class install target (install.sh) + claude.ai packaging.
 3. [next]    Self-containment lint; SessionStart hook for Claude Code on web.
-4. [next]    Custom-tools scaffolding: servers/, tools/, extensions/, meta/tool-creator.
+4. [next]    Custom-tools scaffolding: servers/, tools/, extensions/, .claude/skills/tool-creator.
 5. [next]    Role plugins (jylhis-role-*) + validate.py ≥1-plugin relaxation.
 6. [later]   Skill-optimization scoring loop; failure-log.
 ```

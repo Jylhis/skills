@@ -45,10 +45,11 @@ only when the user opts in. See `docs/install.md` for install instructions.
   `commands/`. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
-- `meta/` — repo-only meta skills (`skill-creator-lang`, `skill-improver`,
-  `upstream-tracker`, `using-skills`, `skill-extractor`). **Not** shipped
-  via any plugin and not auto-loaded by any tool; only relevant when
-  developing skills inside this repo.
+- `.claude/skills/` — repo-maintenance meta skills (`skill-creator-lang`,
+  `skill-improver`, `upstream-tracker`, `using-skills`, `skill-extractor`).
+  Claude Code **auto-loads** these when this repo is open, but they are
+  **not** shipped via any plugin (`install.sh` excludes `.claude/`), so they
+  stay relevant only when developing skills inside this repo.
 - `upstream/sources.yaml` — manifest of tracked upstream skill repos
   (rev pin, review cursor, license, import paths). Created on first
   adoption; absent until then.
@@ -82,7 +83,7 @@ only when the user opts in. See `docs/install.md` for install instructions.
   the spec-v3 §10 mapping.
 
 For the workflow that operates on `upstream/`, see the
-`upstream-tracker` skill in `meta/` (project-local).
+`upstream-tracker` skill in `.claude/skills/` (project-local).
 
 ## Skill format
 
@@ -199,12 +200,14 @@ Claude-only files do not need to be excluded explicitly.
   on-disk skill is referenced by exactly one plugin manifest.
 - Pi discovers skills recursively from `~/.pi/agent/skills/`, into which
   `install.sh` mirrors each installed plugin's `skills/` tree.
-- Meta / repo-maintenance skills go in `meta/` (not under `skills/`), so
-  they ship neither via the Claude plugin manifest nor the Pi skills mirror.
+- Meta / repo-maintenance skills go in `.claude/skills/` (not under `skills/`).
+  Claude Code auto-loads them for anyone working in this repo, but they ship
+  neither via the Claude plugin manifest nor the Pi skills mirror
+  (`install.sh` excludes `.claude/`).
 - Skill runtime dependencies use `nix run` shebangs in `scripts/` or MCP/LSP
   config — not in `devenv.nix`.
 - No bundled upstream skill repos. Adoption flows through
-  `meta/upstream-tracker/`. The parked URL list lives in
+  `.claude/skills/upstream-tracker/`. The parked URL list lives in
   `docs/upstream-sources.md`.
 - Portable skills must pass `scripts/validate.py`. Run on every commit.
 
@@ -226,7 +229,7 @@ shell. The advisory pass in `scripts/validate.py` skips them.
 
 `scripts/validate.py` emits advisory warnings on `.sh` and untyped `.py`
 files under `scripts/`, `evals/scripts/`, `skills/*/*/scripts/`,
-`meta/*/scripts/`, and `plugins/*/scripts/`. Promote to an error
+`.claude/skills/*/scripts/`, and `plugins/*/scripts/`. Promote to an error
 with `--strict-scripts`. The migration plan for existing files lives in
 `docs/script-migrations.md`.
 
@@ -239,7 +242,7 @@ one entry to the improvement-memory JSONL:
 ${XDG_STATE_HOME:-$HOME/.local/state}/jylhis-skills/improvement-memory.jsonl
 ```
 
-Schema reference: `meta/skill-improver/references/schema.md`.
+Schema reference: `.claude/skills/skill-improver/references/schema.md`.
 Use `go run scripts/append-correction.go --json -` (one JSON object on
 stdin) to append safely under a file lock. The user can invoke the same
 path via `/remember-correction <note>`.

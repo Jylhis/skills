@@ -33,10 +33,10 @@ in ecosystems that are strongly TS-shaped.
 | `evals/scripts/expand.py` | Python | typed Python (exemption) | defer | Same — PyYAML-driven case expansion. |
 | `evals/scripts/invariants.py` | Python | typed Python (exemption) | defer | Same — jsonschema-driven invariants. |
 | `evals/scripts/seed_synthetic.py` | Python | typed Python (exemption) | defer | Same — synthetic cassette seeding via PyYAML. |
-| `meta/upstream-tracker/scripts/_lib.py` | typed Python | Go | low | Stable; git plumbing — straightforward to port. |
-| `meta/upstream-tracker/scripts/fetch.py` | typed Python | Go | low | git fetch wrapper; trivial Go rewrite. |
-| `meta/upstream-tracker/scripts/import.py` | typed Python | Go | low | Tree walk + frontmatter inject; doable in Go. |
-| `meta/upstream-tracker/scripts/review.py` | typed Python | Go | low | Append-only decision log; trivial Go rewrite. |
+| `.claude/skills/upstream-tracker/scripts/_lib.py` | typed Python | Go | low | Stable; git plumbing — straightforward to port. |
+| `.claude/skills/upstream-tracker/scripts/fetch.py` | typed Python | Go | low | git fetch wrapper; trivial Go rewrite. |
+| `.claude/skills/upstream-tracker/scripts/import.py` | typed Python | Go | low | Tree walk + frontmatter inject; doable in Go. |
+| `.claude/skills/upstream-tracker/scripts/review.py` | typed Python | Go | low | Append-only decision log; trivial Go rewrite. |
 | `skills/services/gitlab/scripts/ci-debug.sh` | bash | Go | medium | GitLab API call + JSON manipulation — Go is the right shape (`net/http` + `encoding/json`). |
 | `skills/services/gitlab/scripts/sync-fork.sh` | bash | Go | medium | Same. |
 
@@ -48,7 +48,7 @@ in ecosystems that are strongly TS-shaped.
    Done — see `scripts/append-correction.go`. The slash command at
    `plugins/jylhis-skills-core/commands/remember-correction.md`
    invokes it via `go run`.
-3. Port `meta/upstream-tracker/scripts/` next — small, internal,
+3. Port `.claude/skills/upstream-tracker/scripts/` next — small, internal,
    no end-user impact.
 4. Port `skills/services/gitlab/scripts/` as a group; one PR per
    script or a single PR if the diff stays reviewable.
