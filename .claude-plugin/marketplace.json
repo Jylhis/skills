@@ -128,6 +128,12 @@
       "source": "./plugins/jylhis-small-business",
       "description": "Small-business operations skills — HR job-post drafting and tax-season document organizing.",
       "category": "Productivity"
+    },
+    {
+      "name": "jylhis-careers",
+      "source": "./plugins/jylhis-careers",
+      "description": "Candidate-side job-search skill: tailor a resume/CV and cover letter to a posting and track applications.",
+      "category": "Productivity"
     }
   ]
 }
