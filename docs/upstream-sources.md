@@ -12,6 +12,32 @@ manifest schema, and the `metadata.upstream-*` frontmatter convention.
 adopted — the skill creates the layout. Until then the only record of
 intended sources is the **Archive** below.
 
+### Aggregator source: `jetbrains-skills`
+
+`github:JetBrains/skills` is tracked in `upstream/sources.yaml` as a
+watch point for new skills. It is an **aggregator**: a JetBrains-filtered,
+security-scanned snapshot of ~15 upstream repos (Anthropic, OpenAI,
+Vercel, antfu, Kotlin org, Google Workspace, runkids, and others), plus
+a handful of JetBrains originals. Two caveats when importing from it:
+
+- **Prefer the origin repo when it is already tracked here.** Several of
+  its skills (`security-best-practices`, `security-threat-model`,
+  `openai-pdf`, ...) come from `openai-skills`, which this catalogue
+  already tracks directly. Importing the same content from two sources
+  breaks the review-cursor model.
+- **Check licensing per skill.** The aggregator has no root license and
+  most skill directories carry none; the origin repo's license governs
+  (e.g. `Kotlin/kotlin-backend-agent-skills` is MIT).
+
+Vendoring candidates surfaced in the 2026-08 review, not yet imported:
+Kotlin backend skills for the `jvm` umbrella (`spring-kotlin-code-review`,
+`production-incident-responder`, `test-suite-builder`,
+`java-kotlin-migration-assistant`), `postgres-best-practices` (Supabase,
+would need a new plugin), `mcp-builder` (Anthropic), `webapp-testing`
+(Anthropic), and `teamcity-cli` (JetBrains original). The JetBrains
+Rider-coupled originals (`debugging-code`, `refactoring-code`) are not
+portable (IDE-specific `allowed-tools`) and stay unvendored.
+
 ## Archive — parked upstream sources
 
 The table below preserves the upstream skill repositories previously
