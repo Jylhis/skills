@@ -58,6 +58,12 @@
       "category": "Coding"
     },
     {
+      "name": "jylhis-systemd",
+      "source": "./plugins/jylhis-systemd",
+      "description": "systemd — Linux init and service manager: unit files, systemctl/journalctl/systemd-analyze, drop-ins, dependencies, socket activation, timers, sandboxing, cgroup v2 resource control.",
+      "category": "Coding"
+    },
+    {
       "name": "jylhis-gitlab",
       "source": "./plugins/jylhis-gitlab",
       "description": "GitLab CI/CD pipelines and the glab CLI for terminal-based GitLab workflows.",
