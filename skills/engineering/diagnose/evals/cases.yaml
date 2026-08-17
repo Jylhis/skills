@@ -1,0 +1,146 @@
+# Eval suite for the `diagnose` skill (skills/engineering/diagnose).
+#
+# Schema: see evals/scripts/expand.py for the full contract.
+# - kind: trigger_positive | trigger_negative | output_quality
+# - providers: recording hint only; expand.py always schedules every
+#   case against all providers (see default_providers in expand.py)
+# - near_miss_vocabulary: required for trigger_negative (Doc 2 §4)
+# - assert.triggered: diagnose | null  (claude-only signal)
+# - assert.contains_all / regex / not_regex / output_match_regex: deterministic
+#
+# All output_quality cases here use deterministic asserts only, so no
+# rubric.md is needed for this suite.
+
+cases:
+  # Trigger positives (Claude only; see Doc 2 §6 cross-CLI fallacy).
+  # Each one describes a hard, resistant bug or a performance
+  # regression, the situations SKILL.md names as triggers.
+  - id: trigger-pos-flaky-500
+    kind: trigger_positive
+    expected_skill: diagnose
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      Our checkout service intermittently returns HTTP 500 about once
+      every thirty requests in staging, and I cannot reproduce it
+      locally. Something is broken in the payment path and two naive
+      fix attempts have already failed. Diagnose this.
+    assert:
+      triggered: diagnose
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-perf-regression
+    kind: trigger_positive
+    expected_skill: diagnose
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      After yesterday's deploy, p95 latency on the /search endpoint
+      jumped from 120ms to 900ms. Nothing in the diff looks obviously
+      slow. Debug this performance regression and find the actual
+      cause before we roll anything back.
+    assert:
+      triggered: diagnose
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-failing-import
+    kind: trigger_positive
+    expected_skill: diagnose
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      The CSV importer is throwing "KeyError: 'amount'" for some
+      customer files but not others, and the failing files look
+      byte-identical to the passing ones. This bug has resisted two
+      fix attempts already. Help me debug it properly this time.
+    assert:
+      triggered: diagnose
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  # Trigger negatives (Claude only). MUST be near-misses: they use
+  # debugging-adjacent vocabulary but no live bug is being chased.
+  - id: trigger-neg-explain-bisect
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["bisect", "debug", "regression"]
+    prompt: |
+      Explain how `git bisect run` works under the hood for a blog
+      post I'm writing about debugging workflows and regression
+      hunting. Nothing is broken and I have no bug to chase right
+      now; don't run anything, just explain the mechanism.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-happy-path-test
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["regression test", "failing", "bug"]
+    prompt: |
+      Add a happy-path unit test for the discount-code feature I just
+      merged. There is no bug and nothing is failing; I only want
+      basic coverage for the new code, not a regression test hunt.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-postmortem-copyedit
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["post-mortem", "root cause", "bug"]
+    prompt: |
+      Tidy up the wording of this already-written post-mortem
+      document. The bug it describes was fixed and shipped last
+      sprint and the root cause is already known; this is purely a
+      copy-editing pass on the prose.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  # Output quality (cross-CLI comparable lane). Deterministic asserts
+  # only, so this suite carries no rubric.md.
+  - id: output-quality-ranked-hypotheses
+    kind: output_quality
+    expected_skill: diagnose
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      A Node.js worker leaks about 50MB of heap per hour, but only in
+      production. Produce exactly three ranked, falsifiable
+      hypotheses for the leak. Number them 1. to 3., and phrase each
+      as "If <X> is the cause, then <Y>". Output only the numbered
+      list, no other prose.
+    assert:
+      contains_all: ["1.", "2.", "3."]
+      output_match_regex: 'If [\s\S]+? is the cause, then [\s\S]+'
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: output-quality-tagged-debug-log
+    kind: output_quality
+    expected_skill: diagnose
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      Show a single JavaScript console.error line that instruments a
+      suspect cache lookup, tagged with a unique debug prefix of the
+      form [DEBUG-<4 hex chars>] so every probe can be grepped out
+      later in one pass. Output only the code line, no prose.
+    assert:
+      output_match_regex: 'console\.error\([^\n]*\[DEBUG-[0-9A-Fa-f]{4}\]'
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
