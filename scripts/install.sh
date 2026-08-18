@@ -33,6 +33,7 @@ OPTIN_PLUGINS=(
   jylhis-emacs
   jylhis-nix
   jylhis-filesystems
+  jylhis-systemd
   jylhis-gitlab
   jylhis-terraform
   jylhis-azure

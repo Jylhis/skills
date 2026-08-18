@@ -1,0 +1,8 @@
+{
+  "name": "jylhis-systemd",
+  "description": "systemd skill — Linux init and service manager: unit files, systemctl/journalctl/systemd-analyze, drop-in overrides, service dependencies, socket activation, timers, security sandboxing, cgroup v2 resource control, and subsystems (journald, logind, networkd).",
+  "version": "1.0.0",
+  "author": { "name": "Jylhis" },
+  "repository": "https://github.com/Jylhis/skills",
+  "skills": ["./skills/systemd"]
+}

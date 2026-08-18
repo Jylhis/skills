@@ -98,6 +98,7 @@ by default.
 | `jylhis-emacs` | Emacs Lisp skill |
 | `jylhis-nix` | Nix skill + `nixd` LSP |
 | `jylhis-filesystems` | DuckDB / filesystem tooling skill |
+| `jylhis-systemd` | systemd init and service manager skill |
 | `jylhis-gitlab` | GitLab push + MR-create skill |
 | `jylhis-terraform` | Terraform skill |
 | `jylhis-azure` | Azure cloud skill |
