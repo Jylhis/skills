@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-duckdb",
+  "version": "0.1.0",
+  "description": "DuckDB skills — read any data file, query DuckDB databases, search DuckDB/DuckLake docs, search past session logs, explore S3, work with spatial data."
+}

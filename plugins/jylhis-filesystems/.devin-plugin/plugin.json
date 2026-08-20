@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-filesystems",
+  "version": "1.0.0",
+  "description": "Low-level filesystem skill for macOS, Linux, NixOS — APFS (clonefile, snapshots), Btrfs (subvolumes, impermanence, compression), ZFS / OpenZFS (datasets, ARC, snapshots, replication)."
+}

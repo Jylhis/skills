@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-rust",
+  "version": "1.0.0",
+  "description": "Rust implementation contract — typed boundaries and newtypes, exhaustive enums as single source of truth, error discipline (typed public APIs, n0-error), deterministic testing via injected host context, channel-first concurrency."
+}

@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-jvm",
+  "version": "1.0.0",
+  "description": "JVM build, packaging, and testing — Gradle 8.10+ Kotlin DSL, version catalogs, toolchains, convention plugins, Maven Central publishing, JUnit 5, AssertJ, kotest, mockk/mockito, Testcontainers, JaCoCo."
+}

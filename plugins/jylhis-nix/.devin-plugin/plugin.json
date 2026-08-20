@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-nix",
+  "version": "1.0.0",
+  "description": "Nix, Nixpkgs, and NixOS skill — language fundamentals, flakes, packaging, NixOS modules, nix-darwin, home-manager, devenv, dockerTools, nixosTests, debugging, linting."
+}

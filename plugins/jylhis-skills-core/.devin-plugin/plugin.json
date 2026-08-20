@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-skills-core",
+  "version": "1.0.0",
+  "description": "Default Jylhis skills bundle: cross-cutting security review and offline documentation lookup. Ships the @reviewer / @explorer / @debugger subagents and the /explore + /lsp-status slash commands."
+}

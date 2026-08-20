@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-gitlab",
+  "version": "1.0.0",
+  "description": "GitLab skill — CI/CD pipelines (.gitlab-ci.yml, components, runners, caching, downstream pipelines) and the glab CLI for terminal-based GitLab workflows."
+}

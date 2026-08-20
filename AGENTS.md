@@ -8,8 +8,8 @@ Code's import mechanism.
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis
 that publishes one default plugin and several opt-in plugins. Supported
-targets are **Claude Code** (CLI and Claude Code on the web — same plugin
-marketplace), **Pi** (`pi-coding-agent`), and **claude.ai Skills** (per-skill
+targets are **Claude Code** (CLI and Claude Code on the web, same plugin
+marketplace), **Pi** (`pi-coding-agent`), **Devin**, and **claude.ai Skills** (per-skill
 `.zip` upload). The default plugin (`jylhis-skills-core`) ships
 cross-cutting engineering and productivity skills (security,
 offline-docs, microsoft-docs, tdd, diagnose,
@@ -40,10 +40,11 @@ only when the user opts in. See `docs/install.md` for install instructions.
   sub-topic guidance under the skill's `references/` directory. Skill files
   are NEVER moved out of this tree.
 - `plugins/<plugin-name>/` — one directory per published plugin, each
-  containing its own `.claude-plugin/plugin.json` and a `skills/` directory
-  of symlinks pointing back into `skills/<category>/<name>`. The default
-  plugin `plugins/jylhis-skills-core/` additionally ships `agents/` and
-  `commands/`. Language plugins ship their own per-language `.lsp.json`
+  containing its own `.claude-plugin/plugin.json`,
+  `.devin-plugin/plugin.json`, and a `skills/` directory of symlinks pointing
+  back into `skills/<category>/<name>`. The default plugin
+  `plugins/jylhis-skills-core/` additionally ships `agents/` and `commands/`.
+  Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
   installing that plugin is what wires the LSP into Claude Code).
 - `.claude/skills/` — repo-maintenance meta skills (`skill-creator-lang`,
@@ -59,10 +60,13 @@ only when the user opts in. See `docs/install.md` for install instructions.
 - `.claude-plugin/marketplace.json` — Claude Code marketplace manifest;
   lists every plugin under `plugins/` (default + opt-in). Used by both the
   Claude Code CLI and Claude Code on the web.
-- `scripts/install.sh` — registers the Claude Code marketplace and installs
-  ONLY the default plugin; mirrors the default plugin's skills into Pi
-  (`~/.pi/agent/skills/`) and links `AGENTS.md`. Prints opt-in commands for
-  the rest.
+- `.devin-plugin/plugin.json`: Devin root meta-plugin manifest; installs the
+  default plugin and declares every other plugin as an opt-in dependency.
+- `scripts/install.sh`: registers the Claude Code marketplace and installs
+  ONLY the default plugin; installs the repo as a local Devin plugin when the
+  CLI is available; mirrors the default plugin's skills into Pi
+  (`~/.pi/agent/skills/`) or Devin (`~/.config/devin/skills/`) and links
+  `AGENTS.md`. Prints opt-in commands for the rest.
 - `scripts/validate.py` — portable skill frontmatter lint (two-level paths);
   also runs an advisory `--strict-upstream` pass when `upstream/sources.yaml`
   exists.
@@ -126,6 +130,7 @@ tool plugin from the same marketplace:
 |-------------|------------------------------------------------------------------------|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills`                          |
 | Pi          | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` (then re-run `just install` to refresh) |
+| Devin       | `devin plugins install ./plugins/jylhis-python`                        |
 
 Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
 `jylhis-rust`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
@@ -194,11 +199,13 @@ Claude-only files do not need to be excluded explicitly.
   under its own `references/<topic>.md` (and nested
   `references/<topic>/...md` for multi-file topics).
 - When **adding a new skill**: drop it under `skills/<category>/<name>/`,
-  create or extend a `plugins/jylhis-<plugin>/` directory with its
-  `.claude-plugin/plugin.json` manifest and a `skills/<name>` symlink
-  (relative target `../../../skills/<category>/<name>`), and add the plugin to
-  `.claude-plugin/marketplace.json`. `scripts/validate.py` enforces that every
-  on-disk skill is referenced by exactly one plugin manifest.
+  create or extend a `plugins/jylhis-<plugin>/` directory with both
+  `.claude-plugin/plugin.json` and `.devin-plugin/plugin.json` manifests plus
+  a `skills/<name>` symlink (relative target
+  `../../../skills/<category>/<name>`), and add the plugin to
+  `.claude-plugin/marketplace.json` and the root `.devin-plugin/plugin.json`.
+  `scripts/validate.py` enforces that every on-disk skill is referenced by
+  exactly one plugin manifest.
 - Pi discovers skills recursively from `~/.pi/agent/skills/`, into which
   `install.sh` mirrors each installed plugin's `skills/` tree.
 - Meta / repo-maintenance skills go in `.claude/skills/` (not under `skills/`).

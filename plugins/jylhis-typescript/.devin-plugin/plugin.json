@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-typescript",
+  "version": "1.0.0",
+  "description": "TypeScript 5.9+ on Node 22 LTS — type system depth, async patterns, error handling, Node fs/streams/workers, Prettier, ESLint 9 flat config, pnpm workspaces, Vitest."
+}

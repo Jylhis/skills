@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-terraform",
+  "version": "0.2.0",
+  "description": "Terraform and HCL skill (umbrella): style guide, .tftest.hcl testing, module refactoring, and Terraform Stacks. Ships terraform-ls."
+}

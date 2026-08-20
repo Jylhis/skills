@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-emacs",
+  "version": "1.0.0",
+  "description": "Emacs and Emacs Lisp skill — modern Elisp conventions, major-mode authoring, MELPA/ELPA publishing, ERT testing, debugging, gptel + MCP integration, keybinding design."
+}
