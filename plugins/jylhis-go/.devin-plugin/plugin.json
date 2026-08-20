@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-go",
+  "version": "1.0.0",
+  "description": "Modern Go skill — any/errors/slices/maps/cmp packages, sync.OnceFunc, context.AfterFunc, atomic generics, http.ServeMux method patterns, t.Context, omitzero, b.Loop, iter.Seq."
+}

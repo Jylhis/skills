@@ -5,11 +5,13 @@ Walks `skills/` at two levels deep (`skills/<category>/<name>/SKILL.md`) and
 validates every SKILL.md against the portability profile from
 docs/skills-spec-v3.md §6.
 
-Also cross-checks the multi-plugin layout under `plugins/*/.claude-plugin/
-plugin.json` against the filesystem: every on-disk skill must be referenced
-by exactly one plugin manifest, every listed skill path (resolved through
-the per-plugin `skills/` symlinks) must lead to a SKILL.md on disk, and the
-top-level `.claude-plugin/marketplace.json` must list each plugin directory.
+Also cross-checks the multi-plugin layout under `plugins/` against the
+filesystem: every on-disk skill must be referenced by exactly one Claude
+plugin manifest, every listed skill path (resolved through the per-plugin
+`skills/` symlinks) must lead to a SKILL.md on disk, and the top-level
+`.claude-plugin/marketplace.json` must list each plugin directory. Devin
+manifests must mirror the Claude manifests, and the root Devin meta-plugin
+must reference the same plugin set.
 """
 from __future__ import annotations
 
@@ -25,15 +27,18 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / "skills"
 PLUGINS_DIR = REPO_ROOT / "plugins"
 MARKETPLACE_JSON = REPO_ROOT / ".claude-plugin" / "marketplace.json"
+DEVIN_META_JSON = REPO_ROOT / ".devin-plugin" / "plugin.json"
 UPSTREAM_MANIFEST = REPO_ROOT / "upstream" / "sources.yaml"
 
 CORE_PLUGIN_NAME = "jylhis-skills-core"
+DEVIN_PLUGIN_URL = "https://github.com/Jylhis/skills.git"
 # The core plugin must always declare these baseline cross-cutting
 # skills. Additional skills may be present (e.g. imported via
 # .claude/skills/upstream-tracker); the check is a subset, not equality.
 CORE_PLUGIN_REQUIRED_SKILLS = {"security", "offline-docs"}
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+DEVIN_NAME_RE = re.compile(r"^[a-z0-9]+(?:[-.][a-z0-9]+)*$")
 DESC_MIN = 50
 DESC_MAX = 1024
 
@@ -209,6 +214,7 @@ def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
     if not PLUGINS_DIR.is_dir():
         return ["plugins/: directory not found"]
 
+    plugin_dirs = sorted(path for path in PLUGINS_DIR.iterdir() if path.is_dir())
     plugin_manifests = sorted(PLUGINS_DIR.glob("*/.claude-plugin/plugin.json"))
     if not plugin_manifests:
         return ["plugins/: no plugin manifests found under plugins/*/.claude-plugin/plugin.json"]
@@ -217,6 +223,44 @@ def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
     coverage: dict[Path, list[str]] = {}
     errors: list[str] = []
     core_seen: set[str] = set()
+
+    for plugin_dir in plugin_dirs:
+        plugin_name = plugin_dir.name
+        claude_path = plugin_dir / ".claude-plugin" / "plugin.json"
+        devin_path = plugin_dir / ".devin-plugin" / "plugin.json"
+        if not claude_path.exists():
+            errors.append(f"{claude_path.relative_to(REPO_ROOT)}: file not found")
+        if not devin_path.exists():
+            errors.append(f"{devin_path.relative_to(REPO_ROOT)}: file not found")
+            continue
+
+        claude_manifest, claude_err = _load_json(claude_path)
+        devin_manifest, devin_err = _load_json(devin_path)
+        if claude_err:
+            errors.append(claude_err)
+        if devin_err:
+            errors.append(devin_err)
+        if claude_manifest is None or devin_manifest is None:
+            continue
+
+        devin_rel = devin_path.relative_to(REPO_ROOT)
+        for key in ("name", "version", "description"):
+            if claude_manifest.get(key) != devin_manifest.get(key):
+                errors.append(
+                    f"{devin_rel}: {key} {devin_manifest.get(key)!r} does not "
+                    f"match Claude manifest value {claude_manifest.get(key)!r}"
+                )
+        if devin_manifest.get("name") != plugin_name:
+            errors.append(
+                f"{devin_rel}: name {devin_manifest.get('name')!r} does not "
+                f"match plugin dir {plugin_name!r}"
+            )
+        devin_name = devin_manifest.get("name")
+        if not isinstance(devin_name, str) or not DEVIN_NAME_RE.match(devin_name):
+            errors.append(
+                f"{devin_rel}: name {devin_name!r} must be lowercase "
+                "letters/numbers with single '-' or '.' separators"
+            )
 
     for manifest_path in plugin_manifests:
         plugin_name = manifest_path.parent.parent.name
@@ -267,6 +311,7 @@ def check_plugin_manifests(skill_files: list[Path]) -> list[str]:
         )
 
     errors.extend(_check_marketplace_manifest(plugin_manifests))
+    errors.extend(_check_devin_meta_plugin(plugin_dirs))
     return errors
 
 
@@ -303,6 +348,114 @@ def _check_marketplace_manifest(plugin_manifests: list[Path]) -> list[str]:
         errors.append(
             f"{rel}: plugin dir {path.relative_to(REPO_ROOT)} not listed in marketplace.json"
         )
+
+    return errors
+
+
+def _check_devin_meta_plugin(plugin_dirs: list[Path]) -> list[str]:
+    if not DEVIN_META_JSON.exists():
+        return [f"{DEVIN_META_JSON.relative_to(REPO_ROOT)}: file not found"]
+
+    manifest, err = _load_json(DEVIN_META_JSON)
+    if err or manifest is None:
+        return [err] if err else []
+
+    rel = DEVIN_META_JSON.relative_to(REPO_ROOT)
+    errors: list[str] = []
+    marketplace, marketplace_err = _load_json(MARKETPLACE_JSON)
+    if marketplace_err:
+        errors.append(marketplace_err)
+        marketplace = None
+
+    if manifest.get("name") != "jylhis-skills":
+        errors.append(f"{rel}: name {manifest.get('name')!r} must be 'jylhis-skills'")
+    if marketplace is not None and manifest.get("description") != marketplace.get("description"):
+        errors.append(
+            f"{rel}: description {manifest.get('description')!r} does not "
+            f"match marketplace description {marketplace.get('description')!r}"
+        )
+
+    expected_paths = {
+        path.relative_to(REPO_ROOT).as_posix()
+        for path in plugin_dirs
+    }
+    required = manifest.get("requiredPlugins")
+    optional = manifest.get("optionalPlugins")
+    if not isinstance(required, list):
+        errors.append(f"{rel}: requiredPlugins must be a list")
+        required = []
+    if not isinstance(optional, list):
+        errors.append(f"{rel}: optionalPlugins must be a list")
+        optional = []
+
+    paths: dict[str, list[str]] = {}
+    sections = (("requiredPlugins", required), ("optionalPlugins", optional))
+    for section, entries in sections:
+        for index, entry in enumerate(entries):
+            entry_rel = f"{rel}: {section}[{index}]"
+            if not isinstance(entry, dict):
+                errors.append(f"{entry_rel}: dependency must be an object")
+                continue
+            if entry.get("source") != "git-subdir":
+                errors.append(f"{entry_rel}: source must be 'git-subdir'")
+            if entry.get("url") != DEVIN_PLUGIN_URL:
+                errors.append(
+                    f"{entry_rel}: url {entry.get('url')!r} does not match "
+                    f"{DEVIN_PLUGIN_URL!r}"
+                )
+            path = entry.get("path")
+            if not isinstance(path, str) or not path:
+                errors.append(f"{entry_rel}: path must be a non-empty string")
+                continue
+            paths.setdefault(path, []).append(section)
+            target = (REPO_ROOT / path).resolve()
+            if not target.exists():
+                errors.append(f"{entry_rel}: path {path!r} does not exist on disk")
+
+    for path, sections_for_path in sorted(paths.items()):
+        if len(sections_for_path) > 1:
+            errors.append(
+                f"{rel}: path {path!r} referenced multiple times in "
+                f"{sections_for_path}"
+            )
+        if path not in expected_paths:
+            errors.append(f"{rel}: path {path!r} does not name a plugin directory")
+
+    core_path = f"plugins/{CORE_PLUGIN_NAME}"
+    required_paths = {path for path, sections_for_path in paths.items() if "requiredPlugins" in sections_for_path}
+    optional_paths = {path for path, sections_for_path in paths.items() if "optionalPlugins" in sections_for_path}
+    if required_paths != {core_path}:
+        errors.append(
+            f"{rel}: requiredPlugins must contain only {core_path!r}, "
+            f"found {sorted(required_paths)}"
+        )
+    if core_path in optional_paths:
+        errors.append(f"{rel}: {core_path!r} must not be optional")
+    expected_optional = expected_paths - {core_path}
+    if optional_paths != expected_optional:
+        errors.append(
+            f"{rel}: optionalPlugins must contain every non-core plugin exactly "
+            f"once, found {sorted(optional_paths)}"
+        )
+    if set(paths) != expected_paths:
+        errors.append(
+            f"{rel}: plugin paths must match plugin directories exactly, found "
+            f"{sorted(paths)}"
+        )
+
+    if marketplace is not None:
+        marketplace_paths: set[str] = set()
+        for entry in marketplace.get("plugins", []):
+            source = entry.get("source")
+            if isinstance(source, str):
+                marketplace_paths.add(Path(source.lstrip("./")).as_posix())
+            elif isinstance(source, dict) and source.get("source") == "local":
+                marketplace_paths.add(Path(source.get("path", "").lstrip("./")).as_posix())
+        if marketplace_paths != set(paths):
+            errors.append(
+                f"{rel}: plugin paths must match marketplace.json exactly, "
+                f"found {sorted(set(paths))}, marketplace has {sorted(marketplace_paths)}"
+            )
 
     return errors
 

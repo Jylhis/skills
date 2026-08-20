@@ -31,6 +31,11 @@ to the skills listed by the runtime:
 - LSP wiring is per-language-plugin via `plugins/jylhis-<lang>/.lsp.json`;
   `/lsp-status` reports only what the user has opted into.
 
+### Devin runtime
+
+Devin sessions also auto-discover repo skills under `.claude/skills/`; those
+repo-development skills remain excluded from published plugin installs.
+
 ## Output style
 
 This file is symlinked to `~/.claude/CLAUDE.md`, so these conventions apply

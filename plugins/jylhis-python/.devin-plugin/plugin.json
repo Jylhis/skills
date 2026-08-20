@@ -1,0 +1,5 @@
+{
+  "name": "jylhis-python",
+  "version": "1.0.0",
+  "description": "Python 3.12+ skill — modern code style, asyncio, type hints, dataclasses vs Pydantic, Ruff, uv, and pytest."
+}

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Install the jylhis-skills marketplace + the default plugin into supported
 # agent tools. Targets: Claude Code (CLI + Claude Code on the web, same plugin
-# marketplace mechanism) and Pi (pi-coding-agent). Per-language and per-tool
-# plugins remain opt-in — the script prints the commands to install them at the
-# end. claude.ai Skills are a separate, upload-based channel (see `just package`
-# / docs/install.md), not wired here.
+# marketplace mechanism), Pi (pi-coding-agent), and Devin. Per-language and
+# per-tool plugins remain opt-in, and the script prints the commands to install
+# them at the end. claude.ai Skills are a separate, upload-based channel (see
+# `just package` / docs/install.md), not wired here.
 #
 # Also links AGENTS.md and CLAUDE.md directly for Claude Code project context,
-# and AGENTS.md for Pi project context. Idempotent. Backs up any existing files
-# it would overwrite.
+# and AGENTS.md for Pi and Devin project context. Idempotent. Backs up any
+# existing files it would overwrite.
 #
 # Usage: bash scripts/install.sh [--dry-run]
 set -euo pipefail
@@ -100,6 +100,33 @@ sync_pi_plugin_skills() {
   if [[ -L "$dest" || ( -e "$dest" && ! -d "$dest" ) ]]; then
     run mkdir -p "$BACKUP_ROOT"
     run mv "$dest" "$BACKUP_ROOT/pi-skills-$(basename "$dest")"
+  fi
+  run mkdir -p "$dest"
+  run rsync -aL --delete --delete-excluded \
+    --exclude .git \
+    --exclude .devenv \
+    --exclude .direnv \
+    --exclude .cache \
+    --exclude .claude \
+    --exclude evals \
+    --exclude result \
+    --exclude 'result-*' \
+    --exclude __pycache__ \
+    --exclude '*.pyc' \
+    "$REPO_ROOT/plugins/$plugin/skills/" "$dest/"
+  echo "sync $dest <- $REPO_ROOT/plugins/$plugin/skills"
+}
+
+# Devin's CLI installs the repo as a live-linked plugin. When the CLI is not
+# available, mirror the default plugin's skills into Devin's global skills
+# directory as real files, resolving the per-plugin symlinks.
+sync_devin_plugin_skills() {
+  local devin_dir="$1" plugin="$2"
+  local dest="$devin_dir/skills"
+
+  if [[ -L "$dest" || ( -e "$dest" && ! -d "$dest" ) ]]; then
+    run mkdir -p "$BACKUP_ROOT"
+    run mv "$dest" "$BACKUP_ROOT/devin-skills"
   fi
   run mkdir -p "$dest"
   run rsync -aL --delete --delete-excluded \
@@ -261,6 +288,23 @@ fi
 # Pi project context (it reads AGENTS.md / CLAUDE.md from its agent dir).
 [[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$PI_DIR/AGENTS.md"
 
+# ── Devin ────────────────────────────────────────────────────────────────────
+# Prefer the live-linked local plugin install. The fallback mirrors only the
+# default plugin's skills because Devin's global skills directory is flat.
+DEVIN_DIR="${DEVIN_CONFIG_DIR:-$HOME/.config/devin}"
+run mkdir -p "$DEVIN_DIR"
+
+if command -v devin >/dev/null 2>&1; then
+  run devin plugins install "$REPO_ROOT"
+  echo "devin: installed local plugin from $REPO_ROOT"
+else
+  run mkdir -p "$DEVIN_DIR/skills"
+  sync_devin_plugin_skills "$DEVIN_DIR" "$DEFAULT_PLUGIN"
+  echo "devin CLI not found on PATH; mirrored ${DEFAULT_PLUGIN} skills into $DEVIN_DIR/skills"
+fi
+
+[[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$DEVIN_DIR/AGENTS.md"
+
 # ── Opt-in install hints ────────────────────────────────────────────────────
 cat <<EOF
 
@@ -271,6 +315,7 @@ To install one (example: jylhis-python):
   Claude Code:  /plugin install jylhis-python@jylhis-skills
   Pi:           rsync -aL --delete "$REPO_ROOT/plugins/jylhis-python/skills/" "$PI_DIR/skills/jylhis-python/"
                 # then re-run scripts/install.sh to keep it refreshed
+  Devin:        devin plugins install "$REPO_ROOT/plugins/jylhis-python"
 
 claude.ai Skills (upload channel): run \`just package\` and upload
 dist/skills/<name>.zip via claude.ai → Settings → Capabilities → Skills.

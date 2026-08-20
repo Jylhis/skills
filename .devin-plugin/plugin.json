@@ -1,0 +1,124 @@
+{
+  "name": "jylhis-skills",
+  "version": "1.0.0",
+  "description": "Curated agent-skills marketplace by Jylhis. Default plugin (jylhis-skills-core) ships cross-cutting skills; per-language and per-tool plugins are opt-in.",
+  "requiredPlugins": [
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-skills-core"
+    }
+  ],
+  "optionalPlugins": [
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-python"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-typescript"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-go"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-rust"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-jvm"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-emacs"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-nix"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-filesystems"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-systemd"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-gitlab"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-terraform"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-azure"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-obsidian"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-pkm"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-grafana"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-taste"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-duckdb"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-engineering"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-product"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-productivity"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-small-business"
+    },
+    {
+      "source": "git-subdir",
+      "url": "https://github.com/Jylhis/skills.git",
+      "path": "plugins/jylhis-careers"
+    }
+  ]
+}

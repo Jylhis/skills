@@ -3,7 +3,8 @@
 A curated [Agent Skills](https://agentskills.io) **marketplace** that publishes
 one default plugin (`jylhis-skills-core`) and several opt-in plugins. Supported
 targets: **Claude Code** (CLI + Claude Code on the web), **Pi**
-(`pi-coding-agent`), and **claude.ai Skills** (per-skill `.zip` upload).
+(`pi-coding-agent`), **Devin**, and **claude.ai Skills** (per-skill `.zip`
+upload).
 
 ## Quick install
 
@@ -22,6 +23,7 @@ installed automatically.
 |---|---|---|
 | Claude Code (CLI + web) | local marketplace + `plugin install jylhis-skills-core@jylhis-skills` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
 | Pi (`pi-coding-agent`) | mirror default plugin's skills + link `AGENTS.md` | `~/.pi/agent/skills/jylhis-skills-core/` + `~/.pi/agent/AGENTS.md` |
+| Devin | local plugin install, or mirror default skills if the CLI is unavailable | Devin plugin registry, or `~/.config/devin/skills/` + `~/.config/devin/AGENTS.md` |
 
 For Claude Code the script registers this repo as a local marketplace and
 installs the `jylhis-skills-core` plugin. If the `claude` CLI is not on
@@ -71,6 +73,34 @@ npm install -g @earendil-works/pi-coding-agent
 
 then re-run `bash scripts/install.sh`. Override the agent dir with
 `PI_AGENT_DIR=… bash scripts/install.sh`.
+
+### Devin
+
+For Devin Cloud organization or enterprise installs, add the repository to the
+managed plugin manifest at [Settings → Marketplace](https://app.devin.ai/settings/marketplace):
+
+```json
+{"requiredPlugins": ["Jylhis/skills"]}
+```
+
+For a per-user install with the Devin CLI:
+
+```bash
+devin plugins install Jylhis/skills
+```
+
+To install one opt-in plugin from a local checkout:
+
+```bash
+devin plugins install /path/to/skills/plugins/jylhis-python
+```
+
+The install script uses `devin plugins install <repo-root>` when the CLI is
+available, which keeps the local plugin live-linked. Without the CLI, it
+mirrors the default plugin's skills as real files into
+`~/.config/devin/skills/` and links `AGENTS.md` to
+`~/.config/devin/AGENTS.md`. In this repository, Devin sessions also load the
+repo meta skills under `.claude/skills/` automatically.
 
 ### claude.ai Skills
 
