@@ -51,6 +51,15 @@ only when the user opts in. See `docs/install.md` for install instructions.
   Claude Code **auto-loads** these when this repo is open, but they are
   **not** shipped via any plugin (`install.sh` excludes `.claude/`), so they
   stay relevant only when developing skills inside this repo.
+- `.agents/skills/` — Devin adoption layer. Symlinks (same relative-target
+  convention as the plugin directories) pointing into
+  `skills/<category>/<name>/` for the subset of the catalogue that is useful
+  when Devin works autonomously on the Jylhis repos, plus one real skill,
+  `using-jylhis-skills`, that maps tasks to skills and translates
+  Claude-Code-specific harness details (slash commands, `.lsp.json`,
+  improvement-memory JSONL) into Devin equivalents. Devin discovers
+  `.agents/skills/*/SKILL.md` automatically; this layer ships to no plugin
+  and carries no manifest bookkeeping.
 - `upstream/sources.yaml` — manifest of tracked upstream skill repos
   (rev pin, review cursor, license, import paths). Created on first
   adoption; absent until then.
