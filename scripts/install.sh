@@ -6,9 +6,9 @@
 # end. claude.ai Skills are a separate, upload-based channel (see `just package`
 # / docs/install.md), not wired here.
 #
-# Also links AGENTS.md and CLAUDE.md directly for Claude Code project context,
-# and AGENTS.md for Pi project context. Idempotent. Backs up any existing files
-# it would overwrite.
+# Links AGENTS.md for Pi project context. (~/.claude/CLAUDE.md and AGENTS.md are
+# Home-Manager-managed, so this installer no longer touches them.) Idempotent.
+# Backs up any existing files it would overwrite.
 #
 # Usage: bash scripts/install.sh [--dry-run]
 set -euo pipefail
@@ -253,9 +253,11 @@ Claude Code:
 EOF
 fi
 
-# Direct context links so @AGENTS.md and CLAUDE.md resolve inside ~/.claude/
-[[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$CLAUDE_DIR/AGENTS.md"
-[[ -f "$REPO_ROOT/CLAUDE.md" ]] && link "$REPO_ROOT/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+# ~/.claude/CLAUDE.md is Home-Manager-managed (programs.claude-code.context),
+# so this installer no longer links CLAUDE.md or AGENTS.md into ~/.claude/ --
+# doing so collided with HM's managed file. Global output-style conventions
+# now live in the HM-managed CLAUDE.md; repo-specific guidance loads via this
+# repo's own CLAUDE.md when working here. Pi still gets its AGENTS.md below.
 
 # ── Pi (pi-coding-agent) ──────────────────────────────────────────────────────
 # Pi reads ~/.pi/agent/AGENTS.md for project context and auto-discovers SKILL.md
