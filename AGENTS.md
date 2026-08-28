@@ -61,8 +61,9 @@ only when the user opts in. See `docs/install.md` for install instructions.
   Claude Code CLI and Claude Code on the web.
 - `scripts/install.sh` — registers the Claude Code marketplace and installs
   ONLY the default plugin; mirrors the default plugin's skills into Pi
-  (`~/.pi/agent/skills/`) and links `AGENTS.md`. Prints opt-in commands for
-  the rest.
+  (`~/.pi/agent/skills/`) plus a curated set of always-on Pi plugins
+  (see `PI_ALWAYS_PLUGINS` in the script), and links `AGENTS.md`. Prints
+  opt-in commands for the rest.
 - `scripts/validate.py` — portable skill frontmatter lint (two-level paths);
   also runs an advisory `--strict-upstream` pass when `upstream/sources.yaml`
   exists.
@@ -118,19 +119,20 @@ just validate # portable skill lint + plugin-manifest cross-check
 ```
 
 ## Installing opt-in plugins
-
-`just install` only deploys `jylhis-skills-core`. To pull in a language or
-tool plugin from the same marketplace:
+`just install` deploys `jylhis-skills-core` for Claude Code and Pi. For Pi
+it additionally mirrors a curated always-on set (`PI_ALWAYS_PLUGINS` in
+`scripts/install.sh`: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
+`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
+`jylhis-systemd`, `jylhis-obsidian`, `jylhis-pkm`). To pull in any other
+language or tool plugin from the same marketplace:
 
 | Tool        | Command                                                                |
 |-------------|------------------------------------------------------------------------|
-| Claude Code | `/plugin install jylhis-python@jylhis-skills`                          |
-| Pi          | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` (then re-run `just install` to refresh) |
+| Claude Code | `/plugin install jylhis-gitlab@jylhis-skills`                           |
+| Pi          | `rsync -aL --delete plugins/jylhis-gitlab/skills/ ~/.pi/agent/skills/jylhis-gitlab/` (then re-run `just install` to refresh) |
 
-Available opt-in plugins: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
-`jylhis-rust`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
-`jylhis-filesystems`, `jylhis-systemd`, `jylhis-gitlab`,
-`jylhis-terraform`, `jylhis-azure`, `jylhis-obsidian`, `jylhis-pkm`,
+Remaining opt-in plugins (not auto-installed for Pi; all opt-in for Claude
+Code): `jylhis-rust`, `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`,
 `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:

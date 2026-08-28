@@ -45,6 +45,23 @@ OPTIN_PLUGINS=(
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 
+# Opt-in plugins that are nevertheless mirrored into Pi on every run, in
+# addition to the default plugin. These are the commonly-useful language and
+# tool plugins the user wants available without a manual opt-in step. Claude
+# Code still installs them via the normal /plugin opt-in flow.
+PI_ALWAYS_PLUGINS=(
+  jylhis-python
+  jylhis-typescript
+  jylhis-go
+  jylhis-jvm
+  jylhis-emacs
+  jylhis-nix
+  jylhis-filesystems
+  jylhis-systemd
+  jylhis-obsidian
+  jylhis-pkm
+)
+
 # Iterate $INSTALLED (Claude) for jylhis-* plugins currently installed in this scope.
 # Used to refresh all installed plugins, not just the default, after a structural
 # repo change (e.g. skill layout migration).
@@ -115,6 +132,18 @@ sync_pi_plugin_skills() {
     --exclude '*.pyc' \
     "$REPO_ROOT/plugins/$plugin/skills/" "$dest/"
   echo "sync $dest <- $REPO_ROOT/plugins/$plugin/skills"
+}
+
+# True if $1 is a plugin that should always be mirrored into Pi (a member of
+# PI_ALWAYS_PLUGINS). Used to skip it in the refresh loop, since it is already
+# synced unconditionally above.
+is_pi_always_plugin() {
+  local needle="$1"
+  local p
+  for p in "${PI_ALWAYS_PLUGINS[@]}"; do
+    [[ "$p" == "$needle" ]] && return 0
+  done
+  return 1
 }
 
 # ── Claude Code ──────────────────────────────────────────────────────────────
@@ -240,10 +269,19 @@ if command -v pi >/dev/null 2>&1; then
   sync_pi_plugin_skills "$PI_DIR" "$DEFAULT_PLUGIN"
   echo "pi: synced ${DEFAULT_PLUGIN} skills into $PI_DIR/skills"
 
-  # Refresh any opt-in plugins already mirrored into Pi so they pick up
-  # structural changes. A plugin is "installed for Pi" if its skills dir exists.
+  # Always-install plugins: mirror these into Pi on every run, not just when
+  # the user has previously opted in.
+  for plugin_name in "${PI_ALWAYS_PLUGINS[@]}"; do
+    echo "sync pi:$plugin_name (always)"
+    sync_pi_plugin_skills "$PI_DIR" "$plugin_name"
+  done
+
+  # Refresh any remaining opt-in plugins already mirrored into Pi so they pick
+  # up structural changes. A plugin is "installed for Pi" if its skills dir
+  # exists. Skip PI_ALWAYS_PLUGINS (already synced above).
   for plugin_name in "${OPTIN_PLUGINS[@]}"; do
     [[ -d "$PI_DIR/skills/$plugin_name" ]] || continue
+    is_pi_always_plugin "$plugin_name" && continue
     echo "refresh pi:$plugin_name"
     sync_pi_plugin_skills "$PI_DIR" "$plugin_name"
   done
@@ -252,7 +290,8 @@ else
 pi (pi-coding-agent) not found on PATH. Install it with:
   npm install -g @earendil-works/pi-coding-agent
   # or: curl -fsSL https://pi.dev/install.sh | sh
-Then re-run this script, or sync the default plugin manually:
+Then re-run this script to sync the default and always-on plugins, or sync the
+default plugin manually:
   mkdir -p "$PI_DIR/skills/${DEFAULT_PLUGIN}"
   rsync -aL --delete "$REPO_ROOT/plugins/${DEFAULT_PLUGIN}/skills/" "$PI_DIR/skills/${DEFAULT_PLUGIN}/"
 EOF
@@ -262,14 +301,24 @@ fi
 [[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$PI_DIR/AGENTS.md"
 
 # ── Opt-in install hints ────────────────────────────────────────────────────
+PI_ALWAYS_STR="${PI_ALWAYS_PLUGINS[*]}"
+PI_OPTIN_REMAINING=""
+for p in "${OPTIN_PLUGINS[@]}"; do
+  if ! is_pi_always_plugin "$p"; then
+    PI_OPTIN_REMAINING="${PI_OPTIN_REMAINING:+$PI_OPTIN_REMAINING }$p"
+  fi
+done
+
 cat <<EOF
 
 Default plugin installed: ${DEFAULT_PLUGIN}
-Available opt-in plugins: ${OPTIN_PLUGINS[*]}
+Always installed for Pi (in addition to default): ${PI_ALWAYS_STR}
+Available opt-in plugins (Claude Code): ${OPTIN_PLUGINS[*]}
+Remaining opt-in for Pi: ${PI_OPTIN_REMAINING}
 
-To install one (example: jylhis-python):
-  Claude Code:  /plugin install jylhis-python@jylhis-skills
-  Pi:           rsync -aL --delete "$REPO_ROOT/plugins/jylhis-python/skills/" "$PI_DIR/skills/jylhis-python/"
+To install a remaining opt-in (example: jylhis-gitlab):
+  Claude Code:  /plugin install jylhis-gitlab@jylhis-skills
+  Pi:           rsync -aL --delete "$REPO_ROOT/plugins/jylhis-gitlab/skills/" "$PI_DIR/skills/jylhis-gitlab/"
                 # then re-run scripts/install.sh to keep it refreshed
 
 claude.ai Skills (upload channel): run \`just package\` and upload
