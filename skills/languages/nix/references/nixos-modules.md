@@ -394,3 +394,219 @@ See `nixos-modules/testing.md` for the NixOS VM integration test framework.
 - **nix-darwin** — macOS equivalent using the same module system
 - **home-manager** — user-level configuration with the same module patterns
 - **nix-testing** — comprehensive guide to NixOS VM tests
+
+## disko (Declarative Disk Partitioning)
+
+disko lets you define disk layouts (partitions, filesystems, LUKS, LVM, mdadm) declaratively in Nix and apply them reproducibly. Useful for unattended installations, server provisioning, and rebuilding after disk failures.
+
+### Basic Configuration
+
+```nix
+{
+  disko.devices = {
+    disk = {
+      my-disk = {
+        device = "/dev/sda";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            ESP = {
+              type = "EF00";
+              size = "500M";
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+                mountOptions = [ "umask=0077" ];
+              };
+            };
+            root = {
+              size = "100%";
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}
+```
+
+### Supported Layouts
+
+- Disk types: GPT, MBR, mixed
+- Filesystems: ext4, btrfs, ZFS, bcachefs, vfat, tmpfs
+- Advanced: LVM, mdadm, LUKS, recursive layouts
+
+### Usage
+
+```bash
+# Apply a disko config to a machine (destructive — formats disks)
+sudo disko --mode destroy,format,mount /etc/disko/my-disk.nix
+
+# Or with nixos-anywhere for remote provisioning
+nix run github:numtide/nixos-anywhere -- --flake .#myhost root@host
+```
+
+### Flake Integration
+
+```nix
+{
+  inputs.disko.url = "github:nix-community/disko";
+  # ...
+  nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+    modules = [
+      inputs.disko.nixosModules.disko
+      ./hosts/myhost/disk-config.nix  # disko.devices.* config
+      ./hosts/myhost/configuration.nix
+    ];
+  };
+}
+```
+
+## SrvOS (Server Profiles)
+
+SrvOS provides opinionated, reusable NixOS profiles for server deployments — shared modules for common server patterns (SSH hardening, terminfo, hardware-specific profiles).
+
+### Available Profiles
+
+| Module | Purpose |
+|--------|---------|
+| `srvos.nixosModules.server` | Common server baseline (minimal, no GUI, hardened defaults) |
+| `srvos.nixosModules.hardware-hetzner-amd` | Hetzner AMD dedicated server |
+| `srvos.nixosModules.hardware-hetzner-arm` | Hetzner ARM dedicated server |
+| `srvos.nixosModules.hardware-common` | Common hardware setup |
+| `srvos.nixosModules.mixins-terminfo` | Extra terminfo for SSH from various terminals |
+| `srvos.nixosModules.roles-github-actions-runner` | GitHub Actions runner setup |
+
+### Usage
+
+```nix
+{
+  inputs.srvos.url = "github:nix-community/srvos";
+  # Use the nixpkgs version tested with SrvOS
+  nixpkgs.follows = "srvos/nixpkgs";
+
+  outputs = { self, nixpkgs, srvos }: {
+    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        srvos.nixosModules.server
+        srvos.nixosModules.hardware-hetzner-amd
+        srvos.nixosModules.mixins-terminfo
+        ./myhost.nix
+      ];
+    };
+  };
+}
+```
+
+## nix-ld (Unpatched Dynamic Binaries)
+
+nix-ld provides a shim that lets you run unpatched precompiled dynamic binaries on NixOS. It places a linker at the standard Linux path (`/lib64/ld-linux-x86-64.so.2`) that delegates to the Nix store linker via `NIX_LD` and `NIX_LD_LIBRARY_PATH`.
+
+### When to use nix-ld
+
+- Running binaries downloaded via third-party package managers (vscode extensions, pip, npm) without patching each update
+- Running games or proprietary software that verifies its integrity
+- Running programs too large for the Nix store (e.g. FPGA IDEs)
+
+### Enable on NixOS
+
+```nix
+{
+  programs.nix-ld.enable = true;
+}
+```
+
+This installs nix-ld system-wide. Set `NIX_LD` and `NIX_LD_LIBRARY_PATH` in the shell environment where the unpatched binary runs.
+
+### Comparison with buildFHSUserEnv
+
+nix-ld is lighter than `buildFHSUserEnv` (which creates a full FHS sandbox). It works with direnv and doesn't break setuid binaries or other sandbox tools like bwrap.
+
+## Stylix (System-Wide Theming)
+
+Stylix is a theming framework for NixOS, Home Manager, nix-darwin, and Nix-on-Droid that applies a single color scheme, wallpaper, and font set across all supported applications. Unlike nix-colors or base16.nix which just provide color palettes, Stylix automatically applies themes to each application.
+
+### Basic Configuration
+
+```nix
+{
+  # Pick a base16 color scheme
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/dracula.yaml";
+
+  # Or use a built-in scheme
+  # stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-hard.yaml";
+
+  # Set a wallpaper
+  stylix.image = ./wallpaper.png;
+
+  # Enable for specific targets
+  stylix.targets = {
+    gnome.enable = true;
+    gtk.enable = true;
+    alacritty.enable = true;
+    # ... many more targets
+  };
+
+  # Fonts
+  stylix.fonts = {
+    monospace = {
+      name = "JetBrains Mono";
+      package = pkgs.jetbrains-mono;
+    };
+    sansSerif = {
+      name = "Inter";
+      package = pkgs.inter;
+    };
+  };
+}
+```
+
+### Flake Integration
+
+```nix
+{
+  inputs.stylix.url = "github:nix-community/stylix";
+  # stylix follows its own nixpkgs; set follows if you want it to track yours
+  # inputs.stylix.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { self, nixpkgs, stylix }: {
+    nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+      modules = [
+        stylix.nixosModules.stylix
+        ./configuration.nix
+      ];
+    };
+  };
+}
+```
+
+Stylix supports NixOS (`nixosModules.stylix`), Home Manager (`homeManagerModules.stylix`), nix-darwin, and Nix-on-Droid.
+
+## nixos-generators (Deprecated — use nixos-rebuild build-image)
+
+As of NixOS 25.05, most of nixos-generators has been upstreamed into nixpkgs. Use `nixos-rebuild build-image` instead:
+
+```bash
+# Build an ISO image (replaces nixos-generate --format iso)
+nixos-rebuild build-image --image-variant iso
+
+# From a flake
+nixos-rebuild build-image --image-variant iso --flake .#myhost
+```
+
+Supported image variants in nixpkgs include: `iso`, `amazon`, `azure`, `do`, `gce`, `hyperv`, `kexec`, `kubevirt`, `linode`, `lxc`, `openstack`, `proxmox`, `proxmox-lxc`, `qcow`, `qcow-efi`, `raw`.
+
+For custom image configurations, expose the image as a flake output:
+
+```nix
+packages.x86_64-linux.myhost-iso =
+  self.nixosConfigurations.myhost.config.system.build.images.iso;
+```

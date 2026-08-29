@@ -31,14 +31,90 @@ Configures Nix with flakes enabled, sets up `/nix/store`, and handles platform d
 
 Automatically caches `/nix/store` paths using GitHub Actions cache backend. No Cachix account or signing keys needed.
 
-**cache-nix-action** -- community alternative with more control:
+### cache-nix-action
+
+A GitHub Action for caching Nix store paths using GitHub Actions cache backend. More configurable than magic-nix-cache:
 
 ```yaml
 - uses: nix-community/cache-nix-action@v6
   with:
     primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
     restore-prefixes-first-match: nix-${{ runner.os }}-
-    gc-max-store-size-linux: 2000000000   # 2 GB limit
+    gc-max-store-size-linux: 1000000000  # 1 GB limit
+    # Also supports purge, merge caches across jobs, and custom cache URLs
+```
+
+Compatible with `nixbuild/nix-quick-install-action`, `cachix/install-nix-action`, and `DeterminateSystems/determinate-nix-action`.
+
+---
+
+## nix-github-actions (CI Matrix Generator)
+
+A library to turn Nix flake attribute sets into GitHub Actions matrices — generates per-system build jobs from your `packages` or `checks` outputs.
+
+### Integration
+
+```nix
+{
+  inputs.nix-github-actions.url = "github:nix-community/nix-github-actions";
+  inputs.nix-github-actions.inputs.nixpkgs.follows = "nixpkgs";
+
+  outputs = { self, nixpkgs, nix-github-actions }: {
+    # Generate a matrix from your packages
+    githubActions = nix-github-actions.lib.mkGithubMatrix {
+      checks = nixpkgs.lib.getAttrs [ "x86_64-linux" "x86_64-darwin" ] self.checks;
+    };
+
+    packages.x86_64-linux.default = /* ... */;
+    checks.x86_64-linux.default = /* ... */;
+  };
+}
+```
+
+### Restricting Systems
+
+If your flake supports systems that GitHub Actions doesn't (e.g. `aarch64-linux`), filter the matrix:
+
+```nix
+githubActions = nix-github-actions.lib.mkGithubMatrix {
+  checks = nixpkgs.lib.getAttrs [ "x86_64-linux" "x86_64-darwin" ] self.checks;
+};
+```
+
+### CI Workflow Template
+
+Combine nix-github-actions with the Nix installer for a full CI setup:
+
+```yaml
+name: Nix CI
+on: [push, pull_request]
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          echo "matrix=$(nix eval --json .#githubActions)" >> $GITHUB_OUTPUT
+
+  build:
+    needs: matrix
+    strategy:
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ matrix.system }}-
+      - run: nix build .#${{ matrix.attr }}
 ```
 
 ### Complete basic workflow

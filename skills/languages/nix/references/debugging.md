@@ -316,6 +316,51 @@ nix-collect-garbage --print-dead
 nix-store --gc --print-roots
 ```
 
+## vulnix (Vulnerability Scanner)
+
+vulnix scans the Nix store for packages with known CVEs from the NVD (National Vulnerability Database). It matches package names and versions against CVE entries and reports active advisories.
+
+### Usage
+
+```bash
+# Scan the current system configuration
+vulnix --system
+
+# Scan a build result and its transitive closure
+vulnix result/
+
+# Scan specific derivations without determining requisites
+vulnix -R /nix/store/*-some-package.drv
+
+# Whitelist specific packages (suppress known false positives)
+vulnix --whitelist whitelist.nix
+```
+
+### Whitelist Format
+
+```nix
+# whitelist.nix
+[
+  {
+    name = "libssh2";
+    version = "1.9.0";
+    # Skip specific CVEs for this package version
+    cves = [ "CVE-2019-17498" ];
+    until = "2025-01-01";  # expiry date
+  }
+]
+```
+
+### Requirements
+
+- Must run as the same user that owns the Nix store database, or with `nix-daemon` active
+- Parses `.drv` files directly (tested with Nix >= 1.10 and 2.x)
+- Set `LANG=C.UTF-8` if you see encoding errors
+
+### CI Integration
+
+Run as a periodic check on NixOS systems to catch known-vulnerable packages in the active configuration.
+
 ## Performance Diagnosis
 
 - **Evaluation slow?** Check for IFD, large `builtins.readDir` on big directories, deep recursive imports, or `builtins.readFile` on big files. Use `--trace-function-calls` to profile evaluation.

@@ -250,7 +250,7 @@ Always write packages as functions in separate files and use `callPackage` to in
 | `builtins.trace` | Debug print during evaluation |
 | `import` | Load and evaluate a `.nix` file |
 
-Read `language/advanced.md` for the full builtins and lib reference. See `language/rfcs.md` for the authoritative RFC summary that governs Nix/Nixpkgs/NixOS conventions.
+Read `language/advanced.md` for the full builtins and lib reference. See `language/rfcs.md` for the authoritative RFC summary that governs Nix/Nixpkgs/NixOS conventions. See `ecosystem.md` for community tooling (noogle, manix, nixdoc, rnix-parser, lib-aggregate, nixpkgs.lib) that extends the language and lib ecosystem.
 
 ## Doc Comments (RFC 145)
 

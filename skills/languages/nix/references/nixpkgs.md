@@ -126,7 +126,69 @@ Only files in the fileset enter the store. Changes to README, CI configs, etc. w
 | `fetchzip` | ZIP/tarball with auto-extract | `url`, `hash` |
 | `fetchpatch` | Fetch a patch from URL | `url`, `hash`, `excludes?` |
 
-**Getting the hash:** Use `nurl` (generates full fetcher calls from URLs), `nix-prefetch-url`, `nix-prefetch-github`, or set `hash = "";` and Nix reports the correct hash in the error.
+**Getting the hash:** Use `nurl` (generates full fetcher calls from URLs), `nix-init` (generates complete package definitions from URLs), `nix-prefetch-url`, `nix-prefetch-github`, or set `hash = "";` and Nix reports the correct hash in the error.
+
+### nurl — Generate Fetcher Calls from URLs
+
+`nurl` generates Nix fetcher expressions from repository URLs. It infers the correct fetcher (fetchFromGitHub, fetchFromGitLab, etc.) and computes the hash:
+
+```bash
+$ nurl https://github.com/nix-community/patsh v0.2.0
+fetchFromGitHub {
+  owner = "nix-community";
+  repo = "patsh";
+  tag = "v0.2.0";
+  hash = "sha256-7HXJspebluQeejKYmVA7sy/F3dtU1gc4eAbKiPexMMA=";
+}
+```
+
+Supported fetchers: `fetchFromGitHub`, `fetchFromGitLab`, `fetchFromGitea`, `fetchFromBitbucket`, `fetchFromSourcehut`, `fetchCrate`, `fetchPypi`, `fetchHex`, `fetchgit`, `fetchhg`, `fetchsvn`, `fetchurl`, `fetchzip`, `fetchpatch`, `builtins.fetchGit`.
+
+```bash
+# Specify a custom fetcher
+nurl -f fetchCrate https://crates.io/crates/serde 1.0
+
+# Output only the hash
+nurl -H https://github.com/owner/repo v1.0
+
+# JSON output for scripting
+nurl -j https://github.com/owner/repo v1.0
+
+# Fetch submodules
+nurl -S true https://github.com/owner/repo v1.0
+```
+
+### nix-init — Generate Package Definitions from URLs
+
+`nix-init` builds on top of `nurl` to generate complete Nix package definitions (not just fetcher calls) from URLs. It handles hash prefetching, dependency inference for Rust/Go/Python, license detection, and interactive prompts with fuzzy completions.
+
+```bash
+# Generate a package definition interactively
+nix-init https://github.com/owner/repo
+
+# Headless mode (requires --url)
+nix-init --url https://github.com/owner/repo --headless
+
+# Specify builder and output path
+nix-init --builder rustPlatform.buildRustPackage -u https://github.com/owner/repo
+
+# Output to a specific path (RFC 140 by-name layout)
+nix-init -C true -o pkgs/by-name/se/serde/
+```
+
+Generated output typically needs review — double-check the license, description, and build flags.
+
+### nixpkgs-update — Automated Package Updates
+
+A tool and bot for automatically updating nixpkgs packages. The bot runs on the `r-ryantm` account and submits PRs to nixpkgs. For manual use:
+
+```bash
+# Update a specific package
+nix run github:nix-community/nixpkgs-update -- --stable  # stable channel
+# See documentation at https://nix-community.github.io/nixpkgs-update/
+```
+
+The bot creates PRs like "nixos/foobar: 1.0.0 -> 1.0.1" with build results. Subscribe to the `r-ryantm` bot to get update PRs for your packages.
 
 **Fetchers vs builtins:** `pkgs.fetchurl` is a fixed-output derivation (builds in parallel, cached). `builtins.fetchurl` runs during evaluation and blocks the evaluator. Prefer `pkgs.fetch*` for build-time downloads.
 
