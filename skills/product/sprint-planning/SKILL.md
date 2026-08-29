@@ -10,15 +10,11 @@ metadata:
 
 # /sprint-planning
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
-
 Plan a sprint by scoping work, estimating capacity, and setting clear goals.
 
 ## Usage
 
-```
-/sprint-planning $ARGUMENTS
-```
+Invoke when the user asks to plan a sprint. The backlog items, team availability, and goals come from the conversation.
 
 ## How It Works
 

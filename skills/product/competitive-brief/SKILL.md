@@ -10,15 +10,11 @@ metadata:
 
 # Competitive Brief
 
-> If you see unfamiliar placeholders or need to check which tools are connected, see [CONNECTORS.md](../../CONNECTORS.md).
-
 Create a competitive analysis brief for one or more competitors or a feature area.
 
 ## Usage
 
-```
-/competitive-brief $ARGUMENTS
-```
+Invoke when the user asks for a competitive analysis brief. The arguments (competitor names, focus area, decision context) come from the conversation.
 
 ## Workflow
 
@@ -40,14 +36,12 @@ Ask the user:
 - Job postings (signal of strategic direction)
 - Social media and community discussions
 
-If **~~knowledge base** is connected:
-- Search for existing competitive analysis documents
-- Find win/loss reports or sales battle cards
-- Pull prior competitive research
-
-If **~~chat** is connected:
-- Search for competitive mentions in sales or product channels
-- Find recent deal feedback involving competitors
+**From internal sources** (if available in the conversation or workspace):
+- Existing competitive analysis documents
+- Win/loss reports or sales battle cards
+- Prior competitive research
+- Competitive mentions in sales or product channels
+- Recent deal feedback involving competitors
 
 ### 3. Generate the Brief
 
