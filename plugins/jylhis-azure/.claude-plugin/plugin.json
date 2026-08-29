@@ -1,12 +1,13 @@
 {
   "name": "jylhis-azure",
-  "description": "Azure cloud skill — adoption framework, well-architected, AKS, deployment patterns.",
+  "description": "Azure cloud skills — umbrella router plus AI services, compliance, cost management, deployment, AKS, and storage.",
   "version": "0.1.0",
   "author": {
     "name": "Jylhis"
   },
   "repository": "https://github.com/Jylhis/skills",
   "skills": [
+    "./skills/azure",
     "./skills/azure-ai",
     "./skills/azure-compliance",
     "./skills/azure-cost",

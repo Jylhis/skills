@@ -1,12 +1,13 @@
 {
   "name": "jylhis-grafana",
-  "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
+  "description": "Grafana skills — umbrella router plus alerting/IRM, dashboard authoring, OpenTelemetry instrumentation, OSS setup, and PromQL.",
   "version": "0.1.0",
   "author": {
     "name": "Jylhis"
   },
   "repository": "https://github.com/Jylhis/skills",
   "skills": [
+    "./skills/grafana",
     "./skills/grafana-alerting",
     "./skills/grafana-dashboarding",
     "./skills/grafana-opentelemetry",

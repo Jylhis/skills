@@ -78,7 +78,7 @@
     {
       "name": "jylhis-azure",
       "source": "./plugins/jylhis-azure",
-      "description": "Azure cloud skill — adoption framework, well-architected, AKS, deployment patterns.",
+      "description": "Azure cloud skills — umbrella router plus AI services, compliance, cost management, deployment, AKS, and storage.",
       "category": "Coding"
     },
     {
@@ -96,7 +96,7 @@
     {
       "name": "jylhis-grafana",
       "source": "./plugins/jylhis-grafana",
-      "description": "Grafana skill — observability, dashboards, PromQL, alerts, OnCall.",
+      "description": "Grafana skills — umbrella router plus alerting/IRM, dashboard authoring, OpenTelemetry instrumentation, OSS setup, and PromQL.",
       "category": "Coding"
     },
     {
