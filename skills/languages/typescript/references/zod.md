@@ -162,6 +162,8 @@ const Slug = z.string().trim().toLowerCase().transform(s => s.replace(/\s+/g, '-
 `z.coerce.*` wraps the value in the constructor before validating
 (`Number(x)`, `new Date(x)`, etc). Acceptable for sources that are
 inherently stringly typed — env vars, query strings, CLI flags.
+Use explicit string parsing for booleans: `z.coerce.boolean()` follows
+JavaScript truthiness (`"false"`, `"0"`, `"no"` become `true`).
 Do **not** use coercion on JSON request bodies: `JSON.parse` already
 gave you the right types, and silent coercion (`"7" → 7`,
 `"true" → true`) hides client bugs.
@@ -169,7 +171,10 @@ gave you the right types, and silent coercion (`"7" → 7`,
 ```ts
 const Env = z.object({
   PORT: z.coerce.number().int().positive(),
-  DEBUG: z.coerce.boolean().default(false),
+  DEBUG: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform(v => v === 'true'),
   RELEASED_AT: z.coerce.date(),
 });
 ```
