@@ -1,0 +1,143 @@
+# Eval suite for the `offline-docs` skill (skills/engineering/offline-docs).
+#
+# Schema: see evals/scripts/expand.py for the full contract.
+# - kind: trigger_positive | trigger_negative | output_quality
+# - providers: which targets the case runs against (default per kind)
+# - near_miss_vocabulary: required for trigger_negative (Doc 2 §4)
+# - assert.triggered: offline-docs | null (claude-only signal)
+# - assert.contains_all / regex / not_regex / output_match_regex: deterministic
+#
+# All output_quality cases use deterministic asserts only, so this suite
+# ships no rubric.md.
+
+cases:
+  # Trigger positives (Claude only; see Doc 2 §6 cross-CLI fallacy)
+
+  - id: trigger-pos-man-flag-lookup
+    kind: trigger_positive
+    expected_skill: offline-docs
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      What exactly does the `-R` flag of rsync do on this machine? I want
+      the answer for the installed version, not whatever a web search
+      says about some other release. Where do I look that up locally?
+    assert:
+      triggered: offline-docs
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-config-file-syntax
+    kind: trigger_positive
+    expected_skill: offline-docs
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      I'm editing /etc/ssh/sshd_config and I need the authoritative
+      reference for its file format and every option it accepts. Is
+      there a reference for this config syntax installed on the system?
+    assert:
+      triggered: offline-docs
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: trigger-pos-discover-docs
+    kind: trigger_positive
+    expected_skill: offline-docs
+    providers: [claude]
+    pass_threshold: 1.0
+    prompt: |
+      I have `zstd` installed but I have no idea what documentation
+      exists for it on this box. How do I find out what docs are
+      available locally for an unfamiliar command like this?
+    assert:
+      triggered: offline-docs
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  # Trigger negatives (Claude only). MUST be near-misses: they contain
+  # offline-docs-adjacent vocabulary but the right answer is not this
+  # skill.
+
+  - id: trigger-neg-author-man-page
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["man page", "roff", "documentation"]
+    prompt: |
+      Write a man page for my new CLI tool `frobnicate` in classic roff
+      markup (.TH, .SH, .B and friends). I know how to read man pages;
+      I need you to author the documentation source itself.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-explicit-web-docs
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["man page", "documentation", "local docs"]
+    prompt: |
+      Skip the local docs entirely. There is no man page for the Stripe
+      REST API, and I explicitly want the latest online documentation
+      from stripe.com, not anything installed here. Fetch it from the
+      web.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  - id: trigger-neg-convert-man-to-html
+    kind: trigger_negative
+    expected_skill: null
+    providers: [claude]
+    pass_threshold: 1.0
+    near_miss_vocabulary: ["man pages", "documentation"]
+    prompt: |
+      Our release pipeline needs to convert the man pages under
+      docs/man/ into HTML with pandoc so we can publish the
+      documentation on our website. Write that build step.
+    assert:
+      triggered: null
+      max_latency_ms: 60000
+
+  # Output quality (cross-CLI comparable lane; deterministic asserts
+  # only, no rubric)
+
+  - id: output-quality-config-section
+    kind: output_quality
+    expected_skill: offline-docs
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      Which man section documents file formats and config files, and
+      what is the exact command to open the crontab file-format page in
+      that section? Answer in at most two short lines, commands only
+      where possible.
+    assert:
+      contains_all: ["man 5 crontab"]
+      output_match_regex: '\bman 5 crontab\b'
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
+
+  - id: output-quality-search-commands
+    kind: output_quality
+    expected_skill: offline-docs
+    providers: [claude, pi]
+    pass_threshold: 1.0
+    prompt: |
+      Give me two commands: one that searches all man page descriptions
+      for the keyword "compress", and one that prints the file path of
+      the gzip man page without opening it. Output only the commands,
+      no prose.
+    assert:
+      contains_all: ["man -k compress", "man -w gzip"]
+      output_match_regex: '\bman -k compress\b[\s\S]*\bman -w gzip\b'
+      not_regex:
+        - '\b(I apologize|As an AI)\b'
+      max_latency_ms: 60000
