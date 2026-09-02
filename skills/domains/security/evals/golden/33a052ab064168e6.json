@@ -1,0 +1,16 @@
+{
+  "elapsed_ms": 1234,
+  "family": "anthropic",
+  "provenance": {
+    "cli": "synthetic-bootstrap",
+    "cli_version": "0.0.0",
+    "host": "synthetic",
+    "model_snapshot": "default",
+    "note": "Synthetic placeholder so CI can run before a real `just eval-record` against claude. Replace with real recording before treating any score as a measurement.",
+    "platform": "synthetic",
+    "recorded_at": "1970-01-01T00:00:00Z",
+    "temperature": 0
+  },
+  "text": "Deserializing untrusted bytes with ObjectInputStream is a remote-code-execution risk (gadget chains). Options:\n- Replace Java serialization with JSON plus schema validation.\n- If serialization must stay, install an ObjectInputFilter allowlist (serialFilter) restricted to expected classes.\n- Authenticate and integrity-check queue messages first.\n",
+  "triggered": "security"
+}
