@@ -85,7 +85,10 @@ Procedure:
    - the upstream-relative paths of each skill to import
    - the destination `category:` + `name:` (and which `target-plugin`
      should expose it)
-   - the upstream's license (so it can be recorded; not validated)
+   - the upstream's license — check it against
+     `references/license-guide.md` before importing (permissive:
+     proceed; copyleft: confirm with the user; none: refuse) and record
+     it in the manifest
 
 2. **Pick or confirm the source `id`.** Lowercase, hyphenated, unique
    within the manifest. Often `<org>-<repo>` (e.g. `grafana-skills`).
@@ -280,6 +283,8 @@ the only enforcement. Pick distinct local names if the upstreams collide.
 ## References
 
 - `references/manifest-schema.md` — `upstream/sources.yaml` field reference.
+- `references/license-guide.md` — license compatibility matrix and
+  attribution obligations for imported content.
 - `references/frontmatter-block.md` — `metadata.upstream-*` shape and
   validator behaviour.
 - `references/pilot-grafana-skills.md` — worked example: vendoring
