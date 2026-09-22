@@ -63,7 +63,19 @@ eval-record suite provider="claude":
 
 # Lightweight Python-only smoke test for the harness itself; useful in CI
 # even when promptfoo or the CLIs aren't available.
-eval-smoke suite:
-    python3 evals/scripts/expand.py {{suite}} --stub-sut --no-rubric
-    python3 evals/scripts/invariants.py --provider stub --judge stub --suite {{suite}}
-    @echo "eval-smoke OK"
+eval-smoke suite="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    suites=({{suite}})
+    if [[ ${#suites[@]} -eq 0 ]]; then
+        mapfile -t suites < <(ls -d skills/*/*/evals/cases.yaml 2>/dev/null | cut -d/ -f3)
+    fi
+    if [[ ${#suites[@]} -eq 0 ]]; then
+        echo "eval-smoke: no eval suites found; skipping"
+        exit 0
+    fi
+    for s in "${suites[@]}"; do
+        python3 evals/scripts/expand.py "$s" --stub-sut --no-rubric
+        python3 evals/scripts/invariants.py --provider stub --judge stub --suite "$s"
+    done
+    echo "eval-smoke OK"
