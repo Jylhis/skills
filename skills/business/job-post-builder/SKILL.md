@@ -167,9 +167,13 @@ Build from scratch using `references/job-post-structure.md` as the full template
 - Be honest about what's hard — candidates who self-select in are better fits
 - Use inclusive language; avoid jargon that implicitly filters for in-group candidates
 - Keep the required qualifications list tight — every line is a reason someone doesn't apply
-- If compensation isn't provided, omit the range rather than invent one
+- **Every required line must be checkable from a resume.** "Strong leader" is not a requirement; "3+ years managing a team of 5+" is.
+- **Compensation is a number or a band, or the section is omitted.** "Competitive" is not a compensation disclosure; if compensation isn't provided, omit the range rather than invent one.
 
 Save as `[Role]-Job-Post.docx` using your environment's document-authoring capability — in Claude Code, read `docx/SKILL.md` first; in other tools, produce an equivalent `.docx` (or Markdown the user can convert).
+
+**If the docx skill is unavailable** — in Phases 3, 4 and 5 alike — deliver the document
+as markdown in the chat and say the `.docx` was not generated.
 
 ---
 
@@ -217,7 +221,11 @@ anchors for each competency the stage owns.
 - The debrief guide goes at the end, after all stage sections.
 - 1/3/5 scoring anchors should be written for this specific role, not generic.
 
-Save as `[Role]-Interview-Guide.docx` using the docx skill.
+**Also emit a resume screening rubric**, separate from the interview rubric: three tiers
+(e.g. advance / hold / reject) with weighted, 0-3 scored criteria, every criterion
+checkable from a resume.
+
+Save as `[Role]-Interview-Guide.docx` using the docx skill, screening rubric included.
 
 ---
 
@@ -317,7 +325,7 @@ docx (ready to post), the interview guide docx (share with interviewers), and
 the offer letter docx (routed to DocuSign draft or ready for manual upload).
 
 Remind the user:
-- The offer letter template needs legal review before use in any jurisdiction
+- The offer letter template needs legal review before use in any jurisdiction. Its default clauses (at-will employment, exempt status, 401(k)) are US terms: for a non-US business, name the country so the owner hears that the template's employment terms need replacing, not just reviewing
 - Compensation ranges should be confirmed with HR before publishing the job post
 - This skill does not screen or rank applicants
 
@@ -329,9 +337,12 @@ Load these when reaching the relevant phase — don't load all upfront:
 
 | File | Load when |
 |---|---|
+| `references/role-intake.md` | Phase 1 — the full intake field list and interview-process defaults |
 | `references/job-post-structure.md` | Phase 3 — before writing the job post |
 | `references/interview-guide-structure.md` | Phase 4 — before writing the interview guide |
 | `references/offer-letter-template.md` | Phase 5 — before writing the offer letter |
+| `references/existing-document-merge.md` | Phases 3/4/5 — when Phase 2 found an existing document |
+| `references/docusign-routing.md` | Phase 6 — browser flow, draft gate, and fallbacks |
 | `references/gotchas.md` | Any phase — non-obvious edge cases |
 | `references/examples/worked-example.md` | For reference on expected output shape |
 
