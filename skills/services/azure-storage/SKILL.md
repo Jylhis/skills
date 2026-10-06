@@ -4,7 +4,7 @@ description: "Azure Storage Services including Blob Storage, File Shares, Queue 
 license: MIT
 metadata:
   author: Microsoft
-  version: 1.1.2
+  version: 1.2.2
   upstream-id: microsoft-azure-skills
   upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
   upstream-path: azure-storage
@@ -33,7 +33,7 @@ When Azure MCP is enabled:
 - `azure__storage` with command `storage_blob_get` - Download blob content
 - `azure__storage` with command `storage_blob_put` - Upload blob content
 
-**If Azure MCP is not enabled:** Run `/azure:setup` or enable via `/mcp`.
+**If Azure MCP is not enabled:** ask the user to run the host's MCP command and enable Azure MCP.
 
 ## CLI Fallback
 

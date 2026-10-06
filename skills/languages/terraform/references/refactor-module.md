@@ -15,7 +15,7 @@ The agent will analyze existing Terraform code and systematically refactor it in
 ## Prerequisites
 - Existing Terraform configuration to refactor
 - Understanding of resource dependencies
-- Access to current state file (for migration planning)
+- Access to inspect current state via `terraform state list` / `terraform show -json` (for migration planning)
 - Knowledge of module registry patterns
 
 ## Input Parameters
@@ -270,6 +270,27 @@ module "vpc" {
 
 ### 4. State Migration
 
+#### Inspecting Current State
+Before writing `moved` blocks or `state mv` commands, inspect the current state to map
+existing resource addresses. Prefer the documented, stable, and more token-efficient
+commands over reading the raw state file:
+
+```bash
+# Enumerate current resource addresses (the inputs for `moved` / `state mv`)
+terraform state list
+
+# Inspect resolved attribute values when you need them
+terraform show -json | jq '.values.root_module'
+```
+
+`terraform show -json` requires providers to be installed (`terraform init`), since it
+renders values against provider schemas. **Fall back to the raw state
+(`terraform state pull` / `terraform.tfstate`) only when** providers aren't available and
+`init` can't run, you need only coarse info (addresses, outputs, `serial`/`lineage`), or you
+must avoid executing Terraform. Avoid parsing the raw version-4 state format as a stable
+interface. **Note:** state contains sensitive values in plaintext in every format; never
+echo state contents into logs or output.
+
 #### Generate Migration Plan
 ```hcl
 # migration.tf
@@ -517,8 +538,8 @@ module "vpc" {
 - [ ] No plan differences after refactoring
 
 ## Related Skills
-- [Terraform code generation](https://raw.githubusercontent.com/hashicorp/agent-skills/refs/heads/main/terraform/code-generation/skills/terraform-style-guide/SKILL.md) - Style guide for the new Terraform Module
-- [Azure Verified Modules](https://raw.githubusercontent.com/hashicorp/agent-skills/refs/heads/main/terraform/code-generation/skills/azure-verified-modules/SKILL.md) - Recommended module specifications for Azure
+- [Terraform code generation](https://raw.githubusercontent.com/hashicorp/agent-skills/refs/heads/main/plugins/terraform/skills/terraform-style-guide/SKILL.md) - Style guide for the new Terraform Module
+- [Azure Verified Modules](https://raw.githubusercontent.com/hashicorp/agent-skills/refs/heads/main/plugins/terraform/skills/azure-verified-modules/SKILL.md) - Recommended module specifications for Azure
 
 ## Resources
 - [Terraform Module Development](https://developer.hashicorp.com/terraform/language/modules/develop)

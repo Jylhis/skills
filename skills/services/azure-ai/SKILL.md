@@ -4,7 +4,7 @@ description: "Use for Azure AI: Search, Speech, OpenAI, Document Intelligence. H
 license: MIT
 metadata:
   author: Microsoft
-  version: 1.1.1
+  version: 1.2.2
   upstream-id: microsoft-azure-skills
   upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
   upstream-path: azure-ai
@@ -35,7 +35,7 @@ When Azure MCP is enabled:
 - `azure__speech` with command `speech_transcribe` - Speech to text
 - `azure__speech` with command `speech_synthesize` - Text to speech
 
-**If Azure MCP is not enabled:** Run `/azure:setup` or enable via `/mcp`.
+**If Azure MCP is not enabled:** ask the user to run the host's MCP command and enable Azure MCP.
 
 ## AI Search Capabilities
 
