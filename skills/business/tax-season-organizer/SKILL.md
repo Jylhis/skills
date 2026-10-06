@@ -43,6 +43,13 @@ Read the user's message and context to decide which path applies:
 
 If the intent is ambiguous, ask: "Are you looking at your estimated tax payment for this quarter, or are you preparing 1099s for your contractors — or both?"
 
+## Step 0 — Check the country first
+
+Both paths below are **US federal tax**: self-employment tax, the federal bracket table, 1099-NEC and W-9. Before choosing a mode, confirm the business is US (ask if it is not already clear from context).
+
+- **US** → continue to Determine mode.
+- **Anything else** → say so in one line and stop the US math: *"The quarterly-estimate and 1099 paths here are built for US federal tax. Your books are in the UK, so I'll get your closed-books packet ready for your accountant instead of a US estimate."* Do not run a US calculation on a non-US business, and do not relabel one as a generic estimate.
+
 ---
 
 ## Path 1: Quarterly estimated tax
@@ -64,13 +71,21 @@ Before calculating, ask: "How much have you already paid in estimated taxes so f
 
 See [references/calculation-assumptions.md](references/calculation-assumptions.md) for the full math and the assumptions table you must include in output.
 
-Short version:
-1. **SE tax** = net profit × 0.9235 × 0.153 (then halve it — the deductible half offsets income)
-2. **Adjusted net** = net profit − (SE tax / 2)
+**First, annualize.** The math runs on projected full-year net profit, not YTD:
+`annualized net = YTD net ÷ months elapsed × 12`. Show both, labeled. Seasonal
+business: ask rather than straight-lining.
+
+Short version, all six steps running on **annualized** net profit:
+1. **SE tax** = annualized net profit × 0.9235 × 0.153 (then halve it — the deductible half offsets income)
+2. **Adjusted net** = annualized net profit − (SE tax / 2)
 3. **Federal income tax** = apply the bracket rate appropriate to the user's business type and estimated annual income (default to 22% unless the user tells you their bracket; note this assumption explicitly)
 4. **Total annual liability** = federal income tax + SE tax
-5. **Quarterly payment** = (total annual liability − payments made) ÷ quarters remaining
+5. **Quarterly payment** = (total annual liability − payments made) ÷ quarters still ahead
 6. **Safe harbor check** — note whether the user should verify against prior-year tax (100% of prior year, or 110% if AGI > $150k)
+
+**If a due date has already passed unpaid**, name it and show the catch-up on its own
+line, separate from the next payment. Penalty and interest go to the accountant — flag
+that they apply, never estimate them. With no quarters left, it is due with the return.
 
 ### 4. State assumptions and deliver output
 
@@ -78,15 +93,16 @@ Use this output structure:
 
 Structure the output as a document with these sections in order:
 
-1. **Header** — H2 with "Estimated tax summary" followed by the quarter and year.
-   Subline: prepared date and "For review by your accountant."
+1. **Header** — H2 with "Estimated tax summary" followed by the quarter and the
+   **tax year**. Subline: prepared date, the year the rate tables came from, and
+   "For review by your accountant."
 
 2. **YTD snapshot** — Bold lines showing YTD net profit with date range,
    estimated annual net profit (annualized from YTD), and assumed business type
    (sole proprietor, S-corp, etc. — flag as assumed, not confirmed).
 
-3. **Self-employment tax** — Show the SE tax calculation: net profit times
-   92.35% times 15.3%, and the deductible SE half.
+3. **Self-employment tax** — Show the SE tax calculation on **annualized** net
+   profit: net profit times 92.35% times 15.3%, and the deductible SE half.
 
 4. **Federal income tax estimate** — Adjusted net income, assumed bracket
    (default 22%, note to confirm with accountant), and the federal estimate.
@@ -94,7 +110,9 @@ Structure the output as a document with these sections in order:
 5. **Total estimated annual liability** — SE tax plus federal income tax.
 
 6. **Quarterly payment** — Total liability minus payments already made, divided
-   by quarters remaining, with the specific dollar amount due and the due date.
+   by the quarters still ahead, with the specific dollar amount due and the due
+   date. Any missed quarter gets its own catch-up line, separate from the next
+   payment.
 
 7. **Safe harbor note** — Remind the owner to ensure total payments meet 100%
    of prior-year tax (or 110% if AGI exceeded $150k).
@@ -102,6 +120,10 @@ Structure the output as a document with these sections in order:
 8. **Assumptions** — Bullet list of every assumption: bracket rate, business
    structure, state taxes excluded, deductible SE half included, and deductions
    not applied (home office, QBI, depreciation).
+
+Two things that are not negotiable: the **tax year appears in the header**, and the
+**Assumptions section lists every assumption**. The accountant adjusts from those
+levers, so leaving one out costs them a rebuild.
 
 ---
 
@@ -189,6 +211,7 @@ Structure the 1099 prep output as a document with these sections:
 
 - **Not tax advice.** Open every deliverable with this: "Prepared for review by your accountant — not tax advice." Include it in the document header, not just in chat.
 - **State every assumption.** If you assumed a 22% bracket, say so. If you excluded state taxes, say so. The accountant will adjust; give them the levers.
+- **Never reproduce a contractor's SSN or full bank/card number** in the packet, the chat, or a rendered page. An EIN on a 1099 is the designed exception.
 - **Don't merge payees automatically.** Flag likely duplicates for human review.
 - **Don't file anything.** The output is prep material. Filing is out of scope.
 - **Corporation exemption is a judgment call.** Note it; don't auto-exclude.
