@@ -6,6 +6,32 @@ Supported languages: Python, JavaScript/TypeScript, Go, Java/Kotlin, C/C++, C#, 
 
 **Skill resources:** Reference files and templates are located at `{baseDir}/references/` and `{baseDir}/workflows/`.
 
+## Each Bash call is a fresh shell
+
+Nothing carries across a Bash call: not variables, not arrays, not shell functions. Every block below that uses a value must re-establish it in the same block. Each loss fails differently and silently:
+
+- a lost **function** exits 127, which a build-method ladder reads as a failed method and walks down to the next (weaker) method, never having invoked CodeQL
+- a lost **array** expands to nothing, so every `--threat-model` and `--model-packs` option the user chose is dropped while the final report still lists them as used
+- a lost **scalar** under `set -u` aborts the block with `unbound variable`
+
+## Language Build Modes
+
+What matters is which build modes a language accepts, not whether it is interpreted.
+
+| Language | `--language=` | Build needed | `--build-mode=none` |
+|----------|---------------|-------------|---------------------|
+| Python | `python` | No | Supported |
+| JavaScript/TypeScript | `javascript` | No | Supported |
+| Ruby | `ruby` | No | Supported |
+| Go | `go` | **Yes** | **Rejected** - autobuild or manual only |
+| Swift | `swift` | **Yes** (macOS) | **Rejected** |
+| Java/Kotlin | `java` | Yes | Supported (partial analysis) |
+| C# | `csharp` | Yes | Supported (partial analysis) |
+| C/C++ | `cpp` | Yes | Supported (partial analysis) |
+| Rust | `rust` | Yes | Supported (partial analysis) - omitted from `--help`, like C/C++ |
+
+Go and Swift reject `--build-mode=none` outright; for them, fix the build or stop. C/C++ and Rust do support `none` even though the CLI `--help` omits them. Verified against CodeQL 2.25.6; re-check with `codeql database create --help` if your version differs, as supported modes have changed between releases.
+
 ## Essential Principles
 
 1. **Database quality is non-negotiable.** A database that builds is not automatically good. Always run quality assessment (file counts, baseline LoC, extractor errors) and compare against expected source files. A cached build produces zero useful extraction.
@@ -98,18 +124,27 @@ Then use `AskUserQuestion` to let the user select which database to use, or to b
 For the common case ("scan this codebase for vulnerabilities"):
 
 ```bash
-# 1. Verify CodeQL is installed
+# Verify CodeQL is installed. Stop here if it is not - every later command fails with
+# a less informative error, and the run wastes a build cycle before saying why.
 if ! command -v codeql >/dev/null 2>&1; then
-  echo "NOT INSTALLED: codeql binary not found on PATH"
-else
-  codeql --version || echo "ERROR: codeql found but --version failed (check installation)"
+  echo "ERROR: codeql not found on PATH. Install it with one of:" >&2
+  echo "  gh extension install github/gh-codeql   # then: gh codeql install-stub" >&2
+  echo "  brew install --cask codeql" >&2
+  echo "  https://github.com/github/codeql-action/releases  (codeql-bundle)" >&2
+  exit 1
 fi
 
-# 2. Resolve output directory
-BASE="static_analysis_codeql"; N=1
-while [ -e "${BASE}_${N}" ]; do N=$((N + 1)); done
-OUTPUT_DIR="${BASE}_${N}"; mkdir -p "$OUTPUT_DIR"
+# jq parses `codeql resolve database --format=json` in the very next step. Without it
+# CODEQL_LANG comes back empty and the run continues against the wrong language.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "ERROR: jq not found on PATH (brew install jq / apt install jq)" >&2
+  exit 1
+fi
+
+codeql --version
 ```
+
+Set `USER_SPECIFIED_DIR` (if the user named an output directory) before running the resolution block below, so the very first resolution honours it.
 
 Then execute the full pipeline: **build database → create data extensions → run analysis** using the workflows below.
 
@@ -184,6 +219,8 @@ echo "Found ${#FOUND_DBS[@]} existing database(s)"
 ### Database Selection Prompt
 
 When existing databases are found **and the user did not explicitly specify which to use**, present via `AskUserQuestion`:
+
+> `AskUserQuestion` supports at most four options. When more databases exist, list the three most recently created plus "Build a new database"; mention the others in the question text.
 
 ```
 header: "Existing CodeQL Databases"

@@ -250,6 +250,11 @@ sources:
         name: azure-compliance
         target-plugin: jylhis-azure
         merge-strategy: standalone
+      - upstream: azure-kubernetes/azure-kubernetes-automatic-readiness
+        category: services
+        name: azure-kubernetes-automatic-readiness
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
   - id: microsoft-docs
     repo: "https://github.com/microsoft/skills"
     branch: main
