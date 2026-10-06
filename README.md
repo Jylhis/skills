@@ -2,11 +2,13 @@
 
 A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis: a
 shared pool of portable `SKILL.md` workflows plus the plugin scaffolding that
-ships them to three targets —
+ships them to four targets —
 
 - **Claude Code** — the CLI *and* Claude Code on the web (same plugin marketplace).
 - **Pi** — [`pi-coding-agent`](https://github.com/earendil-works/pi), a
   provider-agnostic CLI with a first-class skills mechanism.
+- **opencode** — [`opencode.ai`](https://opencode.ai); skills, subagents,
+  commands, and language servers mirror into `~/.config/opencode/`.
 - **claude.ai Skills** — the claude.ai chat app, via per-skill `.zip` upload.
 
 > Looking for the architecture? See **[`docs/skills-spec-v4.md`](docs/skills-spec-v4.md)**
@@ -28,6 +30,7 @@ and surface in the tool UI but are not installed automatically.
 |---|---|
 | Claude Code (CLI + web) | registers a local marketplace and installs `jylhis-skills-core@jylhis-skills` |
 | Pi | mirrors the default plugin's skills into `~/.pi/agent/skills/` and links `~/.pi/agent/AGENTS.md` (install `pi` first: `npm i -g @earendil-works/pi-coding-agent`) |
+| opencode | mirrors skills into `~/.config/opencode/skills/`, transforms agents + commands into `~/.config/opencode/{agent,command}/`, and generates a TS plugin that wires language-plugin LSPs (never edits `opencode.json`) |
 | claude.ai | `just package` → upload `dist/skills/<name>.zip` via Settings → Capabilities → Skills |
 
 Full instructions, opt-in plugins, and scope options: **[`docs/install.md`](docs/install.md)**.

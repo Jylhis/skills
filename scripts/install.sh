@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Install the jylhis-skills marketplace + the default plugin into supported
 # agent tools. Targets: Claude Code (CLI + Claude Code on the web, same plugin
-# marketplace mechanism) and Pi (pi-coding-agent). Per-language and per-tool
-# plugins remain opt-in — the script prints the commands to install them at the
-# end. claude.ai Skills are a separate, upload-based channel (see `just package`
-# / docs/install.md), not wired here.
+# marketplace mechanism), Pi (pi-coding-agent), and opencode. Per-language and
+# per-tool plugins remain opt-in — the script prints the commands to install
+# them at the end. claude.ai Skills are a separate, upload-based channel (see
+# `just package` / docs/install.md), not wired here.
 #
 # Links AGENTS.md for Pi project context. (~/.claude/CLAUDE.md and AGENTS.md are
-# Home-Manager-managed, so this installer no longer touches them.) Idempotent.
-# Backs up any existing files it would overwrite.
+# Home-Manager-managed, so this installer no longer touches them.) opencode
+# reads AGENTS.md from each project root natively and needs no context wiring.
+# Idempotent. Backs up any existing files it would overwrite.
 #
 # Usage: bash scripts/install.sh [--dry-run]
 set -euo pipefail
@@ -45,10 +46,10 @@ OPTIN_PLUGINS=(
 )
 LEGACY_PLUGIN="jylhis-skills"   # the pre-split monolith
 
-# Opt-in plugins that are nevertheless mirrored into Pi on every run, in
-# addition to the default plugin. These are the commonly-useful language and
-# tool plugins the user wants available without a manual opt-in step. Claude
-# Code still installs them via the normal /plugin opt-in flow.
+# Opt-in plugins that are nevertheless mirrored into Pi and opencode on every
+# run, in addition to the default plugin. These are the commonly-useful
+# language and tool plugins the user wants available without a manual opt-in
+# step. Claude Code still installs them via the normal /plugin opt-in flow.
 PI_ALWAYS_PLUGINS=(
   jylhis-python
   jylhis-typescript
@@ -103,20 +104,22 @@ link() {
   echo "link $dst -> $src"
 }
 
-# Pi (pi-coding-agent) discovers skills by recursively scanning its skills
+# Pi and opencode discover skills by recursively scanning their skills
 # directories for SKILL.md. Mirror a plugin's skills/ symlink farm into
-# ~/.pi/agent/skills/<plugin>/ as real files (rsync -L resolves the symlinks to
+# <base>/skills/<plugin>/ as real files (rsync -L resolves the symlinks to
 # the canonical skills/<category>/<name>/ tree). evals/ are recording fixtures,
 # not skill content, so they are excluded.
-sync_pi_plugin_skills() {
-  local pi_dir="$1" plugin="$2"
-  local dest="$pi_dir/skills/$plugin"
+sync_plugin_skills() {
+  local base_dir="$1" plugin="$2"
+  local dest="$base_dir/skills/$plugin"
 
   # Back up any existing symlink / non-directory before creating the dir, so a
-  # broken symlink at $dest can't make `mkdir -p` fail.
+  # broken symlink at $dest can't make `mkdir -p` fail. The backup name carries
+  # the owning dir (agent / opencode) so Pi and opencode backups don't clobber
+  # each other inside the shared BACKUP_ROOT.
   if [[ -L "$dest" || ( -e "$dest" && ! -d "$dest" ) ]]; then
     run mkdir -p "$BACKUP_ROOT"
-    run mv "$dest" "$BACKUP_ROOT/pi-skills-$(basename "$dest")"
+    run mv "$dest" "$BACKUP_ROOT/$(basename "$(dirname "$(dirname "$dest")")")-skills-$(basename "$dest")"
   fi
   run mkdir -p "$dest"
   run rsync -aL --delete --delete-excluded \
@@ -134,10 +137,10 @@ sync_pi_plugin_skills() {
   echo "sync $dest <- $REPO_ROOT/plugins/$plugin/skills"
 }
 
-# True if $1 is a plugin that should always be mirrored into Pi (a member of
-# PI_ALWAYS_PLUGINS). Used to skip it in the refresh loop, since it is already
-# synced unconditionally above.
-is_pi_always_plugin() {
+# True if $1 is a plugin that is always mirrored into Pi and opencode (a
+# member of PI_ALWAYS_PLUGINS). Used to skip it in the refresh loops, since it
+# is already synced unconditionally above.
+is_always_plugin() {
   local needle="$1"
   local p
   for p in "${PI_ALWAYS_PLUGINS[@]}"; do
@@ -268,14 +271,14 @@ PI_DIR="${PI_AGENT_DIR:-${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}}"
 run mkdir -p "$PI_DIR/skills"
 
 if command -v pi >/dev/null 2>&1; then
-  sync_pi_plugin_skills "$PI_DIR" "$DEFAULT_PLUGIN"
+  sync_plugin_skills "$PI_DIR" "$DEFAULT_PLUGIN"
   echo "pi: synced ${DEFAULT_PLUGIN} skills into $PI_DIR/skills"
 
   # Always-install plugins: mirror these into Pi on every run, not just when
   # the user has previously opted in.
   for plugin_name in "${PI_ALWAYS_PLUGINS[@]}"; do
     echo "sync pi:$plugin_name (always)"
-    sync_pi_plugin_skills "$PI_DIR" "$plugin_name"
+    sync_plugin_skills "$PI_DIR" "$plugin_name"
   done
 
   # Refresh any remaining opt-in plugins already mirrored into Pi so they pick
@@ -283,9 +286,9 @@ if command -v pi >/dev/null 2>&1; then
   # exists. Skip PI_ALWAYS_PLUGINS (already synced above).
   for plugin_name in "${OPTIN_PLUGINS[@]}"; do
     [[ -d "$PI_DIR/skills/$plugin_name" ]] || continue
-    is_pi_always_plugin "$plugin_name" && continue
+    is_always_plugin "$plugin_name" && continue
     echo "refresh pi:$plugin_name"
-    sync_pi_plugin_skills "$PI_DIR" "$plugin_name"
+    sync_plugin_skills "$PI_DIR" "$plugin_name"
   done
 else
   cat <<EOF
@@ -302,11 +305,78 @@ fi
 # Pi project context (it reads AGENTS.md / CLAUDE.md from its agent dir).
 [[ -f "$REPO_ROOT/AGENTS.md" ]] && link "$REPO_ROOT/AGENTS.md" "$PI_DIR/AGENTS.md"
 
+# ── opencode ──────────────────────────────────────────────────────────────
+# opencode auto-discovers artefacts under its config dir: skills via a
+# recursive **/SKILL.md scan (same per-plugin mirror layout as Pi), agents and
+# commands as markdown (frontmatter differs from Claude's, so
+# scripts/sync_opencode.go transforms them), and LSP servers via a generated
+# TS plugin (jylhis-lsp.ts) that injects each installed language plugin's
+# .lsp.json at startup. The user's opencode.json is never edited - it may be
+# home-manager-managed. Project context needs no wiring: opencode reads
+# AGENTS.md from the project root natively. Override the config dir with
+# OPENCODE_DIR.
+OPENCODE_DIR="${OPENCODE_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode}"
+
+if command -v opencode >/dev/null 2>&1; then
+  run mkdir -p "$OPENCODE_DIR/skills"
+
+  sync_plugin_skills "$OPENCODE_DIR" "$DEFAULT_PLUGIN"
+  echo "opencode: synced ${DEFAULT_PLUGIN} skills into $OPENCODE_DIR/skills"
+
+  # Same always-install set as Pi.
+  for plugin_name in "${PI_ALWAYS_PLUGINS[@]}"; do
+    echo "sync opencode:$plugin_name (always)"
+    sync_plugin_skills "$OPENCODE_DIR" "$plugin_name"
+  done
+
+  # Refresh opt-in plugins already mirrored (dir exists = installed), same
+  # heuristic as Pi.
+  for plugin_name in "${OPTIN_PLUGINS[@]}"; do
+    [[ -d "$OPENCODE_DIR/skills/$plugin_name" ]] || continue
+    is_always_plugin "$plugin_name" && continue
+    echo "refresh opencode:$plugin_name"
+    sync_plugin_skills "$OPENCODE_DIR" "$plugin_name"
+  done
+
+  if command -v go >/dev/null 2>&1; then
+    # Subagents (@reviewer/@explorer/@debugger) + slash commands, transformed
+    # from the Claude plugin sources. Foreign files at target paths are backed
+    # up under $BACKUP_ROOT/opencode/.
+    run go run "$REPO_ROOT/scripts/sync_opencode.go" agents \
+      -repo "$REPO_ROOT" -dest "$OPENCODE_DIR" -backup "$BACKUP_ROOT/opencode"
+    run go run "$REPO_ROOT/scripts/sync_opencode.go" commands \
+      -repo "$REPO_ROOT" -dest "$OPENCODE_DIR" -backup "$BACKUP_ROOT/opencode"
+
+    # LSP: every opencode-installed plugin that ships an .lsp.json (the
+    # default plugin ships none, so start from the always+opt-in sets; PI_
+    # ALWAYS_PLUGINS members are all in OPTIN_PLUGINS, and their dirs were
+    # just synced, so the dir-exists check covers them).
+    OPENCODE_LSP_PLUGINS=""
+    for plugin_name in "${OPTIN_PLUGINS[@]}"; do
+      [[ -d "$OPENCODE_DIR/skills/$plugin_name" ]] || continue
+      [[ -f "$REPO_ROOT/plugins/$plugin_name/.lsp.json" ]] || continue
+      OPENCODE_LSP_PLUGINS="${OPENCODE_LSP_PLUGINS:+$OPENCODE_LSP_PLUGINS,}$plugin_name"
+    done
+    run go run "$REPO_ROOT/scripts/sync_opencode.go" lsp \
+      -repo "$REPO_ROOT" -dest "$OPENCODE_DIR" -backup "$BACKUP_ROOT/opencode" \
+      -plugins "$OPENCODE_LSP_PLUGINS"
+  else
+    echo "note: go not on PATH; skipped opencode agents/commands/LSP (run inside devenv)"
+  fi
+else
+  cat <<EOF
+opencode not found on PATH. Install it from https://opencode.ai/docs/, then
+re-run this script, or mirror the default plugin's skills manually:
+  mkdir -p "$OPENCODE_DIR/skills/${DEFAULT_PLUGIN}"
+  rsync -aL --delete "$REPO_ROOT/plugins/${DEFAULT_PLUGIN}/skills/" "$OPENCODE_DIR/skills/${DEFAULT_PLUGIN}/"
+EOF
+fi
+
 # ── Opt-in install hints ────────────────────────────────────────────────────
 PI_ALWAYS_STR="${PI_ALWAYS_PLUGINS[*]}"
 PI_OPTIN_REMAINING=""
 for p in "${OPTIN_PLUGINS[@]}"; do
-  if ! is_pi_always_plugin "$p"; then
+  if ! is_always_plugin "$p"; then
     PI_OPTIN_REMAINING="${PI_OPTIN_REMAINING:+$PI_OPTIN_REMAINING }$p"
   fi
 done
@@ -314,14 +384,16 @@ done
 cat <<EOF
 
 Default plugin installed: ${DEFAULT_PLUGIN}
-Always installed for Pi (in addition to default): ${PI_ALWAYS_STR}
+Always installed for Pi and opencode (in addition to default): ${PI_ALWAYS_STR}
 Available opt-in plugins (Claude Code): ${OPTIN_PLUGINS[*]}
-Remaining opt-in for Pi: ${PI_OPTIN_REMAINING}
+Remaining opt-in for Pi / opencode: ${PI_OPTIN_REMAINING}
 
 To install a remaining opt-in (example: jylhis-gitlab):
   Claude Code:  /plugin install jylhis-gitlab@jylhis-skills
   Pi:           rsync -aL --delete "$REPO_ROOT/plugins/jylhis-gitlab/skills/" "$PI_DIR/skills/jylhis-gitlab/"
-                # then re-run scripts/install.sh to keep it refreshed
+  opencode:     rsync -aL --delete "$REPO_ROOT/plugins/jylhis-gitlab/skills/" "$OPENCODE_DIR/skills/jylhis-gitlab/"
+                # then re-run scripts/install.sh to keep them refreshed
+                # (for opencode this also rewrites agents/commands/LSP wiring)
 
 claude.ai Skills (upload channel): run \`just package\` and upload
 dist/skills/<name>.zip via claude.ai → Settings → Capabilities → Skills.

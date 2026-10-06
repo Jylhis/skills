@@ -12,6 +12,9 @@
      sessions). Both consume the same `.claude-plugin/marketplace.json`.
    - **Pi** — `pi-coding-agent` (`earendil-works/pi`), a provider-agnostic CLI
      with a first-class `SKILL.md` mechanism.
+   - **opencode** — [`opencode.ai`](https://opencode.ai); no marketplace, but
+     auto-discovers skills, agents, commands, and plugins under its config
+     dir, which `install.sh` populates (see §7).
    - **claude.ai Skills** — the claude.ai chat app's Skills feature, fed
      per-skill `.zip` uploads.
 2. **Custom tools are first-class.** v3 left MCP/tools as a vague future. v4
@@ -35,17 +38,17 @@ Target-native runtime behavior must stay target-native.
 
 ## 2. Targets and capability matrix
 
-| Capability | Claude Code (CLI + web) | Pi (`pi-coding-agent`) | claude.ai Skills |
-|---|---|---|---|
-| Portable `SKILL.md` | ✅ via plugin marketplace | ✅ auto-discovered under `~/.pi/agent/skills/` | ✅ per-skill `.zip` |
-| Distribution | `.claude-plugin/marketplace.json` | `install.sh` mirrors skills + links `AGENTS.md` | upload `.zip` (Settings → Capabilities → Skills) |
-| Project context | `CLAUDE.md` / `@AGENTS.md` | `~/.pi/agent/AGENTS.md`, `.pi/AGENTS.md` | n/a (skill body only) |
-| MCP servers | ✅ `.mcp.json` (plugin/user/project) | ✅ via `~/.pi/agent/mcp.json` (extension) | ❌ skills-only |
-| In-process custom tools | ✅ Claude Agent SDK | ✅ Pi TS extensions | ❌ |
-| Subagents | ✅ plugin `agents/` | ⚠️ community extension | ❌ |
-| Slash commands | ✅ plugin `commands/` | ✅ extension-registered | ❌ |
-| Hooks | ✅ plugin `hooks/` | ⚠️ extension events | ❌ |
-| LSP | ✅ plugin `.lsp.json` | ❌ | ❌ |
+| Capability | Claude Code (CLI + web) | Pi (`pi-coding-agent`) | opencode | claude.ai Skills |
+|---|---|---|---|---|
+| Portable `SKILL.md` | ✅ via plugin marketplace | ✅ auto-discovered under `~/.pi/agent/skills/` | ✅ auto-discovered under `~/.config/opencode/skills/` | ✅ per-skill `.zip` |
+| Distribution | `.claude-plugin/marketplace.json` | `install.sh` mirrors skills + links `AGENTS.md` | `install.sh` mirrors skills, transforms agents/commands, generates an LSP plugin | upload `.zip` (Settings → Capabilities → Skills) |
+| Project context | `CLAUDE.md` / `@AGENTS.md` | `~/.pi/agent/AGENTS.md`, `.pi/AGENTS.md` | `AGENTS.md` read natively from the project root | n/a (skill body only) |
+| MCP servers | ✅ `.mcp.json` (plugin/user/project) | ✅ via `~/.pi/agent/mcp.json` (extension) | ✅ native `mcp:` config (user-managed) | ❌ skills-only |
+| In-process custom tools | ✅ Claude Agent SDK | ✅ Pi TS extensions | ✅ TS plugins (`plugins/*.ts`) | ❌ |
+| Subagents | ✅ plugin `agents/` | ⚠️ community extension | ✅ `agent/*.md` (transformed from plugin `agents/`) | ❌ |
+| Slash commands | ✅ plugin `commands/` | ✅ extension-registered | ✅ `command/*.md` (transformed from plugin `commands/`) | ❌ |
+| Hooks | ✅ plugin `hooks/` | ⚠️ extension events | ✅ TS plugin hooks | ❌ |
+| LSP | ✅ plugin `.lsp.json` | ❌ | ✅ generated TS plugin injecting `lsp` config | ❌ |
 
 `✅` native · `⚠️` available via an extension/community add-on · `❌` unsupported.
 
@@ -73,6 +76,8 @@ repo/
 │   ├── .claude-plugin/plugin.json        # the ONLY per-plugin manifest now
 │   ├── skills/<name> -> ../../../skills/<category>/<name>   # symlink farm
 │   ├── agents/  commands/                # default plugin only
+│   │     └── <name>.opencode.md          # optional hand-maintained opencode command variant
+│   ├── scripts/                          # default plugin only (symlinked helpers)
 │   ├── .lsp.json                         # language plugins only
 │   └── .mcp.json                         # [Planned] per-plugin MCP wiring
 │
@@ -91,8 +96,11 @@ repo/
 ```
 
 `.claude-plugin/marketplace.json` is the single marketplace manifest (Codex's
-`.agents/plugins/marketplace.json` was removed). Pi has no marketplace file — it
-discovers skills from a directory that `install.sh` populates.
+`.agents/plugins/marketplace.json` was removed). Pi and opencode have no
+marketplace file — Pi discovers skills from a directory that `install.sh`
+populates; opencode discovers skills, agents, commands, and plugins under
+`~/.config/opencode/`, which `install.sh` and `scripts/sync_opencode.go`
+populate (transforming the Claude plugin sources).
 
 ## 4. Portable skill profile **[Implemented]**
 
@@ -179,6 +187,16 @@ symlink model the repo already uses.
   `~/.pi/agent/skills/<plugin>/` (real files; symlinks flattened with `rsync
   -aL`) and links `~/.pi/agent/AGENTS.md`. Opt-in plugins are mirrored the same
   way and refreshed on re-run.
+- **opencode:** `install.sh` mirrors skills into
+  `~/.config/opencode/skills/<plugin>/` exactly as for Pi, and
+  `scripts/sync_opencode.go` writes the non-skill layer: `agent/*.md`
+  subagents (mode injected, read-only agents permission-hardened),
+  `command/*.md` (Claude-only frontmatter stripped, plugin paths rewritten;
+  `<name>.opencode.md` variants used verbatim), and `plugins/jylhis-lsp.ts`
+  generated from the installed language plugins' `.lsp.json` (injects `lsp`
+  config at startup; `opencode.json` is never edited). Generated files are
+  tracked by a `.jylhis-managed` sidecar: foreign files are backed up,
+  removed sources are pruned. `AGENTS.md` needs no wiring (read natively).
 - **claude.ai Skills:** `just package` (`scripts/package-skill.py`) writes
   `dist/skills/<name>.zip` per skill, each archived under a single top-level
   `<name>/` directory and self-contained. Upload via Settings → Capabilities.

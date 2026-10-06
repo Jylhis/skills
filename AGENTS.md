@@ -9,8 +9,9 @@ Code's import mechanism.
 A curated [Agent Skills](https://agentskills.io) **marketplace** by Jylhis
 that publishes one default plugin and several opt-in plugins. Supported
 targets are **Claude Code** (CLI and Claude Code on the web — same plugin
-marketplace), **Pi** (`pi-coding-agent`), and **claude.ai Skills** (per-skill
-`.zip` upload). The default plugin (`jylhis-skills-core`) ships
+marketplace), **Pi** (`pi-coding-agent`), **opencode**, and **claude.ai
+Skills** (per-skill `.zip` upload). The default plugin (`jylhis-skills-core`)
+ships
 cross-cutting engineering and productivity skills (security,
 offline-docs, microsoft-docs, tdd, diagnose,
 handoff, humanizer, etc.) plus the shipped subagents and slash commands.
@@ -45,7 +46,10 @@ only when the user opts in. See `docs/install.md` for install instructions.
   plugin `plugins/jylhis-skills-core/` additionally ships `agents/` and
   `commands/`. Language plugins ship their own per-language `.lsp.json`
   (e.g. `plugins/jylhis-python/.lsp.json` registers basedpyright;
-  installing that plugin is what wires the LSP into Claude Code).
+  installing that plugin is what wires the LSP into Claude Code, and it is
+  what the installer converts into opencode LSP config). A command may carry
+  a sibling `<name>.opencode.md` — a hand-maintained opencode variant used
+  verbatim when the target semantics differ (e.g. `lsp-status`).
 - `.claude/skills/` — repo-maintenance meta skills (`skill-creator-lang`,
   `skill-improver`, `upstream-tracker`, `using-skills`, `skill-extractor`).
   Claude Code **auto-loads** these when this repo is open, but they are
@@ -61,12 +65,17 @@ only when the user opts in. See `docs/install.md` for install instructions.
   Claude Code CLI and Claude Code on the web.
 - `scripts/install.sh` — registers the Claude Code marketplace and installs
   ONLY the default plugin; mirrors the default plugin's skills into Pi
-  (`~/.pi/agent/skills/`) plus a curated set of always-on Pi plugins
-  (see `PI_ALWAYS_PLUGINS` in the script), and links `AGENTS.md`. Prints
-  opt-in commands for the rest.
+  (`~/.pi/agent/skills/`) and opencode (`~/.config/opencode/skills/`) plus a
+  curated set of always-on plugins (see `PI_ALWAYS_PLUGINS` in the script),
+  links `AGENTS.md` for Pi, and generates opencode agents/commands/LSP (see
+  "opencode runtime layer"). Prints opt-in commands for the rest.
+- `scripts/sync_opencode.go` — the opencode transform: Claude plugin
+  agents/commands → opencode frontmatter, `.lsp.json` → generated LSP
+  plugin (see "opencode runtime layer").
 - `scripts/validate.py` — portable skill frontmatter lint (two-level paths);
   also runs an advisory `--strict-upstream` pass when `upstream/sources.yaml`
-  exists.
+  exists, and lints the opencode adapter surface (`.lsp.json` shape,
+  `*.opencode.md` command variants).
 - `docs/install.md` — consumer-facing install guide.
 - `docs/skill-authoring-guide.md` — how to write a portable SKILL.md.
 - `docs/script-migrations.md` — script-language migration plan and advisory
@@ -74,8 +83,9 @@ only when the user opts in. See `docs/install.md` for install instructions.
 - `docs/skills-organization-review.md` — notes from the skills taxonomy
   review.
 - `docs/skills-spec-v4.md` — current target architecture spec (targets:
-  Claude Code, Pi, claude.ai Skills; custom-tools taxonomy; role-forward
-  marketplace). Supersedes `docs/skills-spec-v3.md`, kept for history.
+  Claude Code, Pi, opencode, claude.ai Skills; custom-tools taxonomy;
+  role-forward marketplace). Supersedes `docs/skills-spec-v3.md`, kept for
+  history.
 - `docs/upstream-sources.md` — list of upstream skill repos parked for later re-import.
 - `evals/` — offline eval harness (no API keys). `cases.yaml` lives
   next to the skill it exercises at `skills/<category>/<name>/evals/`,
@@ -119,21 +129,22 @@ just validate # portable skill lint + plugin-manifest cross-check
 ```
 
 ## Installing opt-in plugins
-`just install` deploys `jylhis-skills-core` for Claude Code and Pi. For Pi
-it additionally mirrors a curated always-on set (`PI_ALWAYS_PLUGINS` in
-`scripts/install.sh`: `jylhis-python`, `jylhis-typescript`, `jylhis-go`,
-`jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`, `jylhis-filesystems`,
-`jylhis-systemd`, `jylhis-obsidian`, `jylhis-pkm`). To pull in any other
-language or tool plugin from the same marketplace:
+`just install` deploys `jylhis-skills-core` for Claude Code, Pi, and opencode.
+For Pi and opencode it additionally mirrors a curated always-on set
+(`PI_ALWAYS_PLUGINS` in `scripts/install.sh`: `jylhis-python`,
+`jylhis-typescript`, `jylhis-go`, `jylhis-jvm`, `jylhis-emacs`, `jylhis-nix`,
+`jylhis-filesystems`, `jylhis-systemd`, `jylhis-obsidian`, `jylhis-pkm`). To
+pull in any other language or tool plugin from the same marketplace:
 
 | Tool        | Command                                                                |
 |-------------|------------------------------------------------------------------------|
 | Claude Code | `/plugin install jylhis-gitlab@jylhis-skills`                           |
 | Pi          | `rsync -aL --delete plugins/jylhis-gitlab/skills/ ~/.pi/agent/skills/jylhis-gitlab/` (then re-run `just install` to refresh) |
+| opencode    | `rsync -aL --delete plugins/jylhis-gitlab/skills/ ~/.config/opencode/skills/jylhis-gitlab/` (then re-run `just install` to refresh) |
 
-Remaining opt-in plugins (not auto-installed for Pi; all opt-in for Claude
-Code): `jylhis-rust`, `jylhis-gitlab`, `jylhis-terraform`, `jylhis-azure`,
-`jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
+Remaining opt-in plugins (not auto-installed for Pi/opencode; all opt-in for
+Claude Code): `jylhis-rust`, `jylhis-gitlab`, `jylhis-terraform`,
+`jylhis-azure`, `jylhis-grafana`, `jylhis-taste`, `jylhis-duckdb`.
 
 Ad-hoc devenv environment when a recipe needs an extra package:
 
@@ -177,7 +188,39 @@ carry none of this layer.
 
 `scripts/validate.py` only validates `SKILL.md` files under `skills/` and
 enforces the published `skills/<category>/<name>/SKILL.md` layout, so these
-Claude-only files do not need to be excluded explicitly.
+Claude-only files do not need to be excluded explicitly. (It also lints the
+opencode adapter surface: `.lsp.json` shape and `*.opencode.md` command
+variants — see below.)
+
+## opencode runtime layer
+
+opencode has no plugin marketplace; it auto-discovers artefacts under its
+config dir (`~/.config/opencode/`). `install.sh` writes everything there and
+NEVER edits `opencode.json` (it may be home-manager-managed). The same
+`PI_ALWAYS_PLUGINS` set applies. `scripts/sync_opencode.go` is the single
+transform: rerunning `install.sh` refreshes; a `.jylhis-managed` sidecar per
+target directory marks generated files (foreign files at the same paths are
+backed up, removed sources are pruned).
+
+- Skills — same per-plugin rsync mirror as Pi, under
+  `~/.config/opencode/skills/<plugin>/` (recursive `**/SKILL.md` scan).
+- Subagents — `plugins/*/agents/<name>.md` transformed to
+  `~/.config/opencode/agent/<name>.md`: `mode: subagent` injected;
+  `explorer`/`reviewer` additionally get `permission: {edit: deny}`.
+- Commands — `plugins/*/commands/<name>.md` transformed to
+  `~/.config/opencode/command/<name>.md`: `argument-hint`/`allowed-tools`
+  stripped, `${CLAUDE_PLUGIN_ROOT}/scripts/` rewritten to the repo checkout.
+  A sibling `<name>.opencode.md` (hand-maintained, linted by `validate.py`)
+  is used verbatim instead when the semantics differ — currently only
+  `lsp-status`, because opencode LSP config comes from a generated plugin
+  rather than per-plugin `.lsp.json` files.
+- LSP — `~/.config/opencode/plugins/jylhis-lsp.ts`, generated from every
+  opencode-installed plugin's `.lsp.json` (`command`+`args` become the
+  `command` array, `extensionToLanguage` keys become `extensions`). The
+  plugin injects the servers into opencode's LSP config via its `config`
+  hook at startup, so the user's `opencode.json` stays untouched.
+- Project context — no wiring: opencode reads `AGENTS.md` from each project
+  root natively. Global `instructions` stay in the user's own config.
 
 ## Repo conventions
 

@@ -10,6 +10,11 @@ plugin.json` against the filesystem: every on-disk skill must be referenced
 by exactly one plugin manifest, every listed skill path (resolved through
 the per-plugin `skills/` symlinks) must lead to a SKILL.md on disk, and the
 top-level `.claude-plugin/marketplace.json` must list each plugin directory.
+
+Finally lints the opencode adapter surface: `plugins/*/.lsp.json` (converted
+to a generated TS plugin by scripts/sync_opencode.go, so the shape must stay
+convertible) and `plugins/*/commands/*.opencode.md` (hand-maintained opencode
+command variants, used verbatim by the installer).
 """
 from __future__ import annotations
 
@@ -481,6 +486,77 @@ def _check_scripts_advisory(strict: bool) -> tuple[int, int]:
     return warnings, (warnings if strict else 0)
 
 
+# ── opencode adapter checks ────────────────────────────────────────────
+
+# Keys opencode accepts in command-file frontmatter (docs/commands); the
+# install transform strips Claude-only keys (argument-hint, allowed-tools),
+# so hand-maintained *.opencode.md variants must already be opencode-shaped.
+OPENCODE_COMMAND_KEYS = {"description", "agent", "model", "variant", "subtask"}
+
+
+def _check_lsp_json_files() -> list[str]:
+    """plugins/*/.lsp.json must stay convertible to opencode lsp config."""
+    errors: list[str] = []
+    for path in sorted(PLUGINS_DIR.glob("*/.lsp.json")):
+        rel = path.relative_to(REPO_ROOT)
+        spec, err = _load_json(path)
+        if err or spec is None:
+            errors.append(err or f"{rel}: unreadable")
+            continue
+        if not isinstance(spec, dict) or not spec:
+            errors.append(f"{rel}: top level must be a non-empty object keyed by language")
+            continue
+        for lang, entry in spec.items():
+            if not isinstance(entry, dict):
+                errors.append(f"{rel}: entry {lang!r} must be an object")
+                continue
+            expected = {"command", "args", "extensionToLanguage"}
+            missing = expected - set(entry)
+            extra = set(entry) - expected
+            if missing:
+                errors.append(f"{rel}: entry {lang!r} missing keys {sorted(missing)}")
+            if extra:
+                errors.append(f"{rel}: entry {lang!r} has unknown keys {sorted(extra)}")
+            if not isinstance(entry.get("command"), str) or not entry.get("command"):
+                errors.append(f"{rel}: entry {lang!r} command must be a non-empty string")
+            args = entry.get("args")
+            if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
+                errors.append(f"{rel}: entry {lang!r} args must be a list of strings")
+            ext_map = entry.get("extensionToLanguage")
+            if not isinstance(ext_map, dict) or not ext_map:
+                errors.append(f"{rel}: entry {lang!r} extensionToLanguage must be a non-empty object")
+            elif isinstance(ext_map, dict):
+                for ext in ext_map:
+                    if not ext.startswith("."):
+                        errors.append(f"{rel}: entry {lang!r} extension {ext!r} must start with '.'")
+    return errors
+
+
+def _check_opencode_command_variants() -> list[str]:
+    """*.opencode.md command variants must be valid, self-contained opencode commands."""
+    errors: list[str] = []
+    for path in sorted(PLUGINS_DIR.glob("*/commands/*.opencode.md")):
+        rel = path.relative_to(REPO_ROOT)
+        if not path.with_suffix("").with_suffix(".md").exists():
+            # path is <name>.opencode.md; sibling source is <name>.md
+            errors.append(f"{rel}: no sibling command file {path.name[:-len('.opencode.md')]}.md")
+            continue
+        text = path.read_text(errors="replace")
+        parsed = parse_frontmatter(text)
+        if parsed is None:
+            errors.append(f"{rel}: missing or malformed YAML frontmatter")
+            continue
+        fm, body = parsed
+        unknown = set(fm) - OPENCODE_COMMAND_KEYS
+        if unknown:
+            errors.append(f"{rel}: keys not valid in opencode command frontmatter: {sorted(unknown)}")
+        desc = fm.get("description")
+        if not isinstance(desc, str) or not desc.strip():
+            errors.append(f"{rel}: missing or empty description")
+        errors.extend(_check_body(rel, body))
+    return errors
+
+
 # ── Entry point ────────────────────────────────────────────────────────
 
 
@@ -511,6 +587,8 @@ def main() -> int:
         )
 
     all_errors.extend(check_plugin_manifests(skill_files))
+    all_errors.extend(_check_lsp_json_files())
+    all_errors.extend(_check_opencode_command_variants())
 
     upstream_warnings, upstream_hard = _check_upstream_advisory(skill_files, strict_upstream)
     scripts_warnings, scripts_hard = _check_scripts_advisory(strict_scripts)

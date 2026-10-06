@@ -3,7 +3,8 @@
 A curated [Agent Skills](https://agentskills.io) **marketplace** that publishes
 one default plugin (`jylhis-skills-core`) and several opt-in plugins. Supported
 targets: **Claude Code** (CLI + Claude Code on the web), **Pi**
-(`pi-coding-agent`), and **claude.ai Skills** (per-skill `.zip` upload).
+(`pi-coding-agent`), **opencode**, and **claude.ai Skills** (per-skill `.zip`
+upload).
 
 ## Quick install
 
@@ -22,6 +23,7 @@ installed automatically.
 |---|---|---|
 | Claude Code (CLI + web) | local marketplace + `plugin install jylhis-skills-core@jylhis-skills` | `~/.claude/plugins/known_marketplaces.json` + `installed_plugins.json` |
 | Pi (`pi-coding-agent`) | mirror default plugin's skills + link `AGENTS.md` | `~/.pi/agent/skills/jylhis-skills-core/` + `~/.pi/agent/AGENTS.md` |
+| opencode | mirror skills + transform agents/commands + generate LSP plugin | `~/.config/opencode/{skills,agent,command,plugins}/` |
 
 For Claude Code the script registers this repo as a local marketplace and
 installs the `jylhis-skills-core` plugin. If the `claude` CLI is not on
@@ -72,6 +74,32 @@ npm install -g @earendil-works/pi-coding-agent
 then re-run `bash scripts/install.sh`. Override the agent dir with
 `PI_AGENT_DIR=… bash scripts/install.sh`.
 
+### opencode
+
+[opencode](https://opencode.ai) auto-discovers everything the installer
+writes under `~/.config/opencode/` (override with `OPENCODE_DIR=…`):
+
+- **Skills** — same per-plugin mirror layout as Pi, under
+  `skills/<plugin>/<skill>/SKILL.md` (recursive `**/SKILL.md` scan).
+- **Subagents** — `@reviewer`, `@explorer`, `@debugger` in `agent/*.md`,
+  transformed from the Claude plugin sources (`mode: subagent`; the two
+  read-only agents also get `permission: {edit: deny}`).
+- **Commands** — `/explore`, `/ship`, `/verify`, `/remember-correction`,
+  `/lsp-status` in `command/*.md`, transformed to opencode frontmatter
+  (Claude-only keys stripped, `${CLAUDE_PLUGIN_ROOT}` rewritten to the repo
+  checkout). `lsp-status.opencode.md` in the repo is a hand-maintained
+  variant used verbatim, because LSP discovery differs under opencode.
+- **LSP** — `plugins/jylhis-lsp.ts`, generated from every installed language
+  plugin's `.lsp.json`, injects the language servers into opencode's LSP
+  config at startup. Your `opencode.json` is never edited (it can stay
+  home-manager-managed).
+
+opencode reads `AGENTS.md` from each project root natively, so no context
+wiring is needed. Generated files are tracked by a `.jylhis-managed` sidecar
+per directory: re-runs refresh them, foreign files at the same paths are
+backed up, and removed sources are pruned. Restart opencode after
+installing: config is loaded once at startup.
+
 ### claude.ai Skills
 
 For the claude.ai chat app, package skills into per-skill `.zip` archives and
@@ -114,6 +142,7 @@ Install one (example: `jylhis-python`):
 |---|---|
 | Claude Code | `/plugin install jylhis-python@jylhis-skills` |
 | Pi | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.pi/agent/skills/jylhis-python/` — then re-run `bash scripts/install.sh` to keep it refreshed |
+| opencode | `rsync -aL --delete plugins/jylhis-python/skills/ ~/.config/opencode/skills/jylhis-python/` — then re-run `bash scripts/install.sh` (also regenerates the LSP plugin if the plugin ships an `.lsp.json`) |
 | claude.ai | `just package jylhis-python` is not a unit; package individual skills (`just package <name>`) and upload the `.zip` |
 
 ## Development
