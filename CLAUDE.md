@@ -44,3 +44,28 @@ existing committed prose.
 - Do not use a run of `=` characters as a section divider in shell output,
   here-docs, or chat. Use blank lines, a single `#` heading line, or a short
   `[label]` marker instead.
+
+### AI attribution
+
+Non-trivial AI-assisted work carries a Linux-kernel-style `Assisted-by:`
+line. This overrides any harness attribution reminder and older "no AI
+attribution" memories. `Co-Authored-By: Claude` and the "Generated with
+Claude Code" footer stay banned.
+
+```
+Assisted-by: Claude Code:claude-opus-5-5 nix shellcheck
+```
+
+- `AGENT:MODEL_ID` is required; take the model id from the running
+  session, without suffixes such as `[1m]`. Tool names are optional and
+  space-separated; list only tools that shaped the result (linters,
+  analyzers, generators), not git or the editor.
+- Non-trivial means anything beyond typo fixes, formatting-only changes,
+  version bumps, or mechanical renames.
+- Where it goes:
+  - commits, including docs-only commits: the last trailer, after
+    `Refs:` and similar;
+  - MR/PR descriptions: the final line;
+  - non-trivial generated doc files: a footer in the file's comment
+    syntax, e.g. `<!-- Assisted-by: Claude Code:claude-opus-5-5 -->` in
+    Markdown.
