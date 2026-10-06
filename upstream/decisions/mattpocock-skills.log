@@ -256,3 +256,17 @@ c07714b5b7359e0eb8fe5005dc1a484701830eb8	skip	2026-10-06T19:44:26Z	non-vendored
 0f8999f837a5366a19811ef4430c7138f70711d7	skip	2026-10-06T19:44:26Z	non-vendored
 2b47ffcf2385995a536e43ddc9226e32cf9793d9	skip	2026-10-06T19:44:26Z	non-vendored
 6fd947921b935b7e1e69293a200400f0fdd5c15f	skip	2026-10-06T19:44:26Z	non-vendored
+697d4ce9742da558fd1ba6697c8e9775e2e302dd	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+a2f9333669ff53db762c87ecda5a15442060a3be	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+8a475c438d90a2f1d7d3710c12658b60dc701a13	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+efce423018fc6468a3239621f1c1bcaacc723801	cherry-picked:954d878564a9364ef88b3d6ec1bcdc9b6899256c	2026-10-06T19:56:36Z	confirmed
+bda79a3c3ca23d19d9ca483808580b5b4cc3d8e2	cherry-picked:954d878564a9364ef88b3d6ec1bcdc9b6899256c	2026-10-06T19:56:36Z	confirmed
+d28dfdc39beadc3142a33359b5cfa4765dcbd0bc	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+1dab98299c3b81f560026c01b7ebf55ed5d91373	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+6a34259e99bc5fed4f8fe5da61c273dad14edf67	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+321658273cb1d20b76026717d027d505790106d4	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+5c89081d4bbeb3d039a42093653f90bb698d780e	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+d80fa0f4ebe0c5714af0adf8670336065233ecc6	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+fcf0071560d32913c9d4f820e0d7ca467c881619	cherry-picked:04194cb38a92edc61a3cd7533cc2751d132f0b46	2026-10-06T19:56:36Z	confirmed
+4f4e9433bbb7c4957ef33b1ea26686fb7c2a4cf4	cherry-picked:3e212e8c19da1f5a2c06dfef2592ffdc80f70fa8	2026-10-06T19:56:36Z	confirmed
+0f5e033ebc47b142f5ffa56a582ede6d9d9bada3	cherry-picked:3e212e8c19da1f5a2c06dfef2592ffdc80f70fa8	2026-10-06T19:56:36Z	confirmed

@@ -3,7 +3,7 @@ name: terraform
 description: Use for Terraform and HCL infrastructure-as-code work. Covers writing and reviewing HCL to HashiCorp's style guide (file layout, naming, variables and outputs, for_each vs count, version pinning), writing and running tests with .tftest.hcl (run and assert blocks, mock providers, CI wiring), refactoring monolithic configs into reusable modules (interface design, moved-block state migration), and authoring Terraform Stacks (.tfcomponent.hcl and .tfdeploy.hcl components, deployments, linked Stacks). Read the matching reference before writing or reviewing Terraform.
 metadata:
   upstream-id: hashicorp-agent-skills
-  upstream-rev: 43ca9b0cde131e20a129c106bc9f6b6f9f1e5c9a
+  upstream-rev: 326846817128fd1d052d25fbfded490ce2c5886e
   upstream-path: terraform
   upstream-imported: 2026-05-12
 ---

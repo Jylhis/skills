@@ -3,7 +3,7 @@ name: diagnose
 description: Disciplined diagnosis loop for hard bugs and performance regressions. Reproduce → minimise → hypothesise → instrument → fix → regression-test. Use when user says "diagnose this" / "debug this", reports a bug, says something is broken/throwing/failing, or describes a performance regression.
 metadata:
   upstream-id: mattpocock-skills
-  upstream-rev: f304057d61d3df3c9fd992ac2b6e3833cb9325fb
+  upstream-rev: 6fd947921b935b7e1e69293a200400f0fdd5c15f
   upstream-path: engineering/diagnose
   upstream-imported: 2026-05-12
 ---

@@ -6,7 +6,7 @@ metadata:
   author: Microsoft
   version: 1.2.2
   upstream-id: microsoft-azure-skills
-  upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
+  upstream-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
   upstream-path: azure-kubernetes
   upstream-imported: 2026-05-12
 ---

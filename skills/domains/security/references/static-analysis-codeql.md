@@ -1,4 +1,5 @@
-<!-- imported from https://github.com/trailofbits/skills@a56045e9ae00 path=plugins/static-analysis/skills/codeql on 2026-05-12 -->
+<!-- imported from https://github.com/trailofbits/skills@a56045e9ae00 path=plugins/static-analysis/skills/codeql on 2026-05-12
+     docs synced to 304c81a8 on 2026-10-06 (scripts not vendored) -->
 
 # CodeQL Analysis
 

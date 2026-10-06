@@ -79,3 +79,6 @@ a6d1b234198d95082523645d2fea8745ca7273bd	skip	2026-10-06T19:44:26Z	non-vendored
 0cc1c73a5e96749ab32d7ea5e14892fafa6972ae	skip	2026-10-06T19:44:26Z	non-vendored
 ed01a6bca3361fd937cd7d5f05a58cb1abffe509	skip	2026-10-06T19:44:26Z	non-vendored
 82fe8226252622fa807643bdca1710901198553a	skip	2026-10-06T19:44:26Z	non-vendored
+304c81a8cefb6e3c029ebd0d12940ccf0713eccb	cherry-picked:954d878564a9364ef88b3d6ec1bcdc9b6899256c	2026-10-06T19:56:36Z	confirmed
+9e06dc67a31fc291e76ad28b690abfd350a8fd6d	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately
+123037ec8aed26f0d86327cc39137ee5043e5deb	skip	2026-10-06T19:56:36Z	non-portable / no-op locally / adopted separately

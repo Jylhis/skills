@@ -3,7 +3,7 @@ name: tdd
 description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
 metadata:
   upstream-id: mattpocock-skills
-  upstream-rev: bd453a6742fb8660bf618c298f1e2b80fb9f35e3
+  upstream-rev: 6fd947921b935b7e1e69293a200400f0fdd5c15f
   upstream-path: engineering/tdd
   upstream-imported: 2026-07-11
 ---

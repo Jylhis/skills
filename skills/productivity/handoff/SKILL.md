@@ -3,7 +3,7 @@ name: handoff
 description: Compact the current conversation into a handoff document for another agent to pick up.
 metadata:
   upstream-id: mattpocock-skills
-  upstream-rev: 386d4ff719a7c420ad1454232d0436b01f1b8c17
+  upstream-rev: 6fd947921b935b7e1e69293a200400f0fdd5c15f
   upstream-path: productivity/handoff
   upstream-imported: 2026-07-11
 ---

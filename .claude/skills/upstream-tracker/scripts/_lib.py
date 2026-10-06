@@ -504,6 +504,11 @@ def advance_cursor(src: dict[str, Any]) -> str:
     if not cursor or not upstream or cursor == upstream:
         return cursor
     pending = commits_between(cache, cursor, upstream, src["subpath"])
+    if not pending:
+        # Nothing in cursor..upstream touches the subpath: nothing to
+        # decide, so the cursor can jump the gap. Without this the
+        # cursor stalls forever on ranges of non-tracked commits.
+        return upstream
     for commit in pending:
         sha = commit["sha"]
         decision = decisions.get(sha, "")

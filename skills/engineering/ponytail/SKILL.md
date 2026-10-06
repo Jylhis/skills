@@ -17,7 +17,7 @@ description: >
 license: MIT
 metadata:
   upstream-id: ponytail
-  upstream-rev: 2ed6c52c9d7e5e56942508591085fd45dea277d3
+  upstream-rev: 552acd5efd0aeae2583a12efe39373d2f076f25e
   upstream-path: ponytail
   upstream-imported: 2026-08-10
 ---
