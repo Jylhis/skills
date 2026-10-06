@@ -524,3 +524,45 @@ sources:
         name: tax-season-organizer
         target-plugin: jylhis-small-business
         merge-strategy: standalone
+  - id: microsoft-azure-app-deploy
+    repo: "https://github.com/microsoft/skills"
+    branch: main
+    subpath: .github/plugins/azure-skills/skills/azure-kubernetes
+    license: MIT
+    upstream-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
+    reviewed-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
+    last-fetched: "2026-10-06T19:54:30Z"
+    skills:
+      - upstream: azure-kubernetes-app-deploy
+        category: services
+        name: azure-kubernetes-app-deploy
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+  - id: microsoft-azure-cost
+    repo: "https://github.com/microsoft/skills"
+    branch: main
+    subpath: .github/plugins/azure-cost/skills
+    license: MIT
+    upstream-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
+    reviewed-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
+    last-fetched: "2026-10-06T19:54:35Z"
+    skills:
+      - upstream: cost-governance
+        category: services
+        name: azure-cost-governance
+        target-plugin: jylhis-azure
+        merge-strategy: standalone
+  - id: mattpocock-codebase-design
+    repo: "https://github.com/mattpocock/skills"
+    branch: main
+    subpath: skills
+    license: MIT
+    upstream-rev: 6fd947921b935b7e1e69293a200400f0fdd5c15f
+    reviewed-rev: 6fd947921b935b7e1e69293a200400f0fdd5c15f
+    last-fetched: "2026-10-06T19:54:37Z"
+    skills:
+      - upstream: engineering/codebase-design
+        category: engineering
+        name: codebase-design
+        target-plugin: jylhis-skills-core
+        merge-strategy: standalone

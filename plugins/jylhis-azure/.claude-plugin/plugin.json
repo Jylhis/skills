@@ -1,6 +1,6 @@
 {
   "name": "jylhis-azure",
-  "description": "Azure cloud skills — umbrella router plus AI services, compliance, cost management, deployment, AKS, and storage.",
+  "description": "Azure cloud skills \u2014 umbrella router plus AI services, compliance, cost management, deployment, AKS, and storage.",
   "version": "0.1.0",
   "author": {
     "name": "Jylhis"
@@ -11,8 +11,10 @@
     "./skills/azure-ai",
     "./skills/azure-compliance",
     "./skills/azure-cost",
+    "./skills/azure-cost-governance",
     "./skills/azure-deploy",
     "./skills/azure-kubernetes",
+    "./skills/azure-kubernetes-app-deploy",
     "./skills/azure-kubernetes-automatic-readiness",
     "./skills/azure-storage"
   ]

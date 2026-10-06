@@ -9,6 +9,7 @@
   "skills": [
     "./skills/bash",
     "./skills/code-comments",
+    "./skills/codebase-design",
     "./skills/commit-messages",
     "./skills/diagnose",
     "./skills/handoff",
