@@ -23,13 +23,29 @@ This skill guides the creation of production-ready tests for Go applications. Fo
 2. Integration tests MUST use build tags (`//go:build integration`) to separate from unit tests
 3. Tests MUST NOT depend on execution order -- each test MUST be independently runnable
 4. Independent tests SHOULD use `t.Parallel()` when possible
-5. NEVER test implementation details -- test observable behavior and public API contracts
+5. Tests MUST assert observable behavior and public API contracts, not implementation details -- a test coupled to internals turns every refactor into a test rewrite while proving nothing about the contract
 6. Packages with goroutines SHOULD use `goleak.VerifyTestMain` in `TestMain` to detect goroutine leaks
 7. Use testify as helpers, not a replacement for standard library
 8. Mock interfaces, not concrete types
 9. Keep unit tests fast (< 1ms), use build tags for integration tests
 10. Run tests with race detection in CI
 11. Include examples as executable documentation
+12. Test files MUST be named after the source file under test, not after the function or method being tested
+13. Test functions SHOULD appear in the same order as the functions/methods they test in the source file
+
+Name the test file after the source file it tests, not after the function or method under test. Go's convention is one test file per source file (`foo.go` -> `foo_test.go`), because tools (`go test`, coverage reports, IDE "jump to test" navigation, `gotests`) and reviewers all resolve tests by source file, not by symbol. A source file usually declares several functions/methods; splitting its tests by symbol name scatters them across many files and breaks that file-to-file mapping.
+
+```
+// ✓ Good -- one test file per source file
+helloworld.go       -> helloworld_test.go   // contains TestHelloWorld, TestAbcd, TestXyz, ...
+
+// ✗ Bad -- test file named after the function/method instead of the source file
+helloworld.go       -> abcd_test.go         // wrong: should be helloworld_test.go
+```
+
+Exception: very large source files MAY be split into multiple `_test.go` files by concern (e.g. `foo_test.go` + `foo_edgecases_test.go`), but each split file's name MUST still be derived from the source file name, never from an individual function name. Prefer keeping a single `_test.go` file per source file even when it grows large -- splitting adds navigation overhead and is rarely worth it; reach for the exception only when a single file becomes genuinely unwieldy to browse or review.
+
+Within a test file, order test functions to match the order their tested functions/methods appear in the source file. A reader (human or agent) scrolling `foo.go` alongside `foo_test.go` can then find the matching test by position instead of searching; drift between the two orderings compounds every time either file grows.
 
 ## Test Structure and Organization
 
@@ -96,6 +112,34 @@ func TestCalculatePrice(t *testing.T) {
     }
 }
 ```
+
+## Common Pitfall: Assert Scope Leaking into Subtests
+
+Never create a testify `assert`/`require` instance in the parent test function and reuse it inside `t.Run` closures. `assert.New(t)` captures the exact `*testing.T` it was built with, so if that `t` belongs to the parent, every failure raised inside the subtest gets attributed to the _parent_ test in `go test` output -- the failing subtest itself still reports `--- PASS`, silently hiding which case broke. This happens whether or not the subtest calls `t.Parallel()`.
+
+```go
+// WRONG -- `is` is bound to the parent's t
+func TestCalculatePrice(t *testing.T) {
+    is := assert.New(t)
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            is.Equal(tt.expected, CalculatePrice(tt.quantity, tt.unitPrice)) // misattributed on failure
+        })
+    }
+}
+
+// RIGHT -- each subtest builds its own instance from its own t
+func TestCalculatePrice(t *testing.T) {
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            is := assert.New(t)
+            is.Equal(tt.expected, CalculatePrice(tt.quantity, tt.unitPrice))
+        })
+    }
+}
+```
+
+Verify with a deliberately-broken case: if `go test -v -run TestName` shows `--- FAIL: TestName` but every `--- PASS: TestName/subtest_name` line still says PASS, the assert scope is leaking.
 
 ## Unit Tests
 
@@ -179,7 +223,11 @@ func TestContextTimeout(t *testing.T) {
 }
 ```
 
-Use `synctest.Test` in Go 1.25+ and Go 1.26+. Do not use the old Go 1.24 experimental `synctest.Run` API in Go 1.25+ or Go 1.26+ code. If a module explicitly targets Go 1.24 and opts into `GOEXPERIMENT=synctest`, use the old API only as a compatibility fallback.
+Use `synctest.Test` in Go 1.25+ and later. Do not use the old Go 1.24 experimental `synctest.Run` API in Go 1.25+ code. If a module explicitly targets Go 1.24 and opts into `GOEXPERIMENT=synctest`, use the old API only as a compatibility fallback.
+
+Go 1.27+ adds `synctest.Sleep(d)` as a direct helper to advance the bubble's fake clock, equivalent to `time.Sleep(d)` followed by `synctest.Wait()` but without needing a real goroutine to block on.
+
+Go 1.27+ also adds `httptest.NewTestServer()`, an in-memory fake-network variant of `httptest.NewServer` that composes with `synctest` -- no real socket, so server tests can run inside a `synctest.Test` bubble instead of needing `httptest.NewServer` plus real timers.
 
 Key differences in `synctest`:
 
@@ -256,6 +304,10 @@ func TestRenderGoldenArtifact(t *testing.T) {
 
 Available on `*testing.T`, `*testing.B`, and `*testing.F` in Go 1.26+.
 
+### Go 1.27+: `stdversion` runs automatically
+
+`go test` now invokes the `stdversion` vet check by default, flagging any use of an API newer than the module's `go` directive. A CI failure from this check means either the `go` directive needs bumping or the code needs to stop using the newer API -- it is not a check to silence.
+
 ## Parallel Tests
 
 Use `t.Parallel()` to run tests concurrently:
@@ -304,7 +356,7 @@ func FuzzReverse(f *testing.F) {
 
 ## Examples as Documentation
 
-Examples are executable documentation verified by `go test`:
+Examples are executable documentation: `go test` runs them and compares stdout to the `// Output:` comment, and `pkg.go.dev` renders them next to the documented symbol. An example that drifts from the API fails the build, unlike a code block in a README.
 
 ```go
 func ExampleCalculatePrice() {
@@ -320,13 +372,34 @@ func ExampleCalculatePrice_singleItem() {
 }
 ```
 
+The suffix decides where godoc attaches the example, so a typo silently detaches it from its symbol:
+
+| Function name               | Documents                          |
+| --------------------------- | ---------------------------------- |
+| `Example()`                 | The package itself                 |
+| `ExampleCalculatePrice()`   | The `CalculatePrice` function      |
+| `ExampleStore_Get()`        | The `Get` method of `Store`        |
+| `ExampleStore_Get_cached()` | A named variant of the same method |
+
+The suffix after the second underscore MUST start with a lowercase letter -- otherwise Go reads it as a type or method name and the example is orphaned.
+
+Output directives:
+
+- `// Output:` -- stdout MUST match exactly (leading/trailing whitespace is trimmed).
+- `// Unordered output:` -- lines may arrive in any order. Use it for map iteration and concurrent producers, which have no stable order.
+- **No output comment** -- the example is compiled but not run. Useful for code that needs a live dependency, but it stops verifying behavior, so prefer a real output assertion.
+
+Examples live in `_test.go` files. Put them in the `package foo_test` external test package: an example that only compiles against the exported API proves the public surface is usable, which is the point of the example.
+
 ## Code Coverage
+
+Coverage measures which lines ran, not whether their behavior was asserted. Treat it as a gap finder -- read the uncovered lines -- not as a quality target to chase.
 
 ```bash
 # Generate coverage file
 go test -coverprofile=coverage.out ./...
 
-# View coverage in HTML
+# View coverage in HTML (uncovered lines in red)
 go tool cover -html=coverage.out
 
 # Coverage by function
@@ -334,7 +407,34 @@ go tool cover -func=coverage.out
 
 # Total coverage percentage
 go tool cover -func=coverage.out | grep total
+
+# Count how many times each statement ran, not just whether it ran
+go test -covermode=count -coverprofile=coverage.out ./...
+
+# Safe under -race (atomic counters)
+go test -race -covermode=atomic -coverprofile=coverage.out ./...
+
+# Attribute coverage of package A to tests living in package B
+go test -coverpkg=./... ./...
+
+# Coverage of a single package, printed inline
+go test -cover ./internal/store
 ```
+
+Coverage modes:
+
+| Mode | Records | Use when |
+| --- | --- |
+| `set` | Statement executed (default) | Normal runs |
+| `count` | Execution count per statement | Finding never-taken branches in hot paths |
+| `atomic` | Count, race-safe | Any run combined with `-race` or `t.Parallel()` |
+
+Pitfalls:
+
+- **Per-package by default.** Without `-coverpkg`, a test in `api` exercising `store` reports nothing for `store`, making well-tested packages look untested.
+- **Integration tests are invisible** unless the build tag is passed: `go test -tags=integration -coverprofile=...`.
+- **Generated code inflates the number.** Exclude it before setting any threshold, otherwise the metric measures the generator.
+- **A covered line is not an asserted line.** A test that calls a function and ignores its result reports 100% coverage and verifies nothing.
 
 ## Integration Tests
 

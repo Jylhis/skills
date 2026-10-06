@@ -320,3 +320,82 @@ if pathErr, ok := errors.AsType[*os.PathError](err); ok {
     handle(pathErr)
 }
 ```
+
+### Go 1.27+
+
+- Generic methods: a method may now declare its own type parameters, so a helper
+  scoped to one type no longer needs a package-scope generic function. Interface
+  methods still cannot declare type parameters, and a generic method cannot
+  satisfy an interface; keep the package-level function when the operation must
+  be part of an interface contract.
+  Reference example: `(*rand.Rand).N[Int intType](n Int) Int` in `math/rand/v2`.
+
+- `strings.CutLast` / `bytes.CutLast` instead of `LastIndex` slicing.
+
+Before:
+
+```go
+if i := strings.LastIndex(path, "/"); i >= 0 {
+    dir, file := path[:i], path[i+1:]
+}
+```
+
+After:
+
+```go
+if dir, file, ok := strings.CutLast(path, "/"); ok {
+    // dir, file
+}
+```
+
+- `url.Values.Clone()` and `url.URL.Clone()` instead of manual shallow copies
+  (`Values` is `map[string][]string`; a shallow copy shares the slices).
+- `big.Int.Divide(x, y, r, big.Floor)` for rounding-mode division instead of the
+  sign-correction dance around `QuoRem` (modes: `big.Trunc`, `big.Floor`,
+  `big.Round`, `big.Ceil`).
+- Stdlib `uuid` instead of `github.com/google/uuid` (or `gofrs/uuid`). The
+  stdlib generators (`uuid.New()`, `uuid.NewV4()`, `uuid.NewV7()`) return values
+  without errors; prefer `uuid.NewV7()` for database primary keys where index
+  locality matters. Check `go mod why -m github.com/google/uuid` first: v3/v5
+  namespace UUIDs and SQL `Scanner`/`driver.Valuer` integration are not yet
+  covered by the stdlib package.
+- `encoding/json/v2` is stable and the default since Go 1.27 (`encoding/json`
+  becomes a thin wrapper over it; unmarshal is significantly faster). Prefer the
+  v2 API for new code; use `encoding/json/jsontext` for syntactic streaming
+  work. Migrate deliberately, not blindly:
+  - Duplicate object member names are now rejected (v1 silently kept the last).
+  - Invalid UTF-8 in JSON strings is now rejected (v1 replaced it silently).
+  - The `format` and `unknown` struct tags, `DiscardUnknownMembers`, and
+    `SkipFunc` are gone; the `inline` tag is renamed `embed`.
+  - `GOEXPERIMENT=nojsonv2` is a temporary compatibility bridge, not a stance.
+- `synctest.Sleep(d)` advances the bubble's fake clock directly; and
+  `httptest.NewTestServer()` is an in-memory fake-network server that composes
+  with `synctest` (see the testing reference).
+- `runtime/pprof` goroutineleak profile is generally available (experimental in
+  Go 1.26): served at `/debug/pprof/goroutineleak`, no build flag required (see
+  the concurrency reference).
+- `go fix` gains `atomictypes`, `embedlit`, `slicesbackward`, `unsafefuncs`
+  modernizers (`waitgroup` renamed `waitgroupgo`, `fmtappendf` removed); run
+  `go fix ./...` after a toolchain upgrade.
+- `go test` runs the `stdversion` vet check by default: uses of stdlib symbols
+  newer than the module's `go` directive fail CI. Bump the directive or gate
+  the API behind build tags; don't silence the check.
+- `go mod tidy` merges duplicate `require` blocks into the standard two-block
+  layout for `go 1.27` modules; run it once after bumping the directive.
+
+Version-bump risk checklist (verify, don't rewrite) before shipping `go 1.27`:
+
+- Removed `GODEBUG` settings (`asynctimerchan`, `tlsunsafeekm`, `tlsrsakex`,
+  `tls3des`, `tls10server`, `x509keypairleaf`, `gotypesalias`): a `godebug`
+  line in `go.mod` or `//go:debug` comment still pinning one to its old value
+  now fails the build. Search with
+  `grep -rn 'go:debug\|godebug' go.mod **/*.go`.
+- json/v2 default strictness: re-run integration tests against real-world
+  payloads, not just unit tests, before the bump ships.
+- Size-specialized allocator on by default (up to 30% faster allocations under
+  80 bytes, ~1% overall, ~60 KB binary cost); `GOEXPERIMENT=nosizespecializedmalloc`
+  is scheduled for removal in Go 1.28, not a long-term setting.
+- Darwin floor raised to macOS 13 (Ventura); `linux/ppc64` builds ELFv2 and
+  needs kernel 3.13+; `bzr` support removed from the `go` command.
+- Tracebacks include `runtime/pprof` goroutine labels by default; disable with
+  `GODEBUG=tracebacklabels=0` if labels leak sensitive data into crash logs.

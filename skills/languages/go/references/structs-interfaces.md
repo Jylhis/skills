@@ -187,6 +187,10 @@ default:
 }
 ```
 
+Cases are evaluated in order, so put concrete types before interface types — a concrete type listed after an interface it satisfies is unreachable.
+
+A `nil` interface value matches `case nil`, not `default`. Add that case explicitly when nil is a valid input, otherwise it silently falls through to the `default` branch and gets reported as an unexpected type.
+
 ### Optional Behavior with Type Assertions
 
 Check if a value supports additional capabilities without requiring them upfront:
@@ -209,6 +213,14 @@ func writeData(w io.Writer, data []byte) error {
 ```
 
 This pattern is used extensively in the standard library (e.g., `http.Flusher`, `io.ReaderFrom`).
+
+### Asserting to an Interface, not a Concrete Type
+
+Assert to the smallest interface that carries the behavior you need rather than to a concrete type. Asserting to `*os.File` binds the code to one implementation; asserting to `interface{ Sync() error }` accepts every type that can do the job.
+
+### Errors
+
+Error inspection has dedicated helpers — `errors.As` walks the wrap chain, a plain type assertion does not. A bare `err.(*MyError)` misses an error that was wrapped with `%w` anywhere up the stack.
 
 ## Struct & Interface Embedding
 
@@ -292,12 +304,20 @@ type Order struct {
 | ----------------------- | ------------------------------------------- |
 | `json:"name"`           | Field name in JSON output                   |
 | `json:"name,omitempty"` | Omit field if zero value                    |
+| `json:"name,omitzero"`  | Omit field if zero (Go 1.24+, type-aware)   |
 | `json:"-"`              | Always exclude from JSON                    |
+| `json:"-,"`             | Field literally named `-`                   |
 | `json:",string"`        | Encode number/bool as JSON string           |
 | `db:"column"`           | Database column mapping (sqlx, etc.)        |
 | `yaml:"name"`           | YAML field name                             |
 | `xml:"name,attr"`       | XML attribute                               |
 | `validate:"required"`   | Struct validation (go-playground/validator) |
+
+Notes that bite in production:
+
+- **Unexported fields are never serialized**, tag or not. A tag on an unexported field is dead weight and `go vet` flags the malformed ones only.
+- **`omitempty` is length/zero based, not semantic.** It drops `0`, `""`, and `false`, so an explicit "zero" value becomes indistinguishable from "absent". Use a pointer, `mo.Option[T]`, or `omitzero` (Go 1.24+) when the difference matters.
+- **Tag syntax is unchecked at compile time.** A missing backtick or a `json: "id"` with a stray space produces a silently ignored tag. `go vet`'s `structtag` analyzer catches malformed tags — run it in CI, and add a round-trip test (marshal, unmarshal, compare) to catch field-name drift the compiler cannot see.
 
 ## Pointer vs Value Receivers
 
