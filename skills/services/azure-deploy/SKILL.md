@@ -4,7 +4,7 @@ description: "Execute Azure deployments for ALREADY-PREPARED applications that h
 license: MIT
 metadata:
   author: Microsoft
-  version: 1.1.2
+  version: 1.2.2
   upstream-id: microsoft-azure-skills
   upstream-rev: b71de35cb5a1acc458e1f518cbb9acc830f6d7c6
   upstream-path: azure-deploy
