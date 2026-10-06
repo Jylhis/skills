@@ -22,7 +22,7 @@ Before touching code or tweaking dials, **infer what the user actually wants**. 
 ### 0.A Read these signals first
 1. **Page kind** - landing (SaaS / consumer / agency / event), portfolio (dev / designer / creative studio), redesign (preserve vs overhaul), editorial / blog.
 2. **Vibe words** the user used - "minimalist", "calm", "Linear-style", "Awwwards", "brutalist", "premium consumer", "Apple-y", "playful", "serious B2B", "editorial", "agency-y", "glassy", "dark tech".
-3. **Reference signals** - URLs they linked, screenshots they pasted, products they named, brands they're competing with.
+3. **Reference signals** - URLs they linked, screenshots they pasted, products they named, brands they're competing with. If there are none and the vibe is unclear, offer a gallery from `references/inspiration-galleries.md` and ask the user to pick one or two sites.
 4. **Audience** - B2B procurement panel vs. design-conscious consumer vs. recruiter scanning a portfolio. The audience picks the aesthetic, not your taste.
 5. **Brand assets that already exist** - logo, color, type, photography. For redesigns, these are starting material, not optional input (see Section 11).
 6. **Quiet constraints** - accessibility-first audiences, public-sector, regulated industries, trust-first commerce, kids' products. These constraints OVERRIDE aesthetic preference.
