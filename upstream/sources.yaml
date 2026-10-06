@@ -4,9 +4,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: 4881c01da71a890c9907257c0636d8cde75d12ca
+    upstream-rev: 8e899e20ff0cd4dc524af3993e4c62d8ee8c5717
     reviewed-rev: 16a4c37592fd2c809591431ea255f5918caf5305
-    last-fetched: "2026-07-11T19:52:52Z"
+    last-fetched: "2026-10-06T19:42:56Z"
     skills:
       - upstream: golang-code-style
         category: languages
@@ -83,9 +83,9 @@ sources:
     branch: main
     subpath: plugins
     license: AGPL-3.0
-    upstream-rev: cfe5d7b1619e47fb5b38b7e2561dad7e5f1e89af
-    reviewed-rev: cfe5d7b1619e47fb5b38b7e2561dad7e5f1e89af
-    last-fetched: "2026-07-11T19:52:53Z"
+    upstream-rev: 82fe8226252622fa807643bdca1710901198553a
+    reviewed-rev: e6066e7db1fd57cb35f9a534781ceec595327feb
+    last-fetched: "2026-10-06T19:42:57Z"
     skills:
       - upstream: modern-python/skills/modern-python
         category: languages
@@ -106,9 +106,9 @@ sources:
     branch: main
     subpath: plugins
     license: AGPL-3.0
-    upstream-rev: 022fa0948818c9f2f738a428f4546cc65c427767
-    reviewed-rev: 022fa0948818c9f2f738a428f4546cc65c427767
-    last-fetched: "2026-07-11T19:52:55Z"
+    upstream-rev: 6d05be4889017b06fb15069f371afd220daffb62
+    reviewed-rev: 6d05be4889017b06fb15069f371afd220daffb62
+    last-fetched: "2026-10-06T19:43:06Z"
     skills:
       - upstream: humanizer/skills/humanizer
         category: productivity
@@ -125,21 +125,21 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: 391a2701dd948f94f56a39f7533f8eea9a859c87
-    reviewed-rev: 391a2701dd948f94f56a39f7533f8eea9a859c87
-    last-fetched: "2026-07-11T19:52:56Z"
+    upstream-rev: 6fd947921b935b7e1e69293a200400f0fdd5c15f
+    reviewed-rev: d3275456a453ae93260abb9c945af60c259cdc6d
+    last-fetched: "2026-10-06T19:43:07Z"
     skills:
       - upstream: engineering/tdd
         category: engineering
         name: tdd
         target-plugin: jylhis-skills-core
         merge-strategy: standalone
-      - upstream: engineering/diagnose
+      - upstream: engineering/diagnosing-bugs
         category: engineering
         name: diagnose
         target-plugin: jylhis-skills-core
         merge-strategy: standalone
-      - upstream: engineering/to-prd
+      - upstream: engineering/to-spec
         category: engineering
         name: to-prd
         target-plugin: jylhis-skills-core
@@ -156,7 +156,7 @@ sources:
     license: MIT
     upstream-rev: 49f948faa9258a0c61caceaf225e179651397431
     reviewed-rev: 972cb867affac58fda9afa76bb1a19b399a278cf
-    last-fetched: "2026-07-11T19:53:01Z"
+    last-fetched: "2026-10-06T19:43:11Z"
     skills:
       - upstream: security-best-practices
         category: domains
@@ -182,34 +182,34 @@ sources:
   - id: hashicorp-agent-skills
     repo: "https://github.com/hashicorp/agent-skills"
     branch: main
-    subpath: terraform
+    subpath: plugins/terraform
     license: MPL-2.0
-    upstream-rev: 957d5f95911bc22eaf2b7e141c3b08ba824091fe
+    upstream-rev: f706481af9b8fedb66de909f6243ad29601afa0c
     reviewed-rev: 957d5f95911bc22eaf2b7e141c3b08ba824091fe
-    last-fetched: "2026-07-11T19:53:03Z"
+    last-fetched: "2026-10-06T19:43:12Z"
     skills:
-      - upstream: code-generation/skills/terraform-test
+      - upstream: skills/terraform-test
         category: languages
         name: terraform
         target-plugin: jylhis-terraform
         merge-strategy: umbrella-references
         umbrella: terraform
         topic: test
-      - upstream: code-generation/skills/terraform-style-guide
+      - upstream: skills/terraform-style-guide
         category: languages
         name: terraform
         target-plugin: jylhis-terraform
         merge-strategy: umbrella-references
         umbrella: terraform
         topic: style-guide
-      - upstream: module-generation/skills/refactor-module
+      - upstream: skills/refactor-module
         category: languages
         name: terraform
         target-plugin: jylhis-terraform
         merge-strategy: umbrella-references
         umbrella: terraform
         topic: refactor-module
-      - upstream: module-generation/skills/terraform-stacks
+      - upstream: skills/terraform-stacks
         category: languages
         name: terraform
         target-plugin: jylhis-terraform
@@ -221,18 +221,13 @@ sources:
     branch: main
     subpath: .github/plugins/azure-skills/skills
     license: MIT
-    upstream-rev: c33193b1b2dd14d5946e3c6213fd095ffa5b31df
-    reviewed-rev: 506c7a7a24809efbbdc0c3cc5cf0fbfb3450a86f
-    last-fetched: "2026-07-11T19:53:04Z"
+    upstream-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
+    reviewed-rev: 617f8b5137daa4dcc8c6f7e588e12692915ce3ae
+    last-fetched: "2026-10-06T19:43:13Z"
     skills:
       - upstream: azure-deploy
         category: services
         name: azure-deploy
-        target-plugin: jylhis-azure
-        merge-strategy: standalone
-      - upstream: azure-cost
-        category: services
-        name: azure-cost
         target-plugin: jylhis-azure
         merge-strategy: standalone
       - upstream: azure-storage
@@ -260,9 +255,9 @@ sources:
     branch: main
     subpath: .github/skills
     license: MIT
-    upstream-rev: c33193b1b2dd14d5946e3c6213fd095ffa5b31df
-    reviewed-rev: 34f5e11a53a6914d7e8e3659e93eef485b76b7cc
-    last-fetched: "2026-07-11T19:53:08Z"
+    upstream-rev: 354361d83247c76a1c21e802e0d4887c4d8323a3
+    reviewed-rev: 4a2873faffc1b101a33a0b59c24713d4ed78142f
+    last-fetched: "2026-10-06T19:43:19Z"
     skills:
       - upstream: microsoft-docs
         category: engineering
@@ -274,9 +269,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
+    upstream-rev: 3ccff5338ea700537839b21900aa5358a0402c98
     reviewed-rev: a1dc48e68138490d522c04cbf5822214c6eb1202
-    last-fetched: "2026-07-14T19:43:45Z"
+    last-fetched: "2026-10-06T19:43:20Z"
     skills:
       - upstream: obsidian-markdown
         category: personal
@@ -308,9 +303,9 @@ sources:
     branch: main
     subpath: skills
     license: AGPL-3.0
-    upstream-rev: 7155edc7040b23186bd25dd23a7a1b95375ff6c3
-    reviewed-rev: f3f6a3b715a4768c9e492dc9f112e574900092db
-    last-fetched: "2026-07-11T19:53:10Z"
+    upstream-rev: 1ccacf29049fde66637fe01ab93a83a772da323b
+    reviewed-rev: 2783ad7dfbfc6a7beb548d62405deb6bb282bb68
+    last-fetched: "2026-10-06T19:43:21Z"
     skills:
       - upstream: grafana-core/grafana-oss
         category: services
@@ -344,7 +339,7 @@ sources:
     license: MIT
     upstream-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
     reviewed-rev: 7feda8e01e22bc0886c86123f3884947e36d8c69
-    last-fetched: "2026-07-11T19:53:11Z"
+    last-fetched: "2026-10-06T19:43:22Z"
     skills:
       - upstream: convert-file
         category: services
@@ -393,7 +388,7 @@ sources:
     license: MIT
     upstream-rev: 2c606141936f1eeef17fa3043a72095b4765b9c2
     reviewed-rev: 2c606141936f1eeef17fa3043a72095b4765b9c2
-    last-fetched: "2026-07-14T19:47:04Z"
+    last-fetched: "2026-10-06T19:43:24Z"
     skills:
       - upstream: karpathy-guidelines
         category: engineering
@@ -405,9 +400,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: e988add20dab0fa97d7a76781c48961c8184288e
+    upstream-rev: e3c92037548e3e49bea8e6b906c99a8549654e71
     reviewed-rev: 06d6028b5c623016c59ce8536f578e5a1127b499
-    last-fetched: "2026-08-11T09:42:02Z"
+    last-fetched: "2026-10-06T19:43:25Z"
     skills:
       - upstream: taste-skill
         category: domains
@@ -421,7 +416,7 @@ sources:
     license: mixed (per-skill upstream licenses; Kotlin org skills MIT)
     upstream-rev: e0f258b5cfed145015cb3e48da9a97947f7c4ed7
     reviewed-rev: e0f258b5cfed145015cb3e48da9a97947f7c4ed7
-    last-fetched: "2026-08-10T20:39:09Z"
+    last-fetched: "2026-10-06T19:43:26Z"
     skills:
       - upstream: stacktrace-log-triage
         category: languages
@@ -435,9 +430,9 @@ sources:
     branch: main
     subpath: skills
     license: MIT
-    upstream-rev: 2ed6c52c9d7e5e56942508591085fd45dea277d3
-    reviewed-rev: 2ed6c52c9d7e5e56942508591085fd45dea277d3
-    last-fetched: "2026-08-10T20:55:49Z"
+    upstream-rev: 552acd5efd0aeae2583a12efe39373d2f076f25e
+    reviewed-rev: ad14110d98ffdbbe7e22a07d5b7e2bd01c5c5aa9
+    last-fetched: "2026-10-06T19:43:27Z"
     skills:
       - upstream: ponytail
         category: engineering
@@ -470,9 +465,9 @@ sources:
     branch: main
     subpath: .
     license: Apache-2.0
-    upstream-rev: 55447a28e6c785444197cecde5a401b44f830161
-    reviewed-rev: 55447a28e6c785444197cecde5a401b44f830161
-    last-fetched: "2026-06-20T21:03:00Z"
+    upstream-rev: 8444efcd48f7012f09797778a36a33e73d0861f4
+    reviewed-rev: c66cd2d204d9db2a9a49401f34e0b95d7d05cd46
+    last-fetched: "2026-10-06T19:43:29Z"
     skills:
       - upstream: engineering/skills/code-review
         category: engineering
