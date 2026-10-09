@@ -34,24 +34,31 @@ Full option docs: https://nix-community.github.io/home-manager/options.xhtml
 ```nix
 programs.git = {
   enable = true;
-  userName = "Your Name";
-  userEmail = "you@example.com";
-  extraConfig = {
+  # Since 25.11: userName/userEmail/extraConfig/aliases live under settings
+  settings = {
+    user.name = "Your Name";
+    user.email = "you@example.com";
     init.defaultBranch = "main";
     push.autoSetupRemote = true;
     pull.rebase = true;
     rerere.enabled = true;
-  };
-  delta = {
-    enable = true;
-    options.navigate = true;
+    alias.st = "status";
   };
   signing = {
     key = "ABCDEF1234567890";
     signByDefault = true;
   };
 };
+
+# delta is its own module since 25.11 (was programs.git.delta)
+programs.delta = {
+  enable = true;
+  enableGitIntegration = true;
+  options.navigate = true;
+};
 ```
+
+`programs.git.settings` also accepts a list of attrsets when order or repeated sections matter (for example several `credential` blocks).
 
 ## programs.zsh
 
@@ -65,7 +72,9 @@ programs.zsh = {
     gs = "git status";
     gd = "git diff";
   };
-  initExtra = ''
+  # initContent replaces initExtra (deprecated). Order with lib.mkBefore
+  # (was initExtraFirst) or lib.mkOrder 550 (was initExtraBeforeCompInit).
+  initContent = ''
     bindkey -e  # emacs keybindings
   '';
   oh-my-zsh = {
@@ -159,7 +168,7 @@ programs.neovim = {
     nvim-lspconfig
     gruvbox-nvim
   ];
-  extraLuaConfig = ''
+  initLua = ''  # extraLuaConfig before 26.05
     vim.opt.number = true
     vim.opt.relativenumber = true
     vim.opt.shiftwidth = 2
@@ -172,7 +181,7 @@ programs.neovim = {
 ```nix
 programs.emacs = {
   enable = true;
-  package = pkgs.emacs29;  # or pkgs.emacs-nox, pkgs.emacs29-pgtk
+  package = pkgs.emacs30;  # or pkgs.emacs-nox, pkgs.emacs30-pgtk
   extraPackages = epkgs: with epkgs; [
     magit
     use-package
@@ -233,7 +242,7 @@ programs.alacritty = {
 ```nix
 programs.kitty = {
   enable = true;
-  theme = "Gruvbox Dark";
+  themeFile = "gruvbox-dark";  # kitty-themes file name without .conf (theme is deprecated)
   font = {
     name = "JetBrains Mono";
     size = 14;
@@ -261,7 +270,7 @@ programs.firefox = {
       "privacy.trackingprotection.enabled" = true;
     };
     search = {
-      default = "DuckDuckGo";
+      default = "ddg";  # engines are referenced by id, not display name
       force = true;
     };
     extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
@@ -277,21 +286,26 @@ programs.firefox = {
 ```nix
 programs.vscode = {
   enable = true;
-  extensions = with pkgs.vscode-extensions; [
-    vscodevim.vim
-    jnoortheen.nix-ide
-    esbenp.prettier-vscode
-    ms-python.python
-  ];
-  userSettings = {
-    "editor.fontSize" = 14;
-    "editor.fontFamily" = "JetBrains Mono";
-    "editor.formatOnSave" = true;
-    "nix.enableLanguageServer" = true;
-    "nix.serverPath" = "nil";
+  # Since 25.05, per-profile settings live under profiles.<name>
+  profiles.default = {
+    extensions = with pkgs.vscode-extensions; [
+      vscodevim.vim
+      jnoortheen.nix-ide
+      esbenp.prettier-vscode
+      ms-python.python
+    ];
+    userSettings = {
+      "editor.fontSize" = 14;
+      "editor.fontFamily" = "JetBrains Mono";
+      "editor.formatOnSave" = true;
+      "nix.enableLanguageServer" = true;
+      "nix.serverPath" = "nil";
+    };
   };
 };
 ```
+
+Forks have their own modules (`programs.vscodium`, `programs.cursor`, `programs.windsurf`, ...); `programs.vscode.pname` was removed.
 
 ## programs.gpg
 
@@ -307,7 +321,7 @@ programs.gpg = {
 };
 # Often paired with:
 # services.gpg-agent.enable = true;
-# services.gpg-agent.pinentryPackage = pkgs.pinentry-curses;
+# services.gpg-agent.pinentry.package = pkgs.pinentry-curses;
 ```
 
 ## programs.ssh
@@ -315,26 +329,33 @@ programs.gpg = {
 ```nix
 programs.ssh = {
   enable = true;
-  addKeysToAgent = "yes";
-  matchBlocks = {
+  enableDefaultConfig = false;  # drop the legacy Host * defaults (and their warning)
+  # Since 26.05: settings uses ssh_config(5) directive names; matchBlocks is deprecated.
+  # Attribute names become `Host` patterns; "*" is always written last.
+  settings = {
+    "*" = {
+      AddKeysToAgent = "yes";
+    };
     "github.com" = {
-      hostname = "github.com";
-      user = "git";
-      identityFile = "~/.ssh/id_ed25519";
+      HostName = "github.com";
+      User = "git";
+      IdentityFile = "~/.ssh/id_ed25519";
     };
     "dev-server" = {
-      hostname = "192.168.1.100";
-      user = "deploy";
-      port = 2222;
-      forwardAgent = true;
+      HostName = "192.168.1.100";
+      User = "deploy";
+      Port = 2222;
+      ForwardAgent = true;  # booleans render as yes/no
     };
     "*.internal" = {
-      user = "admin";
-      proxyJump = "bastion";
+      User = "admin";
+      ProxyJump = "bastion";
     };
   };
 };
 ```
+
+When block order matters, use `lib.hm.dag.entryBefore` / `entryAfter`; names starting with `Host ` or `Match ` are written literally as the block header. Old top-level options such as `programs.ssh.addKeysToAgent` now map to `programs.ssh.settings."*"`.
 
 ## programs.fzf
 

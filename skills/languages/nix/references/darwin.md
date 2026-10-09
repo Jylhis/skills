@@ -2,7 +2,9 @@
 
 nix-darwin brings NixOS-style declarative configuration to macOS. It uses the same module system as NixOS: options, types, mkIf, mkMerge, mkDefault. It manages system settings, packages, services, and integrates with Home Manager for per-user configuration.
 
-Repository: <https://github.com/LnL7/nix-darwin>
+Repository: <https://github.com/nix-darwin/nix-darwin> (moved from `LnL7/nix-darwin`; the old URL redirects, but update flake inputs to the new owner).
+
+Release branches track Nixpkgs releases: `nix-darwin-25.05`, `nix-darwin-25.11`, `nix-darwin-26.05`. Pair `nix-darwin-26.05` with `nixpkgs-26.05-darwin`, and `master` with `nixpkgs-unstable`. Do not mix a release branch of one with the unstable branch of the other.
 
 ## Flake-Based Setup
 
@@ -13,9 +15,11 @@ A typical flake.nix with nix-darwin and home-manager:
   description = "macOS system configuration";
 
   inputs = {
+    # Stable: github:NixOS/nixpkgs/nixpkgs-26.05-darwin
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-darwin = {
-      url = "github:LnL7/nix-darwin";
+      # Stable: github:nix-darwin/nix-darwin/nix-darwin-26.05
+      url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
@@ -26,9 +30,9 @@ A typical flake.nix with nix-darwin and home-manager:
 
   outputs = { self, nixpkgs, nix-darwin, home-manager, ... }: {
     darwinConfigurations."my-mac" = nix-darwin.lib.darwinSystem {
-      system = "aarch64-darwin";  # or "x86_64-darwin"
       modules = [
         ./configuration.nix
+        { nixpkgs.hostPlatform = "aarch64-darwin"; }  # or "x86_64-darwin" (Intel)
         home-manager.darwinModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
@@ -40,6 +44,8 @@ A typical flake.nix with nix-darwin and home-manager:
   };
 }
 ```
+
+Intel Macs: Nixpkgs 26.05 is the last release that supports `x86_64-darwin`. Binaries are built until 26.05 goes out of support at the end of 2026; Nixpkgs 26.11 drops the platform. Keep Intel machines on the 26.05 branches (`nixpkgs-26.05-darwin`, `nix-darwin-26.05`) until they are retired.
 
 ## System Configuration
 
@@ -62,23 +68,47 @@ A typical flake.nix with nix-darwin and home-manager:
     trusted-users = [ "root" "@admin" ];
   };
 
-  # Required: set the state version
-  system.stateVersion = 5;
+  # Pin at first install, then leave it. nix-darwin 26.05 accepts up to 7;
+  # run `darwin-rebuild changelog` before raising it.
+  system.stateVersion = 6;
 
   # Allow Touch ID for sudo
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  # Set primary user (required for some features that need a user-scoped context).
-  # Note: `system.primaryUser` is a transitional shim — upstream plans to remove
-  # it as individual options gain proper per-user scoping. Expect this to be
-  # reorganized; follow the nix-darwin release notes when upgrading.
+  # User that per-user options apply to (activation itself runs as root).
+  # Transitional: upstream plans to remove it once those options move under
+  # users.users.* or to Home Manager.
   system.primaryUser = "myuser";
 }
 ```
 
+### Root Activation and `system.primaryUser`
+
+Since May 2025 (pinned announcement: nix-darwin/nix-darwin#1457), the whole activation runs as root. `darwin-rebuild switch`, `activate`, `check` and `--rollback` refuse to run without root, so use `sudo darwin-rebuild switch`. `darwin-rebuild build` still works unprivileged. `system.activationScripts.{preUserActivation,extraUserActivation,postUserActivation}` were removed; every activation script now runs as root, so move per-user setup to Home Manager (`home.activation`).
+
+Options that used to act on "the user running darwin-rebuild" now act on `system.primaryUser`. Evaluation fails with a list of the offending options when one is set and `system.primaryUser` is not. The set includes:
+
+- the per-user `system.defaults.*` domains: `NSGlobalDomain`, `.GlobalPreferences`, `dock`, `finder`, `trackpad`, `screencapture`, `screensaver`, `spaces`, `menuExtraClock`, `hitoolbox`, `magicmouse`, `universalaccess`, `ActivityMonitor`, `LaunchServices`, `WindowManager`, `controlcenter`, and `CustomUserPreferences`
+- `launchd.user.agents.*` and `launchd.user.envVariables.*`
+- `homebrew.enable` (unless `homebrew.user` is set) and `programs.mas.enable` (unless `programs.mas.user` is set)
+
+System-scope domains (`loginwindow`, `smb`, `SoftwareUpdate`, `CustomSystemPreferences`) do not need it.
+
+### Determinate Nix
+
+Determinate Nix manages the Nix installation with its own daemon, which conflicts with nix-darwin's native Nix management. nix-darwin aborts activation when it detects `determinate-nixd`; opt out of nix-darwin's Nix management:
+
+```nix
+{
+  nix.enable = false;  # nix-darwin stops managing the Nix install, daemon and nix.conf
+}
+```
+
+With `nix.enable = false`, the `nix.*` options that manage the installation (`nix.settings`, `nix.linux-builder`, `nix.gc.automatic`, ...) are unavailable; configure Nix through Determinate instead and upgrade it yourself.
+
 ## system.defaults -- macOS Settings
 
-nix-darwin exposes macOS defaults as typed Nix options. Changes apply on `darwin-rebuild switch`. See `darwin/defaults.md` for the complete reference.
+nix-darwin exposes macOS defaults as typed Nix options. Changes apply on `sudo darwin-rebuild switch`; the per-user domains are written for `system.primaryUser`. See `darwin/defaults.md` for the complete reference.
 
 ### NSGlobalDomain
 
@@ -172,7 +202,7 @@ system.defaults.WindowManager = {
 nix-darwin can manage launchd daemons and agents:
 
 ```nix
-# System-level daemon
+# System-level daemon (/Library/LaunchDaemons, runs as root)
 launchd.daemons.my-daemon = {
   serviceConfig = {
     ProgramArguments = [ "/path/to/program" "--flag" ];
@@ -183,7 +213,7 @@ launchd.daemons.my-daemon = {
   };
 };
 
-# User-level agent
+# Agent for every user's login session (/Library/LaunchAgents)
 launchd.agents.my-agent = {
   serviceConfig = {
     ProgramArguments = [ "/path/to/agent" ];
@@ -192,7 +222,17 @@ launchd.agents.my-agent = {
     StartInterval = 3600;  # run every hour
   };
 };
+
+# Agent in the primary user's ~/Library/LaunchAgents (requires system.primaryUser)
+launchd.user.agents.my-user-agent = {
+  serviceConfig = {
+    ProgramArguments = [ "/path/to/agent" ];
+    RunAtLoad = true;
+  };
+};
 ```
+
+Per-user agents for other users belong in Home Manager (`launchd.agents` in a Home Manager config).
 
 ### Window Management (yabai + skhd)
 
@@ -239,9 +279,10 @@ Many GUI apps (casks) are not in nixpkgs. Use nix-homebrew or the homebrew-cask 
 # Using nix-darwin's built-in homebrew module
 homebrew = {
   enable = true;
+  # user = "myuser";          # defaults to system.primaryUser
   onActivation = {
     autoUpdate = true;
-    cleanup = "zap";          # remove unlisted casks/formulae
+    cleanup = "zap";          # "none" | "check" | "uninstall" | "zap"
     upgrade = true;
   };
   casks = [
@@ -255,10 +296,18 @@ homebrew = {
     # Formulae that aren't in nixpkgs or need macOS-specific builds
   ];
   taps = [
-    "homebrew/cask"
+    # Third-party taps only. homebrew/core and homebrew/cask have not needed
+    # tapping since Homebrew 4.0.
   ];
 };
 ```
+
+Recent `homebrew` module changes (nix-darwin CHANGELOG, 2026-02-10):
+
+- `homebrew.brewPrefix` was replaced by `homebrew.prefix`, which points at the prefix (`/opt/homebrew`, as `brew --prefix` prints), not the `bin` directory.
+- `homebrew.whalebrews` was removed (Homebrew Bundle dropped Whalebrew in 4.7.0). `homebrew.global.lockfiles`/`noLock` no longer do anything.
+- `onActivation.cleanup = "check"` aborts activation when unlisted packages are installed, without removing them.
+- New entry types `homebrew.goPackages`, `homebrew.cargoPackages`, `homebrew.vscode`, and shell integration via `homebrew.enable{Bash,Zsh,Fish}Integration`.
 
 For nix-homebrew (manages Homebrew installation itself via Nix):
 
@@ -278,20 +327,27 @@ nix-homebrew = {
 ## darwin-rebuild
 
 ```sh
-# Build and activate the configuration
-darwin-rebuild switch --flake .#my-mac
+# First install (darwin-rebuild is not on PATH yet)
+sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#my-mac
+# or, for the stable branch: nix-darwin/nix-darwin-26.05#darwin-rebuild
 
-# Build without activating (dry run)
+# Build and activate the configuration (activation requires root)
+sudo darwin-rebuild switch --flake .#my-mac
+
+# Build without activating (no root needed)
 darwin-rebuild build --flake .#my-mac
 
-# Check configuration for errors
-darwin-rebuild check --flake .#my-mac
+# Check configuration for errors (runs activation checks, needs root)
+sudo darwin-rebuild check --flake .#my-mac
 
 # Debug build failures
-darwin-rebuild switch --flake .#my-mac --show-trace
+sudo darwin-rebuild switch --flake .#my-mac --show-trace
+
+# Show stateVersion-gated changes
+darwin-rebuild changelog
 ```
 
-After initial setup, the `darwin-rebuild` command is available system-wide.
+After initial setup, the `darwin-rebuild` command is available system-wide. Without `--flake`, it uses `/etc/nix-darwin/flake.nix` if present (the default configuration location for new installs).
 
 ## Hybrid Architecture Integration
 

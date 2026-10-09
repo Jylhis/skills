@@ -7,8 +7,10 @@
 - [nix-du](#nix-du)
 - [nom (nix-output-monitor)](#nom-nix-output-monitor)
 - [nvd](#nvd)
+- [dix and nh](#dix-and-nh)
 - [nix path-info](#nix-path-info)
 - [nix why-depends](#nix-why-depends)
+- [--eval-profiler](#--eval-profiler)
 - [--trace-function-calls](#--trace-function-calls)
 
 ## nix-tree
@@ -32,13 +34,22 @@ Browse a store path directly:
 nix-tree /nix/store/...-some-package
 ```
 
+Query a binary cache without downloading the closure:
+```bash
+nix eval --raw 'nixpkgs#stellarium.outPath' | xargs -o nix-tree --store https://cache.nixos.org
+```
+
+With no argument it opens `~/.nix-profile` and `/var/run/current-system`. `--dot` prints the graph in DOT format instead.
+
 ### Navigation
 
-- Arrow keys to navigate the tree
-- Enter to expand/collapse nodes
-- `s` to sort by size (largest first) -- use this to find bloat quickly
-- `w` to show why a path is in the closure (which parent references it)
-- `q` to quit
+- `hjkl` or arrow keys to navigate the tree
+- `s` to change the sort order (by name, closure size, added size) -- sort by size to find bloat quickly
+- `w` to open the why-depends view (which parents pull a path in)
+- `/` to search, `y` to yank the selected path, `?` for help
+- `q` or Esc to quit or close a modal
+
+Columns: NAR size (the path itself), closure size, and added size (the path plus its *unique* dependencies, i.e. what removing it would actually free).
 
 ### Tips
 
@@ -80,15 +91,24 @@ Visualize GC roots and their sizes. Generates reports showing what store paths a
 
 ### Usage
 
-Generate a report of store usage by GC root:
+`nix-du` writes a Graphviz DOT graph (needs `dot` from `graphviz`). Roots are on the left; an edge A to B means B stays alive as long as A does; red nodes are the heaviest.
+
+Only keep nodes of at least 500 MB and render to SVG:
 ```bash
-nix-du -s
+nix-du -s=500MB | dot -Tsvg > store.svg
 ```
 
-Output as a chart (requires chart rendering):
+Only keep the 50 heaviest inner nodes:
 ```bash
-nix-du -s | sort -rn | head -20
+nix-du -n=50 | dot -Tsvg > store.svg
 ```
+
+Analyze the dependencies of one store path instead of all GC roots:
+```bash
+nix-du --root /nix/store/...-foo -s=100MB | dot -Tsvg > foo.svg
+```
+
+With filters, node sizes are approximations.
 
 ### Use Cases
 
@@ -112,10 +132,12 @@ Develop shell with monitoring:
 nom develop .#package
 ```
 
-Pipe nix output through nom:
+Pipe nix output through nom (JSON mode gives the full build tree):
 ```bash
-nix build .#package 2>&1 | nom
+nix build --log-format internal-json -v .#package |& nom --json
 ```
+
+For wrappers that cannot take `--log-format` (e.g. `nixos-rebuild`, `home-manager`), plain `|& nom` parses the human-readable log. `nom shell`/`nom develop` evaluate twice, so they cost extra eval time.
 
 ### What It Shows
 
@@ -136,9 +158,14 @@ Compare two NixOS generations:
 nvd diff /nix/var/nix/profiles/system-{41,42}-link
 ```
 
-Compare two Home Manager generations:
+Compare a fresh build against the running system:
 ```bash
-nvd diff /nix/var/nix/profiles/per-user/$USER/home-manager-{41,42}-link
+nixos-rebuild build && nvd diff /run/current-system result
+```
+
+Compare two Home Manager generations (current Home Manager keeps profiles in `~/.local/state/nix/profiles` when that directory exists, otherwise in `/nix/var/nix/profiles/per-user/$USER`; `home-manager generations` prints the exact paths):
+```bash
+nvd diff ~/.local/state/nix/profiles/home-manager-{41,42}-link
 ```
 
 ### Output
@@ -147,9 +174,24 @@ Shows for each package:
 - Added packages (new in the target generation)
 - Removed packages (gone from the target generation)
 - Upgraded packages (version changed)
-- Closure size change
+- Closure size change (counted in store paths, not bytes)
 
 Useful for reviewing what a `nixos-rebuild switch` or `home-manager switch` actually changed.
+
+## dix and nh
+
+`dix` (2.x) is a Rust rewrite of the nvd idea and much faster. Same two-path interface:
+```bash
+dix /nix/var/nix/profiles/system-{41,42}-link
+dix --output json /run/current-system ./result   # machine-readable
+```
+In CI pass `--force-correctness`: by default dix may fall back to reading Nix's SQLite DB with `?immutable=1`, which can be inaccurate while the store is being written.
+
+`nh` (nix-community, 4.4.x) wraps `nixos-rebuild`, `darwin-rebuild` and `home-manager` and shows a dix diff before activation (`nh os switch`, `nh home switch`); since 4.4 this also works with `--target-host`. Other performance-relevant pieces:
+- `nh clean all --keep-since 7d --keep 3` cleans profiles and GC roots, then runs GC. By default it also removes `result` and direnv GC roots (`--no-gcroots` or `--no-direnv` to keep them). 4.4 adds `--keep-one` (keep active direnv GC roots regardless of age) and `-x/--cross-filesystems`.
+- `--option NAME VALUE` and `--override-input INPUT URL` (4.4) pass Nix settings and input overrides through to every underlying `nix` call.
+- `nh search` now uses subcommands (4.4 breaking change): `nh search packages`, `nh search options`, plus `prs`, `issues` and `offline`.
+- 4.4 dropped x86_64-darwin.
 
 ## nix path-info
 
@@ -165,14 +207,11 @@ Columns: store path, NAR size (own), closure size (total).
 
 Closure as JSON for scripting:
 ```bash
-nix path-info -r --json .#package
+nix path-info -r --json --json-format 2 .#package
 ```
-Pipe to `jq` for custom analysis.
+Pipe to `jq` for custom analysis. Since Nix 2.33, `--json` without `--json-format` is deprecated (it still emits format 1 with a warning). Format 2 nests entries under `info`, keyed by store-path basenames, with structured hashes; 2.35 adds format 3 (structured signatures).
 
-Tree view of dependencies:
-```bash
-nix path-info --tree .#package
-```
+`nix path-info` has no tree view. For a tree use `nix-store --query --tree` (`nix-store -q --tree`) or `nix-tree`.
 
 Show only the closure size (total):
 ```bash
@@ -187,8 +226,8 @@ nix path-info -Sh .#package
 | `-s` | Show NAR size (own size of each path) |
 | `-S` | Show closure size (total size including deps) |
 | `-h` | Human-readable sizes |
-| `--json` | JSON output |
-| `--tree` | Tree view |
+| `--json` | JSON output (pair with `--json-format N`) |
+| `--sigs` | Show signatures |
 | `--derivation` | Show derivation path instead of output path |
 
 ## nix why-depends
@@ -202,9 +241,14 @@ Basic dependency trace:
 nix why-depends .#package nixpkgs#gcc
 ```
 
-With path details (shows which string references create the dependency):
+Show every edge, not just the shortest path:
 ```bash
 nix why-depends --all .#package nixpkgs#gcc
+```
+
+Show which files in each parent contain the reference:
+```bash
+nix why-depends --precise .#package nixpkgs#gcc
 ```
 
 Between store paths:
@@ -221,9 +265,21 @@ This is how you find:
 - Why a large dependency is being pulled in transitively
 - Where to apply `removeReferencesTo` to break the chain
 
+## --eval-profiler
+
+Stack-sampling evaluation profiler (Nix 2.30+). Prefer it over `--trace-function-calls`: lower overhead, and the output includes the name of the called function.
+
+```bash
+nix eval --eval-profiler flamegraph --eval-profile-file eval.profile '.#something'
+nix-instantiate '<nixpkgs>' -A hello --eval-profiler flamegraph   # writes ./nix.profile
+flamegraph.pl eval.profile > eval.svg                             # or load into speedscope
+```
+
+`--eval-profiler-frequency` sets the sample rate (default 99 Hz). Each line is a folded stack of `file:line:col:function` frames.
+
 ## --trace-function-calls
 
-Built-in Nix evaluation profiler. Records entry and exit timestamps for every Nix function call during evaluation.
+Older built-in tracer. Records entry and exit timestamps for every Nix function call during evaluation.
 
 ### Usage
 
@@ -232,10 +288,10 @@ Capture a trace:
 nix eval --trace-function-calls '.#something' 2>trace.log
 ```
 
-The trace is written to stderr. Each line contains:
+The trace is written to stderr. Each line has a call-site position and a nanosecond timestamp (`undefined position` means a builtin):
 ```
-function-entry <timestamp_us> <function_name> <file>:<line>:<col>
-function-exit  <timestamp_us> <function_name> <file>:<line>:<col>
+function-trace entered /nix/store/...-source/lib/attrsets.nix:226:41 at 1565795253249935150
+function-trace exited /nix/store/...-source/lib/attrsets.nix:226:41 at 1565795253249941684
 ```
 
 ### Generating Flamegraphs
@@ -243,8 +299,8 @@ function-exit  <timestamp_us> <function_name> <file>:<line>:<col>
 Convert the trace to a flamegraph for visual analysis:
 ```bash
 nix eval --trace-function-calls '.#something' 2>trace.log
-# Use nix-trace-flamegraph or similar tool to convert
-# trace.log into a flamegraph SVG
+# contrib/stack-collapse.py ships in the Nix source tree
+python3 stack-collapse.py trace.log | flamegraph.pl > trace.svg
 ```
 
 ### What to Look For

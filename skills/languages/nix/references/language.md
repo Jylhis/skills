@@ -6,7 +6,7 @@ Nix is layered. Use these terms precisely:
 
 - **Nix store** — the store daemon, `/nix/store` paths, substituters. Independent of the language.
 - **Nix expression language** — the `.nix` files you write. This skill.
-- **Nix CLI** — `nix-build`/`nix-shell` (classic) and `nix build`/`nix develop` (new, still experimental-features-gated per RFC 136).
+- **Nix CLI** — `nix-build`/`nix-shell` (classic) and `nix build`/`nix develop` (new). As of Nix 2.35 (and Lix 2.95) `nix-command` and `flakes` are still experimental features (RFC 136); Determinate Nix 3.x declares both stable and needs no flag.
 - **Nixpkgs** — the package collection; a corpus of Nix expressions, maintained separately from the Nix tool.
 - **NixOS** — a Linux distribution built on Nixpkgs + the NixOS module system.
 
@@ -17,7 +17,7 @@ Confusing "Nix the language" with "Nix the store" is a common source of wrong an
 | Type | Example | Notes |
 |------|---------|-------|
 | String | `"hello ${name}"` | Interpolation with `${}`, multiline with `''` |
-| Integer | `42` | No overflow — arbitrary precision |
+| Integer | `42` | Signed 64-bit; overflow is an evaluation error since Nix 2.25 |
 | Float | `1.0`, `3.14` | Rarely used in nixpkgs |
 | Boolean | `true` / `false` | |
 | Null | `null` | |
@@ -36,8 +36,11 @@ Confusing "Nix the language" with "Nix the store" is a common source of wrong an
 | `++` | List concatenation | `[ 1 ] ++ [ 2 ]` → `[ 1 2 ]` |
 | `==` / `!=` | Equality (deep) | |
 | `&&` / `\|\|` / prefix-not | Boolean logic (and, or, not — written as `&&`, `\|\|`, and a prefix exclamation mark) | Short-circuit evaluation |
+| `\|>` / `<\|` | Pipe (experimental, RFC 148) | `x \|> f \|> g` is `g (f x)`; `f <\| x` is `f x` |
 
 **`//` is shallow** — nested attrsets are replaced, not merged. Use `lib.recursiveUpdate` for deep merge.
+
+**Pipe operators are gated and named differently per implementation.** Upstream Nix (2.24+) and Determinate Nix need `extra-experimental-features = pipe-operators`; Lix calls the flag `pipe-operator` (singular) and gives `<|` a different precedence (16) than `|>` (15), while upstream uses 15 for both. Code using them fails to parse anywhere the flag is off, so keep them out of Nixpkgs contributions and shared libraries; use `lib.pipe` there.
 
 ## Functions
 
@@ -248,6 +251,7 @@ Always write packages as functions in separate files and use `callPackage` to in
 | `builtins.path` | Copy path to store with options |
 | `builtins.fetchurl` | Fetch URL at eval time (blocks evaluation) |
 | `builtins.trace` | Debug print during evaluation |
+| `builtins.warn` | Print a warning, return the second argument (Nix 2.23+; `lib.warn` uses it when available) |
 | `import` | Load and evaluate a `.nix` file |
 
 Read `language/advanced.md` for the full builtins and lib reference. See `language/rfcs.md` for the authoritative RFC summary that governs Nix/Nixpkgs/NixOS conventions. See `ecosystem.md` for community tooling (noogle, manix, nixdoc, rnix-parser, lib-aggregate, nixpkgs.lib) that extends the language and lib ecosystem.
@@ -298,8 +302,9 @@ lib.const x                        # Always return x
 
 ## Anti-Patterns
 
-- **Always quote URLs** — `"https://..."` not bare `https://...` (RFC 45 deprecated unquoted URL literals; statix `unquoted_uri` flags them)
-- **Use `nixfmt` for formatting** (RFC 166) — `pkgs.nixfmt` since nixpkgs 25.05 is the canonical formatter. `nixfmt-rfc-style` is a deprecated alias. Do not use `nixpkgs-fmt` or `alejandra` for new code.
+- **Always quote URLs** — `"https://..."` not bare `https://...` (RFC 45 deprecated unquoted URL literals; statix `unquoted_uri` flags them). Since Nix 2.34, `lint-url-literals = warn` or `fatal` in `nix.conf` enforces this (it replaces the old `no-url-literals` experimental feature; the default is still `ignore`). Lix rejects URL literals by default (deprecated feature `url-literals`).
+- **Prefix relative paths with `./`**: `./foo/bar`, not `foo/bar`. Nix 2.34 can flag the short form with `lint-short-path-literals = warn` (replaces `warn-short-path-literals`); `lint-absolute-path-literals` does the same for `/...` and `~/...` literals.
+- **Use `nixfmt` for formatting** (RFC 166) — `pkgs.nixfmt` is the RFC 166 formatter since nixpkgs 25.11 (in 25.05 that name still pointed at the old formatter). `nixfmt-rfc-style` is a deprecated alias that warns; `nixfmt-classic` is deprecated and removed on current nixpkgs. Do not use `nixpkgs-fmt` or `alejandra` for new code.
 - **Use `/** ... */` for doc comments, not `#` or `/* */`** (RFC 145) — only `/**` is parsed as documentation
 - **Avoid `rec`** when `let-in` works — `rec` makes the whole attrset self-referential, risking infinite recursion on name shadowing
 - **Avoid `with pkgs;` in large scopes** — breaks static analysis, doesn't shadow let-bindings, makes name origins unclear. Prefer `inherit (pkgs) git curl;`. RFC 190 (open) proposes banning `with` in nixpkgs entirely.
@@ -311,6 +316,6 @@ lib.const x                        # Always return x
   ```
 
   Without this, impure filesystem reads (`~/.config/nixpkgs/config.nix`) can change results.
-- **Don't use `builtins.toPath`** — deprecated
+- **Don't use `builtins.toPath`** — deprecated; use `/. + "/abs/path"` or `./. + "/rel/path"` to build a path from a string
 - **Don't read secrets at eval time** — `builtins.readFile` embeds content in the store (world-readable)
 - **Don't use `src = ./.`** without `builtins.path` or `lib.fileset` — directory name leaks into store path, causing unnecessary rebuilds

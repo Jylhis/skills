@@ -41,8 +41,9 @@ manix --update-cache mergeattr
 manix "" | sed -n 's/^# \(.*\) \?.*/\1/p' | fzf --preview="manix '{}'" | xargs manix
 ```
 
-Install via nixpkgs: `nix profile install nixpkgs#manix` or add to
-`environment.systemPackages`.
+Still maintained (nix-community, v0.9.0 in 2026, new maintainers). Install
+via nixpkgs: `nix profile add nixpkgs#manix` (`nix profile install` is the
+pre-2.30 name, kept as an alias) or add to `environment.systemPackages`.
 
 ### nixdoc (Library Documentation Generator)
 
@@ -62,6 +63,9 @@ nixdoc --file lib.nix --category "strings" --description "String utilities" > st
 nixdoc --manifest manifest.json --root /path/to/nixpkgs --output functions-export.json
 ```
 
+Export mode (`--manifest`, new in v3.2.0) emits one JSON file of RFC 145
+doc-comments that is independent of the Nixpkgs manual pipeline.
+
 Use nixdoc when contributing to nixpkgs `lib` — it verifies your doc
 comments render correctly.
 
@@ -69,8 +73,8 @@ comments render correctly.
 
 ### nixd — Feature-Rich Nix Language Server
 
-A language server for Nix that interoperates with the C++ Nix evaluator.
-Notable features:
+A language server for Nix that interoperates with the C++ Nix evaluator
+(nix-community, 2.9.x in 2026). Notable features:
 
 - Nixpkgs option support (NixOS, home-manager, flake-parts)
 - Nixpkgs package completion (lazily evaluated)
@@ -79,27 +83,37 @@ Notable features:
 
 ### Configuration
 
-nixd reads `.nixd.json` or `nixd.json` in the project root:
+nixd 2.x is configured through the LSP `workspace/configuration` request,
+under a `nixd` key in your editor's LSP settings. The v1 `.nixd.json` file is
+no longer read; delete it. Without configuration, packages come from
+`import <nixpkgs> { }` and NixOS options from `<nixpkgs>`, so flake users
+should either set `nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];` or give
+explicit expressions:
 
 ```json
 {
-  "eval": {
-    "target": {
-      "installable": ".#default",
-      "args": ["--extra-experimental-features", "nix-command flakes"]
-    }
-  },
-  "formatting": {
-    "command": ["nixfmt"]
-  },
-  "options": {
-    "enable": true,
-    "target": {
-      "installable": ".#nixosConfigurations.myhost"
+  "nixd": {
+    "nixpkgs": {
+      "expr": "import (builtins.getFlake (toString ./.)).inputs.nixpkgs { }"
+    },
+    "formatting": {
+      "command": ["nixfmt"]
+    },
+    "options": {
+      "nixos": {
+        "expr": "(builtins.getFlake (toString ./.)).nixosConfigurations.myhost.options"
+      },
+      "home_manager": {
+        "expr": "(builtins.getFlake (toString ./.)).homeConfigurations.\"me@myhost\".options"
+      }
     }
   }
 }
 ```
+
+In VS Code this object goes under `nix.serverSettings`; in Neovim under
+`settings` of `vim.lsp.config("nixd", ...)`; with Eglot via
+`eglot-workspace-configuration` in `.dir-locals.el`.
 
 ### Integration
 
@@ -111,9 +125,13 @@ nixd reads `.nixd.json` or `nixd.json` in the project root:
 ### Comparison with nil and nix-language-server
 
 nixd links against the C++ Nix library, giving it access to the real
-evaluator for completions and option lookups. Other servers (nil,
-nix-language-server) use rnix-parser for AST-only analysis without
-evaluation. nixd is the current reference LSP for Nix.
+evaluator for completions and option lookups; its own parser and static
+analysis live in `libnixf` (also exposed as `nixf-tidy`, wrapped by the
+`nixf-diagnose` git hook). nil (oxalica, still actively released) uses its
+own rowan-based parser and does incremental static analysis; it shells out
+to the `nix` binary only for flake work (`nix flake archive`, optional
+evaluation of inputs and NixOS options). The old rnix-lsp is archived.
+nixd is the current reference LSP for Nix; nil is the lighter option.
 
 ## Parser (rnix-parser)
 
@@ -124,8 +142,9 @@ for lossless AST representation — all span information (whitespace,
 comments) is preserved, and the AST can be printed back to 100%
 identical source.
 
-Used by: nixpkgs-fmt, statix, deadnix, nixdoc, nil, and other Nix
-tooling.
+Used by: statix, deadnix, nixdoc, and other Nix tooling (and the archived
+nixpkgs-fmt). nil and nixd have their own parsers. Current release: v0.14.0
+(2026).
 
 ```bash
 # Parse from stdin
@@ -141,8 +160,8 @@ message format comes from rnix-parser.
 ### lib-aggregate
 
 A flake that aggregates pure Nix libraries which do not depend on
-nixpkgs. It combines `nixpkgs.lib` (via nixpkgs.lib, the cheap fork)
-with `flake-utils` and other pure libs into a single `lib` attribute.
+nixpkgs. Its `lib` output is `nixpkgs.lib` (via nixpkgs.lib, the cheap
+fork) with flake-utils merged in as `lib.flake-utils`.
 
 ```nix
 {
@@ -186,10 +205,22 @@ nixos-unstable. Packages are auto-updated to the latest upstream commits
 — often containing unreleased versions.
 
 ```nix
+# flake.nix
 {
   inputs.nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
-  # nixpkgs-wayland provides an overlay
-  nixpkgs.overlays = [ nixpkgs-wayland.overlay ];
+}
+```
+
+```nix
+# NixOS module (inputs passed via specialArgs)
+{ inputs, pkgs, ... }:
+{
+  # use it as an overlay ...
+  nixpkgs.overlays = [ inputs.nixpkgs-wayland.overlay ];
+  # ... or pull single packages, built against nixos-unstable
+  environment.systemPackages = [
+    inputs.nixpkgs-wayland.packages.${pkgs.stdenv.hostPlatform.system}.wev
+  ];
 }
 ```
 
@@ -197,16 +228,42 @@ Use the Cachix binary cache to avoid building from source:
 
 ```bash
 cachix use nixpkgs-wayland
-# Or in NixOS config:
+```
+
+Or in NixOS config:
+
+```nix
 nix.settings = {
   substituters = [ "https://nixpkgs-wayland.cachix.org" ];
-  trusted-public-keys = [ "nixpkgs-wayland.cachix.org-1:7nasTI/N7N9SIloJ6Sw5G6CgzS4fdS6rUZ6wx8C4P64=" ];
+  trusted-public-keys = [ "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA=" ];
 };
 ```
 
-Packages include: wlroots, sway, swaybg, waybar, wob, flashrom,
-wev, and other Wayland utilities — often at versions ahead of
-nixpkgs unstable.
+Packages include: wlroots, sway-unwrapped, swaybg, swaylock, swayidle,
+foot, mako, wob, wev, wayvnc, wl-clipboard, xdg-desktop-portal-wlr, and
+other Wayland utilities (see the README's package table), often at
+versions ahead of nixpkgs unstable.
+
+### nixos-generators (deprecated)
+
+`nix-community/nixos-generators` is archived. Since NixOS 25.05 its image
+formats are upstream in nixpkgs as `system.build.images.<variant>`, built
+with `nixos-rebuild build-image` (which replaces `nixos-generate`):
+
+```bash
+nixos-rebuild build-image --image-variant iso --flake .#myhost
+```
+
+```nix
+packages.x86_64-linux.myhost-iso =
+  self.nixosConfigurations.myhost.config.system.build.images.iso;
+```
+
+Most formats map one to one (amazon, azure, gce, hyperv, iso, kexec,
+proxmox, qcow, raw-efi, virtualbox, ...). Renamed or folded: `install-iso`
+is `iso-installer`; `sd-aarch64*` and `sd-x86_64` become `sd-card` with the
+matching `system`; `vm`/`vm-bootloader` are `nixos-rebuild build-vm` /
+`build-vm-with-bootloader`. The `docker` format has no upstream variant.
 
 ### nix-on-droid
 
@@ -239,6 +296,7 @@ solutions before building from scratch.
 | Aggregate pure Nix libs | lib-aggregate |
 | Lightweight `lib` without full nixpkgs | nixpkgs.lib |
 | Latest Wayland packages (ahead of nixpkgs) | nixpkgs-wayland |
+| Build NixOS images (ISO, cloud, VM, SD card) | `nixos-rebuild build-image` (nixos-generators is archived) |
 | Nix on Android | nix-on-droid |
 | Discover Nix ecosystem projects | awesome-nix |
 

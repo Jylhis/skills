@@ -10,13 +10,13 @@ This file is cross-referenced from **nix-language**, **nixpkgs**, **flakes**, **
 Nix error output quotes paths and strings with ASCII `'...'` and `"..."` (not curly `‘ ’`). Match on ASCII quotes when scripting against Nix diagnostic output. Implemented.
 
 ### RFC 45 — Deprecate Unquoted URL Literals
-`url = https://example.com;` is deprecated; always write `url = "https://example.com";`. statix flags unquoted URLs via the `unquoted_uri` lint. Accepted; Nix 2.x emits deprecation warnings, removal pending.
+`url = https://example.com;` is deprecated; always write `url = "https://example.com";`. statix flags unquoted URLs via the `unquoted_uri` lint. Accepted. Upstream Nix still parses them silently by default; since Nix 2.34 the `lint-url-literals` setting (`ignore` by default, or `warn` / `fatal`) replaces the old `no-url-literals` experimental feature. Lix treats them as a parse error unless the `url-literals` deprecated feature is re-enabled.
 
 ### RFC 134 — Nix Store Layer
 Nix is architecturally layered: store → fetchers → expression language → flakes. Use these terms precisely — "Nix store" (paths, daemon, substituters) is independent of "Nix language". Accepted; implementation in progress (`libnixstore` as separable component).
 
 ### RFC 136 — Stabilize Incrementally
-The new `nix` CLI stabilizes layer-by-layer, separately from flakes. `nix build`/`nix run`/`nix develop` remain under `experimental-features = nix-command flakes` and may still change. Use `nix-build`/`nix-shell` in portable scripts that must work without experimental features enabled.
+The new `nix` CLI stabilizes layer-by-layer, separately from flakes. `nix build`/`nix run`/`nix develop` remain under `experimental-features = nix-command flakes` and may still change. Use `nix-build`/`nix-shell` in portable scripts that must work without experimental features enabled. As of Nix 2.35 both `nix-command` and `flakes` are still experimental upstream (Lix 2.95 likewise); Determinate Nix 3.x declares both stable and enables them without a flag, so a script that works there may still fail on stock Nix.
 
 ### RFC 145 — Doc Comments
 Document Nix functions with `/** ... */` (double-asterisk opening) containing CommonMark; reserve `#` and `/* */` for implementation comments. This syntax is parsed by `nixdoc` and LSP tooling for hover tooltips. Accepted.
@@ -40,27 +40,27 @@ add = a: b: a + b;
 ```
 
 ### RFC 166 — Standard Nix Format
-`nixfmt` (the RFC-166 variant, packaged as `pkgs.nixfmt` since nixpkgs 25.05; `pkgs.nixfmt-rfc-style` is a deprecated alias; the old formatter is `pkgs.nixfmt-classic`) is the canonical Nix formatter. All of Nixpkgs is reformatted with it. Do not recommend `nixpkgs-fmt` or `alejandra` for new code. Implemented.
+`nixfmt` (the RFC-166 variant, packaged as `pkgs.nixfmt` since nixpkgs 25.11; `pkgs.nixfmt-rfc-style` is a deprecated alias that warns; the old formatter `pkgs.nixfmt-classic` is deprecated and removed on current nixpkgs) is the canonical Nix formatter. All of Nixpkgs was reformatted with it in 2025 and Nixpkgs CI enforces the format on every PR; run `treefmt` (or `nix fmt`) inside the Nixpkgs dev shell to match it. Do not recommend `nixpkgs-fmt` or `alejandra` for new code. Implemented.
 
 ## Nix CLI and Store Internals
 
 ### RFC 62 — Content-Addressed Paths
-Opt-in content-addressed store paths via `__contentAddressed = true` plus `experimental-features = ca-derivations`. Downstream rebuilds are skipped when a derivation's output is byte-identical to the previous build (early cutoff). Experimental.
+Opt-in content-addressed store paths via `__contentAddressed = true` plus `experimental-features = ca-derivations`. Downstream rebuilds are skipped when a derivation's output is byte-identical to the previous build (early cutoff). Experimental. Nix 2.35 renamed realisations to build traces (`nix realisation` is now `nix store build-trace`), keyed by `.drvPath` plus output name, with a new `build-trace-v2/` binary cache layout.
 
 ### RFC 92 — Plan Dynamism (Dynamic Derivations)
-`builtins.outputOf` plus dynamic derivations (whose output is itself a `.drv`) replace `import-from-derivation` hacks for 2nix / generated-expression workflows. Guarded by `experimental-features = dynamic-derivations`. Experimental but the intended direction.
+`builtins.outputOf` plus dynamic derivations (whose output is itself a `.drv`) replace `import-from-derivation` hacks for 2nix / generated-expression workflows. Guarded by `experimental-features = dynamic-derivations`. Experimental in upstream Nix and Determinate Nix; Lix 2.94 removed the `dynamic-derivations` (and `impure-derivations`) features entirely.
 
 ### RFC 97 — No Read-Store-Dir Permissions Enforcement
 Default `/nix/store` mode is `1735`: the `nixbld` group cannot list the store. Scripts must not assume read access. NixOS exposes the store permissions as a configurable module option. Implemented.
 
 ### RFC 106 — Nix Release Schedule
-Nix (the tool) releases every 6 weeks with a green `master` policy. Expect new experimental features to appear frequently. Pin Nix via `nix.package` or flake inputs when determinism matters. Implemented.
+Nix (the tool) releases every 6 weeks with a green `master` policy (in practice 2025 to 2026 minor releases landed every one to four months, with patch releases in between). Expect new experimental features to appear frequently. Pin Nix via `nix.package` or flake inputs when determinism matters. Implemented.
 
 ### RFC 132 — Meson Builds Nix
-Nix itself is built with Meson + Ninja since Nix 2.22. When bisecting or building Nix from source, use `meson setup build && ninja -C build`, not `./configure && make`. Implemented.
+Nix itself is built with Meson + Ninja; Nix 2.26 removed the old Make-based build system. When bisecting or building Nix from source, use the Meson flow inside the Nix dev shell (`meson setup build && ninja -C build`, or the manual's `configurePhase` / `buildPhase`), not `./configure && make`. Implemented.
 
 ### RFC 133 — Git Hashing
-Native git blob/tree hashing as a Nix content-addressing scheme, enabling interop with Software Heritage and Git-native fetching without tarball canonicalization issues. Accepted; partially implemented behind experimental flag.
+Native git blob/tree hashing as a Nix content-addressing scheme, enabling interop with Software Heritage and Git-native fetching without tarball canonicalization issues. Accepted; partially implemented behind the `git-hashing` experimental feature (SHA-256 Git hashing added in Nix 2.31).
 
 ## Nixpkgs Contribution Workflow
 
@@ -97,10 +97,10 @@ Package tests live in two places:
 Use `passthru.tests` for VM tests (`nixosTests.<name>`) and cross-package smoke tests. Implemented.
 
 ### RFC 127 — Unified `meta.problems`
-Replaces the patchwork of `meta.broken` / `meta.insecure` / `meta.knownVulnerabilities` / `allowUnfree` flags with a unified problems/handlers/matchers pipeline. New packages should still set the existing fields (migration is gradual) but be aware of the direction. Accepted; implementation in progress.
+Replaces the patchwork of `meta.broken` / `meta.insecure` / `meta.knownVulnerabilities` / `allowUnfree` flags with a unified problems/handlers/matchers pipeline. New packages should still set the existing fields (migration is gradual) but be aware of the direction. Accepted; implementation in progress. Nixpkgs 26.05 ships the first `meta.problems` / `config.problems` infrastructure (kinds `broken`, `maintainerless`, `removal`, `deprecated`; per-package handlers such as `config.problems.handlers.foo.broken = "warn";`), and `config.allowBrokenPredicate` is deprecated in its favour.
 
 ### RFC 140 — `pkgs/by-name`
-New leaf packages go in `pkgs/by-name/<two-letter-shard>/<pname>/package.nix` with a plain `callPackage` signature. Auto-wired into `all-packages.nix` — do not edit `all-packages.nix` for new additions. Only packages needing args beyond defaults still live outside `by-name`. Implemented.
+New leaf packages go in `pkgs/by-name/<two-letter-shard>/<pname>/package.nix` with a plain `callPackage` signature. Auto-wired into `all-packages.nix` — do not edit `all-packages.nix` for new additions. If an implicit argument default must change, the package still lives in `by-name` and gets a `callPackage ../by-name/<shard>/<pname>/package.nix { ... }` override in `all-packages.nix`; prefer renaming the argument (e.g. `libbar_2`) instead. Implemented; most packages are not migrated yet.
 
 ```
 pkgs/by-name/
@@ -166,17 +166,18 @@ Listed for completeness; these don't affect Nix code you write:
 - RFC 102 — Moderation Team
 - RFC 130 — Stalled / Lacking Interest RFC states
 
-## Notable Open RFCs (as of 2026-04)
+## Notable Open RFCs (as of 2026-10)
 
 Worth tracking because they may land soon:
 
-- RFC 148 — Pipe operator (`|>`) in the Nix language
+- RFC 148 — Pipe operator (`|>`) in the Nix language. Still open, but already implemented as experimental: `pipe-operators` in Nix 2.24+ and Determinate Nix, `pipe-operator` in Lix
 - RFC 181 — List index syntax
 - RFC 190 — Ban `with` expression in Nixpkgs
 - RFC 197 — `pkgs/by-name` for package sets
 - RFC 194 — Flake Entrypoint
 - RFC 193 — TOML Flakes
 - RFC 192 — Version pins for `pkgs/by-name`
-- RFC 191 — Lockfile Generation
+
+RFC 191 (Lockfile Generation) was closed unmerged by its author in 2026. The RFC Steering Committee moved the process to an on-demand workflow in 2025 because of low activity.
 
 Check <https://github.com/NixOS/rfcs/pulls?q=is%3Apr+%22RFC+%22> for the live set.

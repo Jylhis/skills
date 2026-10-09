@@ -2,7 +2,9 @@
 
 Complete reference for nix-darwin `system.defaults.*` options. These map to macOS `defaults write` commands but are managed declaratively.
 
-Changes apply on `darwin-rebuild switch`. Some require a logout or restart to take effect.
+Changes apply on `sudo darwin-rebuild switch`. Some require a logout or restart to take effect.
+
+All options default to `null` (leave the macOS setting alone); the Default column below is the macOS default. Every domain on this page except `loginwindow` is per-user and written for `system.primaryUser`, so setting any of them requires `system.primaryUser`.
 
 ## Table of Contents
 
@@ -14,6 +16,9 @@ Changes apply on `darwin-rebuild switch`. Some require a logout or restart to ta
 - [loginwindow](#loginwindow)
 - [screencapture](#screencapture)
 - [WindowManager](#windowmanager)
+- [controlcenter](#controlcenter)
+- [hitoolbox](#hitoolbox)
+- [CustomUserPreferences](#customuserpreferences)
 
 ## NSGlobalDomain
 
@@ -31,6 +36,10 @@ Global settings that apply across all applications.
 | `ApplePressAndHoldEnabled` | bool | `true` | `true` = accent menu on hold, `false` = key repeat |
 | `NSAutomaticCapitalizationEnabled` | bool | `true` | Auto-capitalize first letter of sentences |
 | `NSAutomaticSpellingCorrectionEnabled` | bool | `true` | Auto-correct spelling |
+| `AppleInterfaceStyleSwitchesAutomatically` | bool | `false` | Switch between light and dark mode automatically |
+| `"com.apple.swipescrolldirection"` | bool | `true` | "Natural" scrolling direction |
+| `AppleICUForce24HourTime` | bool | region | 24-hour clock |
+| `_HIHideMenuBar` | bool | `false` | Auto-hide the menu bar |
 
 ```nix
 system.defaults.NSGlobalDomain = {
@@ -63,6 +72,10 @@ Dock appearance, behavior, and hot corners.
 | `show-recents` | bool | `true` | Show recent apps section |
 | `static-only` | bool | `false` | Only show running applications |
 | `tilesize` | int | `64` | Icon size in pixels |
+| `magnification` | bool | `false` | Magnify icons on hover |
+| `largesize` | int (16-128) | `16` | Magnified icon size |
+| `persistent-apps` | list | unset | Pinned apps, files, folders, and spacers (see below) |
+| `persistent-others` | list | unset | Folders and files on the right side of the Dock |
 
 ### Hot Corners
 
@@ -111,6 +124,19 @@ system.defaults.dock = {
 };
 ```
 
+### Pinned Dock Items
+
+`persistent-apps` replaces the Dock's app list on every activation. Plain strings are treated as `{ app = ...; }`:
+
+```nix
+system.defaults.dock.persistent-apps = [
+  "/Applications/Safari.app"
+  { app = "/System/Applications/Mail.app"; }
+  { spacer = { small = true; }; }
+  { folder = "/System/Applications/Utilities"; }
+];
+```
+
 ## finder
 
 Finder appearance and behavior.
@@ -126,6 +152,11 @@ Finder appearance and behavior.
 | `ShowStatusBar` | bool | `false` | Show status bar at bottom |
 | `_FXShowPosixPathInTitle` | bool | `false` | Show full POSIX path in title bar |
 | `_FXSortFoldersFirst` | bool | `false` | Sort folders before files |
+| `FXRemoveOldTrashItems` | bool | `false` | Empty Trash items after 30 days |
+| `FXEnableExtensionChangeWarning` | bool | `true` | Warn when changing a file extension |
+| `NewWindowTarget` | enum | `"Recents"` | `"Computer"`, `"OS volume"`, `"Home"`, `"Desktop"`, `"Documents"`, `"Recents"`, `"iCloud Drive"`, `"Other"` (uses `NewWindowTargetPath`, a `file://` URI) |
+| `ShowExternalHardDrivesOnDesktop` | bool | `true` | Show external disks on the desktop |
+| `QuitMenuItem` | bool | `false` | Allow quitting Finder |
 
 ```nix
 system.defaults.finder = {
@@ -150,6 +181,8 @@ Trackpad gestures and behavior.
 | `Clicking` | bool | `false` | Tap to click |
 | `TrackpadRightClick` | bool | `true` | Two-finger right click |
 | `TrackpadThreeFingerDrag` | bool | `false` | Three-finger window drag |
+| `Dragging` | bool | `false` | Tap to drag |
+| `TrackpadThreeFingerTapGesture` | `0` or `2` | `2` | `2` = Look up & data detectors, `0` = off |
 
 ```nix
 system.defaults.trackpad = {
@@ -179,6 +212,15 @@ system.defaults.NSGlobalDomain = {
 };
 ```
 
+Key remapping is a separate module, `system.keyboard` (not under `system.defaults`):
+
+```nix
+system.keyboard = {
+  enableKeyMapping = true;
+  remapCapsLockToEscape = true;   # or remapCapsLockToControl
+};
+```
+
 ## loginwindow
 
 Login window settings.
@@ -204,6 +246,9 @@ Screenshot settings.
 | `location` | string | `"~/Desktop"` | Directory to save screenshots |
 | `type` | string | `"png"` | Format: `"png"`, `"jpg"`, `"pdf"`, `"tiff"`, `"gif"` |
 | `disable-shadow` | bool | `false` | Remove drop shadow from window screenshots |
+| `target` | enum | `"file"` | `"file"`, `"clipboard"`, `"preview"`, `"mail"`, `"messages"` |
+| `show-thumbnail` | bool | `true` | Show the floating thumbnail before saving |
+| `include-date` | bool | `true` | Put date and time in file names |
 
 ```nix
 system.defaults.screencapture = {
@@ -220,9 +265,51 @@ Stage Manager and window management (macOS Sonoma+).
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `EnableStandardClickToShowDesktop` | bool | `true` | Click wallpaper to show desktop (Sonoma default) |
+| `GloballyEnabled` | bool | `false` | Enable Stage Manager |
+| `StandardHideDesktopIcons` | bool | | Hide desktop items |
+| `EnableTilingByEdgeDrag` | bool | `true` | Drag windows to screen edges to tile |
+| `EnableTopTilingByEdgeDrag` | bool | | Drag to the top edge to fill the screen |
+| `EnableTiledWindowMargins` | bool | `true` | Gaps between tiled windows |
 
 ```nix
 system.defaults.WindowManager = {
   EnableStandardClickToShowDesktop = false;
+  EnableTilingByEdgeDrag = false;   # leave tiling to a window manager such as yabai/aerospace
+};
+```
+
+## controlcenter
+
+Menu bar items from Control Center. `true` shows the item, `false` hides it.
+
+Options: `BatteryShowPercentage`, `Sound`, `Bluetooth`, `AirDrop`, `Display`, `FocusModes`, `NowPlaying`.
+
+```nix
+system.defaults.controlcenter = {
+  BatteryShowPercentage = true;
+  Sound = true;
+  Bluetooth = false;
+};
+```
+
+## hitoolbox
+
+What the Fn (globe) key does. Requires a restart.
+
+```nix
+system.defaults.hitoolbox.AppleFnUsageType = "Do Nothing";
+# "Do Nothing" | "Change Input Source" | "Show Emoji & Symbols" | "Start Dictation"
+```
+
+## CustomUserPreferences
+
+Escape hatch for any domain or key without a typed option. Written with `defaults write` for `system.primaryUser`; `CustomSystemPreferences` is the system-wide equivalent.
+
+```nix
+system.defaults.CustomUserPreferences = {
+  NSGlobalDomain.TISRomanSwitchState = 1;
+  "com.apple.Safari" = {
+    "com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled" = true;
+  };
 };
 ```

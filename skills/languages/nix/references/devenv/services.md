@@ -1,6 +1,6 @@
 # devenv Services Reference
 
-Complete configuration reference for commonly used devenv services.
+Complete configuration reference for commonly used devenv services. Each service runs as a process under devenv's native process manager (devenv 2.x default), named after the service (`postgres`, `redis`, `mysql`, ...), so other processes and tasks can depend on `devenv:processes:<service>`.
 
 ## Table of Contents
 
@@ -101,7 +101,8 @@ services.rabbitmq = {
 ```nix
 services.mongodb = {
   enable = true;
-  port = 27017;
+  # No port option; pass mongod flags directly (default: [ "--noauth" ])
+  additionalArgs = [ "--port" "27017" "--noauth" ];
 };
 ```
 
@@ -146,80 +147,92 @@ Mailpit provides a web UI for viewing captured emails and an SMTP server for sen
 
 ## Process Configuration Patterns
 
-Custom processes use `exec` for the command and `process-compose` for advanced options:
+Custom processes use `exec` for the command and native process-manager options for the rest (the `process-compose.*` attrset only applies with `process.manager.implementation = "process-compose"`):
 
 ```nix
 processes.api = {
   exec = "./run-server.sh";
-  process-compose = {
-    environment = [ "PORT=8080" ];
-    working_dir = "./backend";
-    log_location = "/tmp/api.log";
-    readiness_probe = {
-      http_get = {
-        host = "127.0.0.1";
-        port = 8080;
-        path = "/health";
-      };
-      initial_delay_seconds = 3;
-      period_seconds = 5;
+  env.PORT = "8080";          # was process-compose.environment
+  cwd = "./backend";          # was process-compose.working_dir
+  ready = {                   # was process-compose.readiness_probe
+    http.get = {
+      port = 8080;
+      path = "/health";
     };
+    initial_delay = 3;
+    period = 5;
   };
+  restart = {                 # was process-compose.availability
+    on = "on_failure";
+    max = 5;
+  };
+  shutdown.signal = 2;        # SIGINT; devenv 2.3+
 };
 ```
 
+Other readiness probes: `ready.exec = "pg_isready -d template1";` and `ready.notify = true;` (sd_notify `READY=1`). With allocated `ports` and no explicit probe, a TCP check is used.
+
 ## Service Dependency Ordering
 
-Use `depends_on` with conditions to control startup order:
+Use `after` with `devenv:processes:<name>` to control startup order:
 
 ```nix
 processes.api = {
   exec = "./run-api.sh";
-  process-compose = {
-    depends_on.postgres.condition = "process_healthy";
-    depends_on.redis.condition = "process_healthy";
-  };
+  after = [
+    "devenv:processes:postgres"
+    "devenv:processes:redis"
+  ];
 };
 
 processes.worker = {
   exec = "./run-worker.sh";
-  process-compose = {
-    depends_on.api.condition = "process_healthy";
-    depends_on.redis.condition = "process_healthy";
-  };
+  after = [
+    "devenv:processes:api"
+    "devenv:processes:redis@started"
+  ];
 };
 ```
 
-Available conditions:
-- `process_started` - process has started (default)
-- `process_healthy` - process readiness probe passes
-- `process_completed_successfully` - process exited with code 0
+Dependency suffixes (and their process-compose equivalents):
+- `@ready` (default) - readiness probe passes (`process_healthy`)
+- `@started` - process has started (`process_started`)
+- `@completed` - process exited, whatever the exit code (`process_completed`)
+- `@succeeded` - task (or one-shot process) exited with code 0 (`process_completed_successfully`)
+
+For one-off setup such as migrations, use a task with `after = [ "devenv:processes:postgres" ]` plus `wantedBy = [ "devenv:processes:postgres" ]` (2.4+) so it also runs under a plain `devenv up`.
 
 ## Port Configuration and Discovery
 
-Use environment variables to coordinate ports between services and application code:
+Service `port` options are base ports. The native manager allocates the first free port at or above the base, so two projects can run PostgreSQL at the same time. Read the allocated value from `config.processes.<name>.ports.<port>.value` (PostgreSQL, Redis and MySQL use the port name `main`) rather than hardcoding the number. PostgreSQL listens only on a unix socket unless `listen_addresses` is set, and only then allocates `ports.main`. Services also export their own variables, for example `PGPORT` for PostgreSQL; since 2.4 `devenv shell` and direnv see the port of the running service.
 
 ```nix
-{ ... }: {
-  env.PG_PORT = "5432";
-  env.REDIS_PORT = "6379";
-  env.API_PORT = "8080";
-
-  services.postgres.port = 5432;
+{ config, ... }: {
+  services.postgres.port = 5432;   # base port
   services.redis.port = 6379;
 
-  processes.api.exec = "python -m uvicorn app:main --port $API_PORT";
+  processes.api = {
+    ports.http.allocate = 8080;
+    exec = "python -m uvicorn app:main --port ${toString config.processes.api.ports.http.value}";
+  };
 }
 ```
+
+To fail instead of moving to another port, set `strict_ports: true` in `devenv.yaml` or run `devenv up --strict-ports`.
 
 ## Environment Variables for Connection Strings
 
 Define connection strings in `env` so all processes and shell sessions can access them:
 
 ```nix
-{ config, ... }: {
+{ config, ... }:
+let
+  pgPort = toString config.processes.postgres.ports.main.value;
+  redisPort = toString config.processes.redis.ports.main.value;
+in {
   services.postgres = {
     enable = true;
+    listen_addresses = "127.0.0.1";  # TCP (and ports.main) only exist when set
     port = 5432;
     initialDatabases = [{ name = "myapp"; }];
   };
@@ -229,8 +242,8 @@ Define connection strings in `env` so all processes and shell sessions can acces
     port = 6379;
   };
 
-  env.DATABASE_URL = "postgres://localhost:5432/myapp";
-  env.REDIS_URL = "redis://127.0.0.1:6379";
+  env.DATABASE_URL = "postgres://localhost:${pgPort}/myapp";
+  env.REDIS_URL = "redis://127.0.0.1:${redisPort}";
   env.MONGO_URL = "mongodb://127.0.0.1:27017/myapp";
   env.RABBITMQ_URL = "amqp://guest:guest@127.0.0.1:5672";
   env.ELASTICSEARCH_URL = "http://127.0.0.1:9200";

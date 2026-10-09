@@ -1,9 +1,10 @@
 # statix.toml Configuration
 
 Place at the repo root. Controls which lints are active project-wide.
+Both keys are top-level lists: `disabled` takes lint names, `ignore`
+takes path globs (`statix dump` prints the defaults).
 
 ```toml
-[disabled]
 # W20 (repeated_keys) fires on idiomatic flat-attribute module style:
 #
 #   nixpkgs.config.allowUnfree = true;
@@ -12,10 +13,9 @@ Place at the repo root. Controls which lints are active project-wide.
 # These are separate NixOS module options that happen to share a prefix,
 # not duplicated keys. Disabling this avoids false positives in module
 # configurations.
-repeated_keys = true
+disabled = ["repeated_keys"]
 
-[nix_file_blacklist]
-# Add generated, vendored, or documentation-only files that should not
-# be linted. Examples:
-# "hardware-configuration.nix"
+# Generated, vendored, or documentation-only files that should not
+# be linted.
+ignore = [".direnv", "hardware-configuration.nix"]
 ```

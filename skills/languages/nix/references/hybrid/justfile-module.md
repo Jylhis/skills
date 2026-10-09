@@ -4,6 +4,9 @@ Template for projects where the primary outputs are NixOS/nix-darwin/
 home-manager modules. No store-path parity checks (modules are lazy
 attrsets, not derivations).
 
+Formatting uses `treefmt` from `pkgs.nixfmt-tree`, as in the package
+variant (`justfile-package.md`).
+
 ```just
 # Build a specific system configuration
 build target:
@@ -15,14 +18,14 @@ build-local hostname=`hostname -s`:
 
 # Run all linters and checks
 check:
-    nixfmt --check .
+    treefmt --ci
     statix check . --ignore '.devenv/*' 'result/*'
     deadnix --fail --exclude .devenv result .
     nix flake check
 
 # Format all Nix files
 fmt:
-    nixfmt .
+    treefmt
 
 # Run statix and deadnix
 lint:
@@ -36,9 +39,9 @@ lint-fix:
 
 # Update all pins and sync lock files
 update:
-    nix flake update
     #!/usr/bin/env bash
     set -euo pipefail
+    nix flake update
     REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
     echo "Syncing nixpkgs to $REV"
     sed -i '' "s|url: github:NixOS/nixpkgs/.*|url: github:NixOS/nixpkgs/$REV|" devenv.yaml

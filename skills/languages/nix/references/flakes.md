@@ -4,7 +4,17 @@
 
 Flakes and the `nix` CLI are under `experimental-features = nix-command flakes`. Per RFC 136, the new CLI stabilizes layer-by-layer separately from flakes themselves, so breaking changes still happen. Portable scripts that must not require experimental features should use classic `nix-build`/`nix-shell`. See `language/rfcs.md` for the RFC index.
 
-Per RFC 106, Nix (the tool) releases every 6 weeks — pin `nix.package` or a Nix version via flake inputs when determinism matters.
+Status by implementation (as of 2026-10):
+
+| Implementation | Flakes |
+|---|---|
+| Upstream Nix 2.35.x | Still the `flakes` experimental feature; `nix flake` man pages carry the "experimental" warning |
+| Lix | Still an experimental feature; newer upstream flake attrs are gated separately (e.g. `inputs.self.*` needs `flake-self-attrs`). Flakes are feature-frozen since 2.94; 2.95 started extracting them from core into a default-included plugin (ongoing), so do not expect new CppNix flake features to land in Lix |
+| Determinate Nix 3.x | Covered by a vendor "flake stability guarantee" (since 3.0, March 2025) |
+
+The three implementations share `flake.nix`/`flake.lock` but not every feature; check the release notes of the Nix your team and CI actually run.
+
+RFC 106 targets a Nix release every 6 weeks; in practice 2.31 to 2.35 shipped roughly every 2 to 4 months. Pin `nix.package` or a Nix version via flake inputs when determinism matters.
 
 ## Flake Structure
 
@@ -58,6 +68,14 @@ inputs = {
   # Local path (useful during development)
   mylib.url = "path:./lib";
 
+  # Relative path in the same repo (Nix 2.26+): locked relative to the
+  # parent flake, so it moves with the repo. Must start with "." and
+  # stay inside the same tree. Older Nix cannot read such lock files.
+  sub.url = "./subflake";
+
+  # Shallow Git clone (skips revCount computation on long histories)
+  big.url = "git+https://example.org/big/repo?shallow=1";
+
   # Flake in subdirectory
   mylib.url = "github:org/monorepo?dir=libs/mylib";
 
@@ -74,6 +92,23 @@ inputs = {
   nixpkgs.url = "nixpkgs";
 };
 ```
+
+Since Nix 2.30, non-flake inputs (`flake = false`) also carry `sourceInfo`, relative non-flake inputs such as `inputs.foo.url = ./some-file.nix` inherit their parent's `sourceInfo`, and `?dir=` works on non-flake inputs.
+
+### Self Attributes
+
+A flake in a Git repo can declare how it must be fetched when used as an input (Nix 2.27+), so consumers no longer pass `?submodules=1` / `?lfs=1`:
+
+```nix
+{
+  inputs.self.submodules = true;
+  inputs.self.lfs = true;
+}
+```
+
+On Lix this needs the `flake-self-attrs` experimental feature.
+
+For pinning sources without flakes (npins, niv, lon, Nixtamal, plain `fetchTarball`), see `pinning.md`.
 
 ## Input Follows
 
@@ -114,8 +149,8 @@ Understand these before adopting flakes for a project:
 
 - **No configuration support.** Flake outputs are fixed at eval time. You cannot parameterise a flake the way you parameterise a NixOS module. If consumers need variants, the flake must anticipate them (e.g. expose multiple packages or accept overlay-based customisation).
 - **Cross-compilation and `packages.${system}`.** The system-indexed output schema (`packages.x86_64-linux`) conflates build platform and target platform. Cross-compiled derivations do not fit neatly; you end up with `packages.x86_64-linux.aarch64-linux-hello` or use `legacyPackages` with `pkgsCross`.
-- **Serial fetcher blocks evaluation.** Nix fetches each input one at a time during evaluation. Flakes with many inputs pay a latency tax on every `nix` invocation until everything is cached.
-- **Entire directory copied to store.** The flake source is copied to `/nix/store` as a whole. Large repos with build artifacts or data files bloat the store unless `.gitignore` excludes them (Nix respects `.gitignore` for git flakes).
+- **Serial fetcher blocks evaluation.** Nix fetches each input one at a time during evaluation. Flakes with many inputs pay a latency tax on every `nix` invocation until everything is cached. `nix flake prefetch-inputs` (Nix 2.31+) fetches all inputs in parallel up front, at the cost of fetching inputs that a given command would not have needed.
+- **Entire directory hashed (and often copied) to store.** The flake source is treated as one store path. Large repos with build artifacts or data files bloat the store unless `.gitignore` excludes them (Nix respects `.gitignore` for git flakes). Nix 2.35 hashes flake inputs and `builtins.fetchTarball` results without copying them first, and only copies when `outPath` (e.g. `"${self}"` or `src = ./.;`) reaches a derivation; the whole tree is still read and hashed, and the evaluator still behaves as if it were in the store. Determinate Nix's lazy trees go further but are Determinate-specific.
 - **Git staging requirement.** Only files tracked by git (at least staged with `git add`) are visible inside the flake. New untracked files silently disappear, causing confusing "file not found" errors.
 
 ## Network Access During Evaluation
@@ -142,7 +177,7 @@ When working outside flakes or converting legacy commands:
 | `nix-shell -A blah` | `nix develop -f . blah` |
 | `nix-shell -p curl jq` | `nix shell nixpkgs#curl nixpkgs#jq` |
 | `nix-build -E 'with import <nixpkgs> {}; ...'` | `nix build --impure --expr 'with import <nixpkgs> {}; ...'` |
-| `nix-env -iA nixpkgs.hello` | `nix profile install nixpkgs#hello` |
+| `nix-env -iA nixpkgs.hello` | `nix profile add nixpkgs#hello` (`install` before Nix 2.30, still an alias) |
 | `nix-instantiate --eval -E '1+1'` | `nix eval --expr '1+1'` |
 
 The `-f` / `--file` flag makes the new CLI operate on a plain Nix file instead of a flake, which is useful for gradual migration.
@@ -151,48 +186,40 @@ The `-f` / `--file` flag makes the new CLI operate on a plain Nix file instead o
 
 Use `flake-compat` to provide `default.nix` and `shell.nix` wrappers so that users without flakes enabled can still build and develop.
 
+flake-compat is now an official NixOS project at `github:NixOS/flake-compat` (`edolstra/flake-compat` redirects there). The `nix-community/flake-compat` fork is archived and says so in its README; migrate by changing the input URL and re-locking. The repo is rolling (no release tags).
+
 Add `flake-compat` as an input in `flake.nix`:
 
 ```nix
 inputs.flake-compat = {
-  url = "github:edolstra/flake-compat";
+  url = "github:NixOS/flake-compat";
   flake = false;
 };
 ```
 
 ### default.nix
 
+Upstream's shim resolves the node name through `root.inputs` (so a renamed or deduplicated node still works) and prefers a locked `url` when present:
+
 ```nix
 # default.nix
 (import (
   let
     lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-    nodeSrc = lock.nodes.flake-compat.locked;
+    nodeName = lock.nodes.root.inputs.flake-compat;
   in
-    fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${nodeSrc.rev}.tar.gz";
-      sha256 = nodeSrc.narHash;
-    }
-) { src = ./.; })
-.defaultNix
+  fetchTarball {
+    url =
+      lock.nodes.${nodeName}.locked.url
+        or "https://github.com/NixOS/flake-compat/archive/${lock.nodes.${nodeName}.locked.rev}.tar.gz";
+    sha256 = lock.nodes.${nodeName}.locked.narHash;
+  }
+) { src = ./.; }).defaultNix
 ```
 
 ### shell.nix
 
-```nix
-# shell.nix
-(import (
-  let
-    lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-    nodeSrc = lock.nodes.flake-compat.locked;
-  in
-    fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${nodeSrc.rev}.tar.gz";
-      sha256 = nodeSrc.narHash;
-    }
-) { src = ./.; })
-.shellNix
-```
+Same file with `.shellNix` instead of `.defaultNix`. flake-compat also returns `.outputs` for direct access: `(import ... { src = ./.; }).outputs.packages.x86_64-linux.default`.
 
 ## Registry Management
 
@@ -223,6 +250,8 @@ nix registry remove my-lib
 | Global | Fetched from `https://channels.nixos.org/flake-registry.json` |
 
 User entries override system entries, which override global entries. Use `--registry` flag to point to a custom registry file. Pin registries in CI to ensure reproducibility.
+
+Since Nix 2.26, lock file generation ignores the user and system registries: an indirect input like `nixpkgs.url = "nixpkgs";` resolves only through the global registry and `--override-flake`. This stops local `path:` overrides leaking into committed lock files. Prefer explicit input URLs anyway. `nix registry resolve nixpkgs` (Nix 2.33+) prints what a registry name resolves to.
 
 ## Common Patterns
 
@@ -262,7 +291,8 @@ in {
 ```nix
 outputs = { self, nixpkgs }:
   let
-    systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+    # Nixpkgs 26.05 is the last release supporting x86_64-darwin; 26.11 drops it.
+    systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
     forEachSystem = f: nixpkgs.lib.genAttrs systems (system: f {
       pkgs = nixpkgs.legacyPackages.${system};
     });
@@ -272,7 +302,7 @@ outputs = { self, nixpkgs }:
     });
     devShells = forEachSystem ({ pkgs }: {
       default = pkgs.mkShell {
-        packages = [ pkgs.nixfmt-rfc-style ];
+        packages = [ pkgs.nixfmt ];
       };
     });
   };
@@ -312,10 +342,12 @@ nix flake init              # Create flake.nix from template
 nix flake init -t templates#name  # From a specific template
 nix flake update            # Update all inputs
 nix flake update nixpkgs    # Update single input
-nix flake lock --update-input nixpkgs  # Same (older syntax)
+nix flake lock --update-input nixpkgs  # Same (deprecated, use nix flake update)
 nix flake show              # Show outputs
 nix flake metadata          # Show inputs and metadata
 nix flake check             # Run checks and validate structure
+nix flake check --print-out-paths  # Also print built check paths (2.35+; --out-link to keep them)
+nix flake prefetch-inputs   # Fetch all inputs in parallel (2.31+)
 nix flake archive           # Copy flake and inputs to store
 nix build .#package         # Build a specific package
 nix build                   # Build default package
@@ -348,7 +380,9 @@ Flakes evaluate in pure mode by default:
 | `nixosConfigurations` | Shallow (attrset structure) | Yes |
 | `homeManagerModules` | Non-standard -- warns, does NOT fail | Yes |
 
-**Formatter caveat:** If the flake's `systems` list doesn't include the current dev platform (e.g., linux-only flake on macOS), `nix fmt` fails with `does not provide attribute 'formatter.x86_64-darwin'`. Use `nixfmt .` directly or add all dev platforms to the systems list.
+Since Nix 2.32, `nix flake check` skips building or downloading derivations that can be substituted, so warm CI caches make it much cheaper. Determinate Nix additionally evaluates `nix flake check` in parallel.
+
+**Formatter caveat:** If the flake's `systems` list doesn't include the current dev platform (e.g., linux-only flake on macOS), `nix fmt` fails with `does not provide attribute 'formatter.x86_64-darwin'`. Run `treefmt` from `pkgs.nixfmt-tree` directly (nixfmt 1.0 deprecated recursive `nixfmt <dir>`) or add all dev platforms to the systems list. For the output itself, nixfmt's README suggests `formatter.<system> = pkgs.nixfmt-tree;`.
 
 ## flake-utils vs flake-parts
 
@@ -386,4 +420,4 @@ Flakes evaluate in pure mode by default:
 
 See `flakes/flake-parts.md` for detailed flake-parts patterns including the dendritic module pattern, perSystem API, and ecosystem module list.
 
-For hybrid flake/non-flake project architectures, see the **nix-hybrid** skill.
+For hybrid flake/non-flake project architectures, see `hybrid.md`. For non-flake pinning tools and how they coexist with flake inputs, see `pinning.md`.

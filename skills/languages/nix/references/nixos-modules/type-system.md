@@ -8,6 +8,7 @@
 - [Container Types](#container-types)
 - [Composite Types](#composite-types)
 - [Module Types](#module-types)
+- [Sum Types (attrTag)](#sum-types-attrtag)
 - [Serialization Types](#serialization-types)
 - [Special Types](#special-types)
 - [Priority System](#priority-system)
@@ -21,13 +22,32 @@ All types live under `lib.types` (usually accessed as `types` via `with lib;`).
 
 | Type | Nix values | Merge behavior | Example |
 |------|-----------|----------------|---------|
-| `types.bool` | `true`, `false` | Last definition wins (error on conflict without priority) | `enable = mkOption { type = types.bool; default = false; };` |
+| `types.bool` | `true`, `false` | All definitions must agree after priorities (error on conflict) | `enable = mkOption { type = types.bool; default = false; };` |
+| `types.boolByOr` | `true`, `false` | Logical OR of all definitions | `wantFoo = mkOption { type = types.boolByOr; default = false; };` |
 | `types.int` | Any integer | Single definition only | `count = mkOption { type = types.int; default = 0; };` |
 | `types.float` | Any float | Single definition only | `ratio = mkOption { type = types.float; default = 1.0; };` |
-| `types.str` | Non-empty string | Single definition only | `name = mkOption { type = types.str; };` |
-| `types.path` | Nix path value | Single definition only | `configFile = mkOption { type = types.path; };` |
-| `types.package` | A derivation | Single definition only | `package = mkOption { type = types.package; default = pkgs.hello; };` |
-| `types.port` | Integer 0..65535 | Single definition only | `port = mkOption { type = types.port; default = 8080; };` |
+| `types.str` | Any string (empty allowed; use `nonEmptyStr` to forbid) | Single definition only | `name = mkOption { type = types.str; };` |
+| `types.path` | Absolute path (path value or string starting with `/`) | Single definition only | `configFile = mkOption { type = types.path; };` |
+| `types.package` | A top-level store path (derivation, flake input) | Single definition only | `package = mkOption { type = types.package; default = pkgs.hello; };` |
+| `types.port` | Integer 0..65535 (alias of `ints.u16`) | Single definition only | `port = mkOption { type = types.port; default = 8080; };` |
+
+`types.string` (the old merging string type) was removed in 25.11. Use `str`, or `lines`/`commas`/`separatedString` when you want concatenation.
+
+### Path types
+
+| Type | Constraint |
+|------|-----------|
+| `types.pathInStore` | Must be in the Nix store (`pkgs.hello`, `"${pkgs.hello}/bin/hello"`) |
+| `types.externalPath` | Must not be in the store: secrets, password files |
+| `types.pathWith { inStore ? null; absolute ? null; }` | General form; `null` means "don't care" |
+
+```nix
+passwordFile = mkOption {
+  # Absolute and outside the store. This only checks the value: interpolating it
+  # into a derivation or "${...}" can still copy the file into the store.
+  type = types.pathWith { inStore = false; absolute = true; };
+};
+```
 
 ## Integer Subtypes
 
@@ -122,11 +142,22 @@ users = mkOption {
 
 Like `attrsOf` but **defers evaluation** of values. Useful when values are expensive or self-referential.
 
-**Caveat:** `lazyAttrsOf` breaks `mkIf` on individual attributes. Because the attribute names must be known before values are evaluated, wrapping a single attr in `mkIf` does not conditionally omit the key -- it evaluates the key unconditionally and only conditionally evaluates the value. Use `mkIf` at the level of the entire attrset instead, or use `attrsOf` when conditional attrs are needed.
+**Caveat:** `lazyAttrsOf` breaks `mkIf` on individual attributes. Because the attribute names must be known before values are evaluated, wrapping a single attr in `mkIf` does not conditionally omit the key -- it evaluates the key unconditionally and only conditionally evaluates the value. With `foo.attr = mkIf false 10`, `foo ? attr` is `true` and reading it throws, unless the element type has an `emptyValue` (`lazyAttrsOf (nullOr int)` yields `null`). Use `mkIf` at the level of the entire attrset instead, or use `attrsOf` when conditional attrs are needed.
 
 ```nix
 vhosts = mkOption {
   type = types.lazyAttrsOf (types.submodule { ... });
+  default = {};
+};
+```
+
+### `types.attrsWith { elemType; lazy ? false; placeholder ? "name"; }`
+
+General form behind both: `attrsWith { elemType = t; }` is `attrsOf t`, `lazy = true` gives `lazyAttrsOf t`. `placeholder` changes the name shown in generated docs (`foo.<id>` instead of `foo.<name>`).
+
+```nix
+hosts = mkOption {
+  type = types.attrsWith { elemType = types.submodule hostModule; placeholder = "host"; };
   default = {};
 };
 ```
@@ -148,6 +179,8 @@ logFile = mkOption {
 ### `types.either t1 t2`
 
 Value matches `t1` or `t2`.
+
+The choice is made eagerly with each type's shallow `check`, so for attrsets the first composite type always wins: `either (attrsOf int) (submodule { ... })` treats every attrset as `attrsOf int`. When you need to distinguish shapes, use `attrTag` (below). `oneOf` has the same behaviour.
 
 ```nix
 port = mkOption {
@@ -247,17 +280,36 @@ mkConfig = mkOption {
 };
 ```
 
+## Sum Types (attrTag)
+
+### `types.attrTag { tag1 = option1; tag2 = option2; ... }`
+
+A tagged union: the value is an attrset with exactly one attribute, whose name selects the option (and therefore the type) used for its value. Prefer it over `either`/`oneOf` when the alternatives are all attrsets.
+
+```nix
+rules = mkOption {
+  type = types.attrsOf (types.attrTag {
+    forward = mkOption {
+      description = "Forward the packet.";
+      type = types.submodule { options.destination = mkOption { type = types.str; }; };
+    };
+    drop = mkOption {
+      description = "Drop the packet.";
+      type = types.submodule { };
+    };
+  });
+};
+# rules.ssh = { drop = { }; };
+# rules.web = { forward.destination = "10.0.0.2"; };
+```
+
 ## Serialization Types
 
-### `types.json.type` / JSON format
+### `types.json` / `types.toml`
 
-Backed by `builtins.toJSON`. Supports: strings, integers, floats, booleans, null, lists, attribute sets. Nested null values are preserved in output.
+Value types for data that will be serialized. `types.json` accepts null, booleans, integers, floats, strings, paths, lists and attrsets, nested arbitrarily. `types.toml` is the same minus null (TOML has no null), so a null anywhere fails type checking. Use `types.nullOr` at the option level and filter nulls before serialization.
 
-### `types.toml.type` / TOML format
-
-Backed by a TOML generator. Supports: strings, integers, floats, booleans, lists, attribute sets (become TOML tables). **Does not support null** -- null values in TOML options produce an evaluation error. Use `types.nullOr` at the option level and filter nulls before serialization.
-
-Typically used with `pkgs.formats`:
+For a config file, use the matching `pkgs.formats.<format> { }` instead: its `.type` is the option type and `.generate` writes the file:
 
 ```nix
 let
@@ -278,9 +330,11 @@ in {
 | Type | Description |
 |------|-------------|
 | `types.fileset` | A lib.fileset value (set of paths with inclusion rules) |
+| `types.optionType` | An option type as a value; used for `_module.freeformType` |
+| `types.luaInline` | A `lib.mkLuaInline` string embedded verbatim in generated Lua |
 | `types.pkgs` | A nixpkgs instance (the entire package set) |
 | `types.shellPackage` | A package that provides `shellPath` attr (valid login shells) |
-| `types.attrs` | Untyped attribute set -- no checking on values. Avoid in new code; prefer `attrsOf` with a specific element type. |
+| `types.attrs` | Untyped attribute set -- no checking on values, silently drops earlier definitions and does not discharge `mkIf`/`mkDefault`. Slated for deprecation; use `attrsOf types.anything` or a specific element type. |
 | `types.anything` | Accepts any value. Merges recursively for attrsets, concatenates lists, requires single definition for scalars. |
 | `types.unspecified` | Deprecated. Do not use in new code. |
 | `types.raw` | Accepts any value, no merge. Use for options that receive opaque Nix values. |
@@ -291,9 +345,11 @@ When multiple modules define the same option, the priority system resolves confl
 
 | Function | Priority value | Description |
 |----------|---------------|-------------|
+| `mkOptionDefault value` | 1500 | Priority of an option's `default` |
 | `mkDefault value` | 1000 | Low priority, easily overridden |
 | (no wrapper) | 100 | Default priority for bare values |
 | `mkForce value` | 50 | High priority, overrides most definitions |
+| `mkVMOverride value` | 10 | Used by `nixos-rebuild build-vm`; beats `mkForce` |
 | `mkOverride n value` | `n` | Custom priority |
 
 ```nix
@@ -331,9 +387,9 @@ Multiple definitions are allowed, but they must all produce the same value. If a
 - **attrsOf**: Recursively merges attribute sets; values at the same key are merged by the element type's merge function.
 - **lines/commas/envVar**: Concatenates all string definitions with the separator.
 
-### V2 merge system
+### Merge function signature
 
-The newer merge system passes structured definition metadata (file locations, priorities) to custom merge functions. When writing `mkOptionType`, the merge function signature is:
+When writing `mkOptionType`, the merge function signature is:
 
 ```nix
 merge = loc: defs:
@@ -341,6 +397,8 @@ merge = loc: defs:
   # defs: list of { file: string; value: any; }
   ...;
 ```
+
+Built-in composite types (`listOf`, `attrsWith`, `either`, `coercedTo`, ...) also carry an internal `merge.v2` that returns the value plus metadata. Its coherence check throws when a type was patched with `baseType // { check = ...; }`. Add validation with `types.addCheck baseType (v: ...)` instead of overriding `check`.
 
 ## Type Creation with mkOptionType
 
@@ -369,9 +427,9 @@ myType = lib.mkOptionType {
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Short type name for error messages |
+| `name` | Yes (the only required field) | Short type name for error messages |
 | `description` | No | Longer human-readable description |
-| `check` | Yes | `value -> bool` -- validates a single value |
+| `check` | No (defaults to accepting anything) | `value -> bool` -- validates a single value |
 | `merge` | No | `loc -> defs -> value` -- combines multiple definitions |
 | `emptyValue` | No | `{ value = ...; }` -- default when no definitions exist |
 | `functor` | No | Controls type composition behavior (for `attrsOf myType`, etc.) |
@@ -408,6 +466,7 @@ How it works:
 - **Explicitly typed options** (`enable`, `port`) are checked against their declared type as usual.
 - **Everything else** assigned under `settings` falls through to the `freeformType`. For example, `settings.logLevel = "debug";` is checked against `attrsOf (oneOf [ bool int str ])`.
 - If a value fails both the explicit option type and the freeform type, evaluation errors.
+- Before 25.11, `either` (and so `oneOf`, `number`, `numbers.*`) silently accepted mismatching values inside a `freeformType`. Now they error; wrapping the union in `attrsOf` usually fixes old modules.
 
 This pattern is common in modules wrapping INI/JSON/TOML config files via `pkgs.formats.*`:
 

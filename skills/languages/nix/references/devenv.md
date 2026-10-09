@@ -1,11 +1,23 @@
 # devenv
 
-## devenv 2.0 Migration Notes
+## devenv 2.x Migration Notes
 
-If the project pins devenv 1.x, be aware of breaking changes in 2.0 before upgrading:
+Current release line: devenv 2.4 (2026-09-24). devenv 2.0 (2026-03-05) rewrote the CLI on top of the Nix C API (no more spawning `nix` per command, per-attribute evaluation cache) and made a built-in native process manager the default. The 2.0 release deprecated devenv 0.x; support is dropped entirely in devenv 3.
 
-- The `pre-commit` integration was renamed to `prek`. The option name moved from `pre-commit.hooks.*` to `git-hooks.hooks.*`. The legacy `git-hooks` alias for the option path was removed in 2.0.
-- `devenv build` now emits JSON; shell scripts that parsed old text output need updating.
+Breaking changes when moving a 1.x project to 2.x:
+
+- **git-hooks input is opt-in.** `git-hooks` is no longer an implicit input; add it to `devenv.yaml` if you use `git-hooks.hooks`. The `pre-commit-hooks` input alias was removed (add `pre-commit-hooks: { follows: git-hooks }` only if you switch between 1.x and 2.x). The `pre-commit.*` option path still works as a rename of `git-hooks.*`, but use `git-hooks.hooks.*`.
+- **`pre-commit` command replaced by `prek`** (Rust rewrite): scripts that run `pre-commit run --all-files` must call `prek run --all-files`.
+- **Native process manager is the default.** `processes.<name>.process-compose.*` settings only apply with `process.manager.implementation = "process-compose"`; translate them to native options (see Processes below).
+- **`devenv build` emits JSON** mapping attributes to store paths: `devenv build languages.rust.package | jq -r '.["languages.rust.package"]'`.
+- **`devenv container --copy <name>` removed**; use `devenv container copy <name>`.
+
+Later 2.x breaking changes:
+
+- 2.1: `devenv tasks run` defaults to `--mode before` (runs the task's dependencies too); use `--mode single` for the old behaviour. Bare `devenv` prints help, not the version.
+- 2.2: `x86_64-darwin` (Intel macOS) is no longer built or released; pin an older CLI there. The shell hook and `devenv allow` detect projects by `devenv.nix`, so a directory with only `devenv.yaml` no longer auto-activates. `devenv init` no longer writes `.envrc` unless given `--include-envrc`.
+
+Pin the CLI version a project expects with `require_version` in `devenv.yaml` (`true` = match the modules version, or a constraint such as `">=2.2"`).
 
 ## File Structure
 
@@ -95,7 +107,7 @@ devenv has first-class language support with toolchain management:
 
 ## Services
 
-devenv can run background services (databases, caches, etc.) via process-compose. See **devenv/services.md** for a complete service configuration reference.
+devenv can run background services (databases, caches, etc.) under its native process manager. See **devenv/services.md** for a complete service configuration reference.
 
 ```nix
 { pkgs, ... }: {
@@ -115,7 +127,7 @@ devenv can run background services (databases, caches, etc.) via process-compose
 }
 ```
 
-Start services with `devenv up` alongside processes.
+Start services with `devenv up` alongside processes (`devenv up -d` to run them in the background, `devenv down` to stop).
 
 ## Processes
 
@@ -129,35 +141,44 @@ Define custom long-running processes:
 }
 ```
 
-Process-compose options for ordering and dependencies:
+Native process manager options for ordering, readiness and restarts:
 
 ```nix
 { ... }: {
   processes.api = {
     exec = "./run-api.sh";
-    process-compose = {
-      depends_on.postgres.condition = "process_healthy";
-      readiness_probe = {
-        http_get = {
-          host = "127.0.0.1";
-          port = 8080;
-          path = "/health";
-        };
-        initial_delay_seconds = 2;
-      };
+    after = [ "devenv:processes:postgres" ];  # waits for postgres readiness (@ready is the default)
+    ready = {
+      http.get = { port = 8080; path = "/health"; };
+      initial_delay = 2;
     };
+    restart.on = "on_failure";                # "never" | "always" | "on_failure"
+    env.PORT = "8080";
+    cwd = "./backend";
   };
 }
 ```
 
-Run with `devenv up` alongside services.
+Dependency suffixes: `@started`, `@ready` (default for processes), `@completed`; for tasks `@succeeded` (default). The manager also supports exec and `notify` (sd_notify) probes, `watch` file watching, socket activation, `watchdog`, `shutdown.signal`/`grace`, and automatic port allocation via `ports.<name>.allocate` (resolved value in `config.processes.<name>.ports.<name>.value`).
 
-## Pre-commit Hooks
+Run with `devenv up`. With processes already running, a second `devenv up` attaches to them; `devenv processes attach|list|logs|restart|stop|wait` control a running native manager. Other managers (`process-compose`, `overmind`, `honcho`, `hivemind`, `mprocs`) are available through `process.manager.implementation`, with fewer control features.
+
+## Git Hooks
+
+Requires the `git-hooks` input (not implicit since 2.0):
+
+```yaml
+# devenv.yaml
+inputs:
+  git-hooks:
+    url: github:cachix/git-hooks.nix
+```
 
 ```nix
 { ... }: {
-  pre-commit.hooks = {
-    nixfmt-rfc-style.enable = true;
+  git-hooks.hooks = {
+    nixfmt.enable = true;          # the nixfmt-rfc-style hook was removed
+
     rustfmt.enable = true;
     clippy.enable = true;
     shellcheck.enable = true;
@@ -181,7 +202,7 @@ Run with `devenv up` alongside services.
 }
 ```
 
-Run with `devenv test`.
+Run with `devenv test` (also runs the git hooks against all files). Hooks run through `prek`.
 
 ## Tasks
 
@@ -214,7 +235,7 @@ Run a task and all its dependencies:
 devenv tasks run myapp:ci
 ```
 
-This executes the full dependency graph: build, then test and lint in parallel, then ci.
+This executes the full dependency graph: build, then test and lint in parallel, then ci. The default `--mode before` runs the task plus its upstream dependencies; `--mode single` runs only the named task, `--mode all` also runs dependents. `wantedBy = [ "devenv:processes:db" ];` (2.4+) makes a task run whenever the listed task or process starts; pair it with `after` for ordering. Processes are tasks too (`devenv:processes:<name>`), so a task can `after` a process.
 
 ## MCP Integration
 
@@ -244,14 +265,14 @@ devenv can build OCI container images directly from the environment:
 { pkgs, ... }: {
   containers.app = {
     name = "myapp";
-    tag = "latest";
+    version = "latest";
     copyToRoot = ./dist;
     startupCommand = "${pkgs.python3}/bin/python -m myapp";
   };
 
   containers.worker = {
     name = "myapp-worker";
-    tag = "latest";
+    version = "latest";
     copyToRoot = ./dist;
     startupCommand = "${pkgs.python3}/bin/celery -A myapp worker";
   };
@@ -261,9 +282,12 @@ devenv can build OCI container images directly from the environment:
 Build a container:
 
 ```bash
-devenv container app         # builds the "app" container
-devenv container worker      # builds the "worker" container
+devenv container build app   # builds the "app" container
+devenv container run app     # builds and runs it with Docker
+devenv container --registry docker://ghcr.io/ copy app  # push to a registry
 ```
+
+Built-in container names: `shell` (equivalent of `devenv shell`) and `processes` (equivalent of `devenv up`).
 
 This produces OCI images without Docker, using Nix for reproducible layer generation. Cross-reference the **nix-containers** skill for advanced container patterns and multi-stage builds.
 
@@ -400,20 +424,31 @@ Cross-reference the **nix-hybrid** skill for managing two-lock-file sync (devenv
 ## CLI Commands
 
 ```bash
-devenv init              # Initialize new devenv project
-devenv shell             # Enter the dev shell
+devenv init              # Initialize new devenv project (--include-envrc for direnv)
+devenv shell             # Enter the dev shell (auto-reloads when watched files change)
 devenv shell -- <cmd>    # Run command in dev shell
-devenv up                # Start services and processes
+devenv up                # Start services and processes (attaches if already running)
+devenv up -d             # Start them in the background
+devenv down              # Stop background processes (= devenv processes down)
+devenv processes logs <name>  # Inspect a running native-managed process
 devenv test              # Run enterTest
 devenv update            # Update inputs
+devenv inputs add <name> <url>  # Add an input to devenv.yaml
 devenv info              # Show environment info
 devenv gc                # Garbage collect old generations
 devenv search <pkg>      # Search for packages
 devenv tasks run <name>  # Run a task and its dependencies
-devenv container <name>  # Build an OCI container
+devenv tasks list --json # Machine-readable task graph
+devenv container build <name>  # Build an OCI container
+devenv build <attr>      # Build attributes, prints JSON {attr: store path}
+devenv repl              # REPL with devenv, pkgs and inputs
+devenv hook <shell>      # Native auto-activation hook (bash, zsh, fish, nu)
+devenv allow / revoke    # Trust or untrust a directory for the hook
 devenv mcp               # Launch MCP server
 devenv lsp               # Start nixd language server
 ```
+
+devenv 2.4 also adds an experimental `devenv machines` command for building and deploying NixOS, nix-darwin and home-manager machines next to the environment.
 
 ## Ad-hoc Environments
 
@@ -430,13 +465,24 @@ Use ad-hoc environments when:
 - Testing a language or package before adding it to devenv.nix
 - Running a one-off command in an isolated environment
 
-## direnv Integration
+## Automatic Activation
 
-Create `.envrc` for automatic environment activation:
+devenv 2.x ships a native shell hook, so direnv is optional:
+
+```bash
+# ~/.bashrc (zsh: `devenv hook zsh`; fish and nushell load it automatically)
+eval "$(devenv hook bash)"
+```
+
+Then run `devenv allow` once in the project. The hook activates when you `cd` into a directory containing `devenv.nix` and deactivates when you leave. `devenv --from <source> allow` binds a directory to an out-of-tree configuration (for example `github:myorg/devenv-configs?dir=rust-web`) that has no local `devenv.nix`.
+
+### direnv Integration
+
+direnv still works if you prefer in-place environment changes without a subshell. Create `.envrc` (or use `devenv init --include-envrc`):
 
 ```bash
 # .envrc
-source_url "https://raw.githubusercontent.com/cachix/devenv/main/direnv-support.sh" ""
+eval "$(devenv direnvrc)"
 use devenv
 ```
 
@@ -453,17 +499,19 @@ Speed up builds by pushing/pulling from a binary cache:
 }
 ```
 
-Or configure in devenv.yaml:
+`devenv` is added to `cachix.pull` automatically. Cache configuration lives in `devenv.nix` only; `devenv.yaml` has no `cachix` key.
+
+Configure the Cachix auth token, either through SecretSpec (2.2+, nothing exported into the environment):
 
 ```yaml
-cachix:
-  pull:
-    - devenv
-    - myorg
-  push: myorg
+# devenv.yaml
+secretspec:
+  enable: true
+  provider: keyring
+  cachix_auth_token: true
 ```
 
-Configure the Cachix auth token:
+or with the Cachix CLI, which devenv falls back to:
 
 ```bash
 cachix authtoken <token>

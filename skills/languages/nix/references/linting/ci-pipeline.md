@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [GitHub Actions with Nix](#github-actions-with-nix)
+- [Faster flake CI (nix-fast-build)](#faster-flake-ci-nix-fast-build)
 - [Garnix CI](#garnix-ci)
 - [Binary Cache Setup](#binary-cache-setup)
 - [CI Workflow Template](#ci-workflow-template)
@@ -19,7 +20,15 @@ Use DeterminateSystems/nix-installer-action for reliable Nix setup in CI:
 - uses: DeterminateSystems/nix-installer-action@main
 ```
 
-Configures Nix with flakes enabled, sets up `/nix/store`, and handles platform differences automatically.
+Configures Nix with flakes enabled, sets up `/nix/store`, and handles platform differences automatically. It installs **Determinate Nix** by default (Linux x86_64/aarch64, macOS aarch64). Upstream Nix needs `with: { determinate: false }`, which Determinate Systems calls unsupported and may remove. The action always uses the newest installer even when pinned; to pin a Determinate Nix version use `DeterminateSystems/determinate-nix-action@v3` (or an exact tag such as `@v3.23.1`).
+
+For upstream Nix, use `cachix/install-nix-action@v31` (supports `extra_nix_config`, `nix_path`, `install_url`, `github_access_token`):
+
+```yaml
+- uses: cachix/install-nix-action@v31
+  with:
+    github_access_token: ${{ secrets.GITHUB_TOKEN }}
+```
 
 ### Caching
 
@@ -29,22 +38,22 @@ Configures Nix with flakes enabled, sets up `/nix/store`, and handles platform d
 - uses: DeterminateSystems/magic-nix-cache-action@main
 ```
 
-Automatically caches `/nix/store` paths using GitHub Actions cache backend. No Cachix account or signing keys needed.
+Automatically caches `/nix/store` paths using GitHub Actions cache backend. No Cachix account or signing keys needed. Still maintained (v15, 2026). The cache is CI-only and subject to GitHub Actions cache rate limits (HTTP 429 shows up in logs but does not fail the job). For a cache shared with developer machines, Determinate's paid option is `DeterminateSystems/flakehub-cache-action@v3` (needs `permissions: id-token: write`, used with `determinate-nix-action`).
 
 ### cache-nix-action
 
 A GitHub Action for caching Nix store paths using GitHub Actions cache backend. More configurable than magic-nix-cache:
 
 ```yaml
-- uses: nix-community/cache-nix-action@v6
+- uses: nix-community/cache-nix-action@v7
   with:
-    primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+    primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
     restore-prefixes-first-match: nix-${{ runner.os }}-
-    gc-max-store-size-linux: 1000000000  # 1 GB limit
+    gc-max-store-size-linux: 1G  # suffixes K, M, G accepted
     # Also supports purge, merge caches across jobs, and custom cache URLs
 ```
 
-Compatible with `nixbuild/nix-quick-install-action`, `cachix/install-nix-action`, and `DeterminateSystems/determinate-nix-action`.
+Compatible with `nixbuild/nix-quick-install-action`, `cachix/install-nix-action`, and `DeterminateSystems/determinate-nix-action` (not listed: `nix-installer-action`). v7 caches only `/nix` by default and adds `ca-derivations` support.
 
 ---
 
@@ -60,9 +69,9 @@ A library to turn Nix flake attribute sets into GitHub Actions matrices — gene
   inputs.nix-github-actions.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, nix-github-actions }: {
-    # Generate a matrix from your packages
+    # Generate a matrix from your checks (or `checks = self.packages;`)
     githubActions = nix-github-actions.lib.mkGithubMatrix {
-      checks = nixpkgs.lib.getAttrs [ "x86_64-linux" "x86_64-darwin" ] self.checks;
+      inherit (self) checks;
     };
 
     packages.x86_64-linux.default = /* ... */;
@@ -73,13 +82,15 @@ A library to turn Nix flake attribute sets into GitHub Actions matrices — gene
 
 ### Restricting Systems
 
-If your flake supports systems that GitHub Actions doesn't (e.g. `aarch64-linux`), filter the matrix:
+The default runner map is `x86_64-linux` to `ubuntu-24.04`, `aarch64-linux` to `ubuntu-24.04-arm`, `aarch64-darwin` to `macos-14`, and `x86_64-darwin` to `macos-13`. GitHub retired the `macos-13` image on 2025-12-04 and Nixpkgs 26.05 is the last release supporting x86_64-darwin, so drop that system (or override `platforms`, e.g. with `macos-15-intel`):
 
 ```nix
 githubActions = nix-github-actions.lib.mkGithubMatrix {
-  checks = nixpkgs.lib.getAttrs [ "x86_64-linux" "x86_64-darwin" ] self.checks;
+  checks = nixpkgs.lib.getAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ] self.checks;
 };
 ```
+
+Each matrix entry has `name`, `system`, `os` (a list) and `attr` (prefixed `githubActions.checks.`).
 
 ### CI Workflow Template
 
@@ -95,26 +106,27 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
       - name: Generate matrix
         id: set-matrix
         run: |
-          echo "matrix=$(nix eval --json .#githubActions)" >> $GITHUB_OUTPUT
+          echo "matrix=$(nix eval --json .#githubActions.matrix)" >> "$GITHUB_OUTPUT"
 
   build:
+    name: ${{ matrix.name }} (${{ matrix.system }})
     needs: matrix
     strategy:
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: nix-community/cache-nix-action@v6
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+      - uses: nix-community/cache-nix-action@v7
         with:
-          primary-key: nix-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+          primary-key: nix-${{ matrix.system }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ matrix.system }}-
-      - run: nix build .#${{ matrix.attr }}
+      - run: nix build -L '.#${{ matrix.attr }}'
 ```
 
 ### Complete basic workflow
@@ -130,12 +142,12 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Format check
-        run: nix fmt -- --check .
+        run: nix fmt -- --ci   # treefmt-based formatter (nixfmt-tree / treefmt-nix)
 
       - name: Lint
         run: |
@@ -148,6 +160,22 @@ jobs:
       - name: Test
         run: nix flake check
 ```
+
+### Faster flake CI (nix-fast-build)
+
+`nix-fast-build` (Mic92, 2.x) evaluates with `nix-eval-jobs` in parallel and starts each build as soon as its attribute is evaluated. By default it evaluates `.#checks` for all systems and builds `.#checks.<current system>`. It renders logs itself (no nom dependency) and writes a GitHub Actions job summary.
+
+```yaml
+- run: nix run nixpkgs#nix-fast-build -- --skip-cached
+```
+
+- `--skip-cached`: skip attributes already in a binary cache (avoids downloading unchanged outputs on ephemeral runners)
+- `--systems "aarch64-linux x86_64-linux"`: build more than the current system (needs matching builders)
+- `--flake .#checks.x86_64-linux`: pick another attribute root (full path required)
+- `--remote user@host`: upload the flake and evaluate/build on a remote machine
+- `--file ./release.nix -A attr`: non-flake mode
+
+`nix-eval-jobs` (now `NixOS/nix-eval-jobs`, versioned with Nix, e.g. v2.35.x) is the underlying parallel evaluator with streaming JSON output, also used by Hydra-style setups.
 
 ---
 
@@ -169,12 +197,19 @@ builds:
     - "devShells.*.*"
   exclude:
     - "packages.aarch64-darwin.*"   # skip if no ARM runners needed
+```
 
-# Optional: select specific branches
-branches:
-  include:
-    - main
-    - "release/*"
+Without a `garnix.yaml`, Garnix builds `*.x86_64-linux.*`, `defaultPackage.x86_64-linux`, `devShell.x86_64-linux`, and all `homeConfigurations`, `darwinConfigurations` and `nixosConfigurations`.
+
+Branch filtering uses a `branch` key next to `include`/`exclude`. `builds` may also be a list; Garnix builds the union of all entries:
+
+```yaml
+builds:
+  - include:
+      - "packages.*.*"
+    branch: main
+  - include:
+      - "checks.*.*"
 ```
 
 No runner configuration needed -- Garnix provides the infrastructure.
@@ -269,12 +304,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Format check (treefmt / nixfmt)
-        run: nix fmt -- --check .
+        run: nix fmt -- --ci
 
       - name: statix
         run: nix develop --command statix check .
@@ -294,7 +329,7 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.system.runs-on }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
@@ -316,7 +351,7 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.system.runs-on }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 

@@ -7,7 +7,7 @@ Follow this sequence when something breaks:
 1. **Read the error message** — Nix errors are verbose but informative
 2. **Add `--show-trace`** — reveals the full evaluation call stack
 3. **Use `builtins.trace`** — insert print statements in Nix expressions
-4. **Enter `nix repl`** — interactively evaluate subexpressions
+4. **Enter `nix repl`** — interactively evaluate subexpressions, or add `--debugger` to drop into a REPL at the failure point
 5. **Use `nix develop`** — for build failures, run phases manually
 6. **Check `nix log`** — read build output for compilation/test failures
 
@@ -87,7 +87,7 @@ home.packages = [
 ### IFD (Import From Derivation)
 
 ```text
-error: cannot build during evaluation (import from derivation)
+error: cannot build '/nix/store/...-foo.drv^out' during evaluation because the option 'allow-import-from-derivation' is disabled
 ```
 
 IFD happens when evaluation requires building something first (`import someDrv`, `readFile "${someDrv}/..."`). The evaluator blocks all other evaluation while the build runs. Fix by:
@@ -95,6 +95,8 @@ IFD happens when evaluation requires building something first (`import someDrv`,
 - Pre-generating the Nix file and committing it
 - Using `builtins.fetchurl` instead of derivation-based fetchers during eval
 - Allowing IFD with `--allow-import-from-derivation` (not recommended for CI)
+
+To find IFD without breaking the build, set `trace-import-from-derivation = true` (Nix 2.30+): every IFD is logged as a warning.
 
 See the nix-performance skill for IFD alternatives and consolidation strategies.
 
@@ -119,23 +121,23 @@ NIXPKGS_ALLOW_UNFREE=1 nix build --impure
 ### File Not Tracked by Git
 
 ```text
-error: getting status of '/path/to/file': No such file or directory
+error: Path 'foo.nix' in the repository "/path/to/repo" is not tracked by Git.
 ```
 
-Flakes only see files tracked by git. Fix: `git add <file>` (staging is enough, no need to commit).
+Flakes only see files tracked by git. Nix 2.28+ prints the message above together with the fix; older versions say `getting status of '/path/to/file': No such file or directory`. Fix: `git add <file>`, or `git add -N <file>` (intent-to-add) to make it visible without staging content. No need to commit.
 
 ### Pure Evaluation Restriction
 
 ```text
-error: access to absolute path '/...' is forbidden in pure eval mode
+error: access to absolute path '/...' is forbidden in pure evaluation mode (use '--impure' to override)
 ```
 
-Flake evaluation is pure by default — no access to paths outside the flake, no environment variables, no `<nixpkgs>`. Fix: pass data through flake inputs or `--impure`.
+Flake evaluation is pure by default — no access to paths outside the flake, no environment variables, no `<nixpkgs>`. `<nixpkgs>` fails with `cannot look up '<nixpkgs>' in pure evaluation mode`, while `builtins.getEnv` silently returns `""`. Fix: pass data through flake inputs or `--impure`.
 
 ### Experimental Feature Disabled
 
 ```text
-error: experimental Nix feature 'flakes' is disabled
+error: experimental Nix feature 'flakes' is disabled; add '--extra-experimental-features flakes' to enable it
 ```
 
 Fix: add to `~/.config/nix/nix.conf`:
@@ -143,6 +145,8 @@ Fix: add to `~/.config/nix/nix.conf`:
 ```ini
 experimental-features = nix-command flakes
 ```
+
+Still required on upstream Nix 2.35 and Lix. Determinate Nix treats `flakes` and `nix-command` as stable and never shows this error; other features (for example `pipe-operators`, `ca-derivations`) still need the flag there.
 
 Read `debugging/error-catalog.md` for the full error reference.
 
@@ -161,6 +165,25 @@ in y
 
 `lib.traceVal x` prints and returns `x`. `lib.traceValSeq x` forces deep evaluation before printing. `lib.traceSeq x y` deeply evaluates and prints `x`, returns `y`.
 
+### Finding where a warning comes from
+
+`builtins.warn` (Nix 2.23+, which `lib.warn` uses when available) prints `evaluation warning: ...` without a location. Make warnings fatal to get a stack trace:
+
+```bash
+NIX_ABORT_ON_WARN=1 nix eval --show-trace .#nixosConfigurations.host.config.system.build.toplevel
+# or: nix eval --option abort-on-warn true --show-trace ...
+```
+
+### Interactive debugger (`--debugger`)
+
+Add `--debugger` to a new-CLI command (`nix eval`, `nix build`, ...) to open a REPL with the local variables in scope when evaluation throws:
+
+```bash
+nix eval --debugger .#packages.x86_64-linux.default
+```
+
+Inside: `:bt` (backtrace), `:st <n>` (inspect frame n), `:env` (show variables), `:s` (step), `:c` (continue to the next error or `builtins.break`), `:q` (quit). Place `builtins.break value` in code to stop at a chosen point; set `debugger-on-trace = true` or `debugger-on-warn = true` to also stop at every `builtins.trace` or `builtins.warn`.
+
 ### nix repl
 
 Interactive evaluation:
@@ -176,7 +199,7 @@ nix-repl> :lf .           # Load current flake
 nix-repl> outputs.packages.x86_64-linux.default
 ```
 
-Useful repl commands: `:lf` (load flake), `:l` (load file), `:t` (show type), `:p` (pretty print), `:doc` (show documentation).
+Useful repl commands: `:lf` (load flake), `:l` (load file), `:r` (reload; also reloads `:lf` flakes since Nix 2.29), `:t` (show type), `:p` (pretty print), `:doc` (show documentation; since Nix 2.24 also renders RFC 145 `/** */` doc comments, e.g. `:doc lib.toFunction`). Since Nix 2.34 the repl also accepts `inherit (a) x y` and several bindings per line (`p = 1; q = 2;`).
 
 ### nix log
 
@@ -198,6 +221,8 @@ nix eval --expr 'builtins.attrNames (import <nixpkgs> {})'
 nix eval --json .#packages.x86_64-linux           # JSON output
 ```
 
+Since Nix 2.29, `--json` output is pretty-printed when stdout is a terminal and stays single-line in pipes; force it with `--pretty` or disable it with `--no-pretty`.
+
 ### nix why-depends
 
 Find why one package depends on another:
@@ -213,9 +238,11 @@ Inspect store paths and closures:
 
 ```bash
 nix path-info -rsSh nixpkgs#hello   # Show closure: all paths, sizes, total
-nix path-info --json nixpkgs#hello   # Detailed JSON output
+nix path-info --json --json-format 2 nixpkgs#hello   # Detailed JSON output
 nix path-info -r nixpkgs#hello       # List all closure paths
 ```
+
+Since Nix 2.33, `nix path-info --json` without `--json-format` is deprecated (it warns and falls back to the legacy format 1). Format 2 nests results under `info` and keys them by store path base name; format 3 (Nix 2.35) adds structured signatures.
 
 ### nix-tree (interactive closure browser)
 
@@ -258,7 +285,8 @@ nix build -L nixpkgs#hello
 
 # Keep failed build directory for inspection
 nix build --keep-failed nixpkgs#hello
-# Failed build dir printed: /tmp/nix-build-hello-xxx
+# Nix prints the kept build directory. Since Nix 2.30 it lives under the
+# build-dir setting (default /nix/var/nix/builds), no longer under $TMPDIR or /tmp.
 
 # Override a phase interactively
 nix develop nixpkgs#hello
@@ -273,7 +301,7 @@ installPhase
 
 ## Building Nix From Source (RFC 132)
 
-Nix itself has moved from autotools to Meson (Nix 2.22+). To build from source for bisection or debugging:
+Nix itself has moved from autotools to Meson; Nix 2.26 removed the Make-based build. To build from source for bisection or debugging (inside the Nix dev shell):
 
 ```bash
 meson setup build
@@ -310,7 +338,8 @@ nix store optimise          # Deduplicate store (hardlinks identical files)
 nix store verify --all
 
 # Show what would be deleted
-nix-collect-garbage --print-dead
+nix-store --gc --print-dead
+nix store gc --dry-run         # Nix 2.34+ also reports how many paths would be freed
 
 # Show GC roots
 nix-store --gc --print-roots
@@ -363,7 +392,7 @@ Run as a periodic check on NixOS systems to catch known-vulnerable packages in t
 
 ## Performance Diagnosis
 
-- **Evaluation slow?** Check for IFD, large `builtins.readDir` on big directories, deep recursive imports, or `builtins.readFile` on big files. Use `--trace-function-calls` to profile evaluation.
+- **Evaluation slow?** Check for IFD, large `builtins.readDir` on big directories, deep recursive imports, or `builtins.readFile` on big files. Use `--eval-profiler flamegraph` (Nix 2.30+, writes `nix.profile` for `flamegraph.pl` or speedscope; see `--eval-profile-file`) to profile evaluation; `--trace-function-calls` is the older, noisier option. `trace-import-from-derivation = true` lists hidden IFD.
 - **Build slow?** Check if substituters (binary cache) are configured: `nix config show | grep substituters`. Use `nom` to see what is building vs downloading.
 - **Large closures?** Use `nix path-info -rsSh` and `nix why-depends` to find unexpected runtime dependencies. Use `nix-tree` for interactive exploration.
 - **Unnecessary rebuilds?** Use `nix-diff` to compare old and new derivations. Check if `src = ./.` is picking up untracked files (use `lib.fileset`).

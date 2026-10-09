@@ -63,6 +63,8 @@
 | `builtins.listToAttrs` | `list:` | `[{name; value;}]` → attrset |
 | `builtins.functionArgs` | `f:` | Get argument names and defaults of a function |
 
+Determinate Nix also has a `builtins.filterAttrs`; upstream Nix (as of 2.35) does not, so portable code should keep using `lib.filterAttrs`.
+
 ### Type Checking
 
 | Builtin | Purpose |
@@ -84,6 +86,7 @@
 |---------|-----------|---------|
 | `builtins.readFile` | `path:` | Read file as string (eval time) |
 | `builtins.readDir` | `path:` | List directory → attrset of name → type ("regular", "directory", "symlink") |
+| `builtins.readFileType` | `path:` | Type of a single path: "regular", "directory", "symlink" or "unknown" |
 | `builtins.pathExists` | `path:` | Check if path exists |
 | `builtins.path` | `{ path; name?; filter?; recursive?; sha256?; }:` | Copy to store with options |
 | `builtins.toFile` | `name: content:` | Create file in store from string |
@@ -119,7 +122,8 @@
 | `builtins.fetchurl` | `url:` | Download file (blocks eval) |
 | `builtins.fetchTarball` | `{ url; sha256?; }` | Download and extract tarball |
 | `builtins.fetchGit` | `{ url; ref?; rev?; }` | Clone git repo |
-| `builtins.fetchTree` | `{ type; ... }` | Generic fetcher (experimental) |
+| `builtins.fetchTree` | `{ type; ... }` | Generic fetcher (experimental: needs `fetch-tree` or `flakes`) |
+| `builtins.getFlake` | `ref:` | Fetch and evaluate a flake (needs `flakes`; accepts path values like `./subflake` since Nix 2.35) |
 
 ### Debugging
 
@@ -127,6 +131,8 @@
 |---------|-----------|---------|
 | `builtins.trace` | `msg: value:` | Print msg, return value |
 | `builtins.traceVerbose` | `msg: value:` | Print only when `--trace-verbose` |
+| `builtins.warn` | `msg: value:` | Print msg as a warning, return value (Nix 2.23+, Lix 2.95+); fatal with `abort-on-warn` |
+| `builtins.break` | `value:` | Pause in the debugger when run with `--debugger`, return value |
 | `builtins.seq` | `a: b:` | Force evaluation of a, return b |
 | `builtins.deepSeq` | `a: b:` | Force deep evaluation of a, return b |
 | `builtins.abort` | `msg:` | Abort evaluation with error |
@@ -243,8 +249,8 @@ stdenv.hostPlatform.system               # "aarch64-darwin", "x86_64-linux", etc
 |-----------|----------|
 | String | Used as-is |
 | Path | Copied to store, store path string returned |
-| Derivation | Built, `outPath` (store path) used — creates runtime dependency |
-| Integer | Converted to decimal string |
+| Derivation | `outPath` (store path) used; adds the derivation to the string context, so it is built before whatever consumes the string |
+| Integer | Error: use `toString` (Lix has an experimental `coerce-integers` feature) |
 | Boolean | Error — use `lib.boolToString` |
 | Null | Error |
 | List | Error — use `builtins.concatStringsSep` |

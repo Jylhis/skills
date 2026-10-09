@@ -69,7 +69,7 @@ package definitions or module options.
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:nix-community/flake-compat";
+      url = "github:NixOS/flake-compat";
       flake = false;
     };
   };
@@ -110,7 +110,7 @@ package definitions or module options.
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:nix-community/flake-compat";
+      url = "github:NixOS/flake-compat";
       flake = false;
     };
     home-manager = {
@@ -130,7 +130,10 @@ package definitions or module options.
 ```
 
 All upstream dependencies come through flake inputs — there is no
-separate pinning mechanism for dependencies.
+separate pinning mechanism for dependencies. If a dependency cannot be
+a flake input (non-Git VCS, mirrors, patched sources) or a downstream
+project must avoid flakes entirely, see `pinning.md` for npins, niv,
+lon and Nixtamal, and how they coexist with `flake.lock`.
 
 ## default.nix — flake-compat Shim
 
@@ -138,7 +141,7 @@ separate pinning mechanism for dependencies.
 outputs to non-flake consumers. It reads `flake.lock` to fetch
 flake-compat at the pinned revision.
 
-Use `github:nix-community/flake-compat` — the historical `edolstra/flake-compat` is unmaintained. Both exposed the same API; update the input URL and re-lock to migrate.
+Use `github:NixOS/flake-compat`. flake-compat moved from `edolstra/flake-compat` (which now redirects) to the NixOS organisation, and the `nix-community/flake-compat` fork is archived with a notice pointing back to NixOS. The API is the same; update the input URL and re-lock to migrate. The shim below follows upstream's README: it resolves the node name through `root.inputs` and prefers a locked `url`.
 
 ```nix
 # default.nix
@@ -146,10 +149,13 @@ Use `github:nix-community/flake-compat` — the historical `edolstra/flake-compa
   (
     let
       lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+      nodeName = lock.nodes.root.inputs.flake-compat;
     in
     fetchTarball {
-      url = "https://github.com/nix-community/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-      sha256 = lock.nodes.flake-compat.locked.narHash;
+      url =
+        lock.nodes.${nodeName}.locked.url
+          or "https://github.com/NixOS/flake-compat/archive/${lock.nodes.${nodeName}.locked.rev}.tar.gz";
+      sha256 = lock.nodes.${nodeName}.locked.narHash;
     }
   )
   { src = ./.; }
@@ -158,8 +164,10 @@ Use `github:nix-community/flake-compat` — the historical `edolstra/flake-compa
 
 Because this shim uses `builtins.fetchTarball` with the lock file's
 `narHash` as `sha256`, it short-circuits on a pre-seeded store path
-and works offline; the flake CLI's `fetchTree`-based `github:` fetcher
-does not. See `flakes/offline-fetching.md` in the **nix** skill for
+and works offline. flake-compat then fetches the other inputs with
+`fetchTarball` only when `flakes`/`fetch-tree` are disabled; with them
+enabled it uses `builtins.fetchTree`, which may still need the origin.
+See `flakes/offline-fetching.md` in the **nix** skill for
 restricted-network workflows.
 
 This returns the full flake outputs attrset. Non-flake consumers use:
@@ -180,10 +188,13 @@ For a `shell.nix` (optional — devenv is the primary dev shell):
   (
     let
       lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+      nodeName = lock.nodes.root.inputs.flake-compat;
     in
     fetchTarball {
-      url = "https://github.com/nix-community/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-      sha256 = lock.nodes.flake-compat.locked.narHash;
+      url =
+        lock.nodes.${nodeName}.locked.url
+          or "https://github.com/NixOS/flake-compat/archive/${lock.nodes.${nodeName}.locked.rev}.tar.gz";
+      sha256 = lock.nodes.${nodeName}.locked.narHash;
     }
   )
   { src = ./.; }
@@ -260,7 +271,8 @@ Otherwise: `error: Path 'flake.nix' in the repository is not tracked by Git.`
 This is a single atomic migration — do it in one linear pass:
 
 1. **Prerequisites** — classify flake type, verify tool availability
-2. **Format** — if no existing formatter, run `nixfmt .` and commit
+2. **Format** — if no existing formatter, run `treefmt` from
+   `pkgs.nixfmt-tree` (nixfmt 1.0 deprecated `nixfmt <dir>`) and commit
    separately as `style: nixfmt`
 3. **Create overlay.nix** — extract package definitions
 4. **Create/rewrite flake.nix** — orchestrator that imports overlay.nix
@@ -281,7 +293,7 @@ This is a single atomic migration — do it in one linear pass:
   only composes them
 - devenv.sh is the dev shell — do not duplicate it as a flake `devShell`
 - `flake-compat` must be declared as a non-flake input:
-  `flake-compat = { url = "github:nix-community/flake-compat"; flake = false; };`
+  `flake-compat = { url = "github:NixOS/flake-compat"; flake = false; };`
 
 ## nix-darwin Variant
 
@@ -294,11 +306,11 @@ way with `darwin-rebuild` instead of `nixos-rebuild`:
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:nix-community/flake-compat";
+      url = "github:NixOS/flake-compat";
       flake = false;
     };
     nix-darwin = {
-      url = "github:LnL7/nix-darwin";
+      url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
@@ -337,7 +349,7 @@ manual `forAllSystems` wrapper with flake-parts:
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-compat = {
-      url = "github:nix-community/flake-compat";
+      url = "github:NixOS/flake-compat";
       flake = false;
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -378,7 +390,7 @@ Use `lib.fileset.toSource` inside the overlay (rather than `src = ./.;`) so only
 The lint pipeline from the nix-linting skill works with hybrid projects:
 
 ```bash
-nixfmt --check .
+treefmt --ci        # pkgs.nixfmt-tree; formats, then fails if anything changed
 statix check . --ignore '.devenv/*' 'result/*'
 deadnix --fail --exclude .devenv result .
 nix flake check     # validates flake outputs
@@ -395,6 +407,7 @@ nix-linting skill.
 - **nix-darwin** — macOS system configuration with nix-darwin
 - **nixos-modules** — NixOS module patterns shared with nix-darwin
 - **nix-performance** — closure optimization, IFD avoidance
+- **pinning** (`pinning.md`): npins, niv, lon, Nixtamal, plain `fetchTarball` pins
 
 ## Reference Files
 

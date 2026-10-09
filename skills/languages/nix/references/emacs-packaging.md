@@ -4,7 +4,7 @@
 
 ```nix
 let
-  myEmacs = pkgs.emacs30.pkgs.withPackages (epkgs: with epkgs; [
+  myEmacs = pkgs.emacs.pkgs.withPackages (epkgs: with epkgs; [
     magit
     vertico
     orderless
@@ -25,22 +25,25 @@ in
 - Packages come from `emacs-overlay` or nixpkgs `emacsPackages`
 - Native dependencies (libvterm, sqlite, etc.) are automatically handled
 - Packages are byte-compiled (and optionally native-compiled) during the Nix build
+- A package that installs `share/emacs/site-lisp/default.el` is loaded at startup, so a Nix-built config can ship as one more entry in the package list. On unstable (26.11), Emacs also loads an `early-default` library after `early-init.el`
 
 ### Choosing an Emacs variant
 
 ```nix
-pkgs.emacs30             # Stable release
-pkgs.emacs30-pgtk        # Pure GTK (Wayland-native)
-pkgs.emacs30-nox         # No GUI (terminal only)
+pkgs.emacs               # Default release: 30.2 on 26.05, Emacs 31 on unstable
+pkgs.emacs-pgtk          # Pure GTK (Wayland-native)
+pkgs.emacs-nox           # No GUI (terminal only)
+pkgs.emacs-macport       # macOS port (fork of Mitsuharu Yamamoto's patches, Emacs 30), in nixpkgs
 pkgs.emacs-git           # Git master (via emacs-overlay)
-pkgs.emacs-macport       # macOS native (via emacs-overlay)
 ```
+
+Prefer the unversioned attributes. `emacs30`, `emacs30-pgtk`, `emacs30-nox` and `emacs30-gtk3` exist on 26.05 but throw on unstable (superseded by `emacs`/`emacs-pgtk`/... in August 2026), where the versioned set is `emacs31*`. Emacs 28 and 29 were removed in 25.05. Use `emacsPackagesFor <emacs>` to get a package set for a custom Emacs build.
 
 ## Package Name Resolution
 
 ```bash
-nix eval nixpkgs#emacs30Packages.magit.pname
-nix search nixpkgs "emacs.*Packages.*company"
+nix eval nixpkgs#emacsPackages.magit.pname
+nix search nixpkgs "emacsPackages.*company"
 ```
 
 ### Resolution strategy
@@ -63,33 +66,35 @@ nix search nixpkgs "emacs.*Packages.*company"
 ```nix
 { pkgs }:
 let
-  myPackage = pkgs.emacs30Packages.trivialBuild {
+  myPackage = pkgs.emacs.pkgs.trivialBuild {
     pname = "my-package";
     version = "0.1.0";
     src = ./lisp;
 
-    packageRequires = with pkgs.emacs30Packages; [
+    packageRequires = with pkgs.emacs.pkgs; [
       dash
       s
     ];
   };
 in
-pkgs.emacs30.pkgs.withPackages (epkgs: [
+pkgs.emacs.pkgs.withPackages (epkgs: [
   myPackage
   epkgs.magit
 ])
 ```
 
+`trivialBuild` byte-compiles every `*.el` in the source root and installs `*.el`/`*.elc` into `share/emacs/site-lisp`. The Emacs builders accept `finalAttrs:`, default to `strictDeps = true` and `__structuredAttrs = true` (structured attrs since 25.05), and take `turnCompilationWarningToError` and `ignoreCompilationError` flags.
+
 ### From a Git source
 
 ```nix
-pkgs.emacs30Packages.trivialBuild {
+pkgs.emacs.pkgs.trivialBuild {
   pname = "some-package";
-  version = "unstable-2024-01-15";
+  version = "0-unstable-2024-01-15";
   src = pkgs.fetchFromGitHub {
     owner = "author";
     repo = "some-package";
-    rev = "abc123";
+    rev = "<full 40-char commit hash>";
     hash = "sha256-...";
   };
 }
@@ -97,35 +102,34 @@ pkgs.emacs30Packages.trivialBuild {
 
 ## melpaBuild
 
-For packages with complex build steps:
+For packages with complex build steps (multiple files, data directories, `Package-Requires` metadata):
 
 ```nix
-pkgs.emacs30Packages.melpaBuild {
+pkgs.emacs.pkgs.melpaBuild (finalAttrs: {
   pname = "complex-package";
   version = "1.0.0";
   src = pkgs.fetchFromGitHub {
     owner = "author";
     repo = "complex-package";
-    rev = "v1.0.0";
+    tag = "v${finalAttrs.version}";
     hash = "sha256-...";
   };
 
-  recipe = pkgs.writeText "recipe" ''
-    (complex-package :repo "author/complex-package"
-                     :fetcher github
-                     :files ("*.el" "data"))
-  '';
+  # Optional: a MELPA :files spec as a string. Omit to use MELPA's defaults.
+  files = ''("*.el" "data")'';
 
-  packageRequires = with pkgs.emacs30Packages; [ dash ];
-}
+  packageRequires = with pkgs.emacs.pkgs; [ dash ];
+})
 ```
+
+`recipe` is optional: when unset, melpaBuild writes a minimal recipe from `ename` (defaults to `pname`) and `files`. Pass `recipe` (a path or a string) only when you need other MELPA recipe properties. Unstable versions in Nix form (`1.2-unstable-2024-06-01`) are converted to MELPA's `YYYYMMDD.0` automatically.
 
 ## Tree-sitter Grammars
 
 ### Using nixpkgs grammars
 
 ```nix
-pkgs.emacs30.pkgs.withPackages (epkgs: [
+pkgs.emacs.pkgs.withPackages (epkgs: [
   epkgs.treesit-grammars.with-all-grammars
   # or specific:
   # epkgs.treesit-grammars.with-grammars (grammars: [
@@ -145,12 +149,16 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "tree-sitter";
       repo = "tree-sitter-mylang";
-      rev = "...";
+      tag = "v0.1.0";
       hash = "sha256-...";
     };
   };
 in
-# Add to treesit-extra-load-path in your Elisp config
+# $out/parser is the shared library; treesit-grammars links it as
+# lib/libtree-sitter-mylang.so for treesit-extra-load-path
+pkgs.emacs.pkgs.withPackages (epkgs: [
+  (epkgs.treesit-grammars.with-grammars (_: [ myGrammar ]))
+])
 ```
 
 ### Elisp side
@@ -175,27 +183,21 @@ in
 ## Building Emacs from Source
 
 ```nix
-(pkgs.emacs30.override {
-  withNativeCompilation = true;
-  withTreeSitter = true;
-  withSQLite3 = true;
-  withWebP = true;
-  withImageMagick = true;
-  withPgtk = true;
+(pkgs.emacs.override {
+  withNativeCompilation = true;  # default when build can execute host binaries
+  withTreeSitter = true;         # default
+  withSQLite3 = true;            # default
+  withWebP = true;               # default
+  withImageMagick = true;        # default false
+  withPgtk = true;               # default false; disables X (withX)
 }).overrideAttrs (old: {
   patches = (old.patches or []) ++ [
     ./my-patch.patch
   ];
-
-  buildInputs = (old.buildInputs or []) ++ [
-    pkgs.libgccjit
-  ];
-
-  configureFlags = (old.configureFlags or []) ++ [
-    "--with-x-toolkit=gtk3"
-  ];
 })
 ```
+
+`libgccjit` is wired in automatically when `withNativeCompilation` is on, so don't add it to `buildInputs`. The X toolkit comes from the `toolkit` argument and only applies to X builds (`withPgtk = true` turns `withX` off); for a GTK3 X build use `pkgs.emacs-gtk` or `withGTK3 = true`. `withGcMarkTrace` (default `false` since 25.11) re-enables the GC mark trace buffer for debugging GC issues.
 
 ## emacs-overlay
 
@@ -222,11 +224,16 @@ in
 
 ### What the overlay provides
 
-- `emacs-git` — Emacs from Git master (rebuilt nightly)
-- `emacs-pgtk` — pure GTK build from master
-- `emacs-unstable` — latest release branch
-- `emacsPackagesFor` — create package sets for any Emacs variant
-- Updated MELPA/ELPA/NonGNU ELPA package snapshots
+Two sub-overlays: `overlays.emacs` (Emacs builds) and `overlays.package` (package sets); `overlays.default` applies both.
+
+- `emacs-git`, `emacs-git-pgtk`, `emacs-git-nox`: Emacs from Git master (updated daily)
+- `emacs-unstable`, `emacs-unstable-pgtk`, `emacs-unstable-nox`: latest tag, including pretests
+- `emacs-igc`, `emacs-igc-pgtk`: the IGC feature branch built `--with-mps=yes` (MPS garbage collector)
+- `emacsWithPackagesFromUsePackage { config = ./init.el; ... }`: package list parsed from `use-package`/`leaf` forms (`alwaysEnsure`, `extraEmacsPackages`, `override`)
+- `emacsWithPackagesFromPackageRequires`: package list from an `.el` file's `Package-Requires` header (handy for CI)
+- Daily ELPA, NonGNU ELPA, MELPA and MELPA Stable snapshots, plus fresh EXWM
+
+`emacs-pgtk` and `emacsPackagesFor` come from nixpkgs itself, not the overlay. Prebuilt binaries are on the nix-community cache (`https://nix-community.cachix.org`).
 
 ## Nix/Elisp Boundary
 

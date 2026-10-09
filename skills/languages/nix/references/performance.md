@@ -4,7 +4,9 @@
 
 ### Import From Derivation (IFD)
 
-IFD occurs when the Nix evaluator encounters `import someDrv` or `readFile "${someDrv}/..."` where the argument is a derivation output rather than a static path. When this happens, ALL evaluation stops and waits for that derivation to build. The evaluator has no concurrency or parallelism -- it is single-threaded during evaluation.
+IFD occurs when the Nix evaluator encounters `import someDrv` or `readFile "${someDrv}/..."` where the argument is a derivation output rather than a static path. When this happens, ALL evaluation stops and waits for that derivation to build. The upstream (CppNix) and Lix evaluators are single-threaded during evaluation.
+
+Determinate Nix is the exception: it has parallel evaluation (since 3.11.1) for `nix search`, `nix flake check`, `nix flake show` and `nix eval --json`, controlled by the `eval-cores` setting (`0` = all cores, the default since 3.16.3). Its experimental `builtins.parallel` (feature `parallel-eval`) can overlap IFD builds. Do not rely on either in code that must also run on upstream Nix.
 
 This is the single biggest evaluation performance killer in Nix. One IFD blocks everything.
 
@@ -39,13 +41,16 @@ Reference: jade.fyi on IFD consolidation.
 - Avoid `builtins.readDir` on large directories -- it is O(n) entries and returns them all at once.
 - Use `lib.fileset` over `cleanSource` for source filtering. fileset is more precise and avoids re-evaluating on irrelevant file changes.
 - `builtins.fetchurl`, `builtins.fetchGit`, and `builtins.fetchTarball` block evaluation because they run during eval. Prefer `pkgs.fetchurl` and friends, which are fixed-output derivations that build in parallel with other derivations.
-- Use `--trace-function-calls` for evaluation profiling:
+- Profile evaluation with the sampling profiler (Nix 2.30+), which writes `flamegraph.pl`/speedscope-compatible stacks with function names:
 
   ```bash
-  nix eval --trace-function-calls '.#something' 2>trace.log
+  nix eval --eval-profiler flamegraph --eval-profile-file eval.profile '.#something'
+  flamegraph.pl eval.profile > eval.svg
   ```
 
-  Outputs function entry/exit timestamps to stderr. Analyze with flamegraph tools to find hot paths.
+  The older `--trace-function-calls` prints entry/exit timestamps to stderr (convert with Nix's `contrib/stack-collapse.py`). See performance/tools.md.
+- Nix 2.31+ has `nix flake prefetch-inputs`, which fetches all flake inputs in parallel instead of on demand during evaluation (may fetch unused inputs).
+- Nix 2.35 copies sources to the store more lazily: flake inputs and `builtins.fetchTarball` results are hashed without being copied first (about 2x faster fetch+unpack of a nixpkgs tarball, per the release notes). The copy still happens once the path reaches a derivation.
 
 ## Dynamic Derivations (Experimental)
 
@@ -61,7 +66,7 @@ Tools like Drowse simplify working with dynamic derivations.
 
 Status: still experimental in CppNix. Removed from Lix. Not yet widely adopted.
 
-Enable with:
+Enable with (CppNix and Determinate Nix only; Lix 2.94 removed the feature, and existing dynamic derivations can no longer be built there):
 
 ```nix
 nix.settings.experimental-features = [ "dynamic-derivations" ];
@@ -245,7 +250,7 @@ Key settings:
 
 ### Native Linux Builder on macOS
 
-Determinate Nix provides a native Linux builder for macOS, enabling Linux derivation builds on macOS without Docker. This is significantly faster than the traditional QEMU-based linux-builder.
+Determinate Nix (since 3.8.4) provides a native Linux builder for macOS that runs `aarch64-linux` and `x86_64-linux` builds in lightweight VMs via macOS's Virtualization framework, with no Docker, remote builder or extra configuration. It is still being rolled out gradually (preview). Upstream Nix 2.32 added the experimental `external-builders` setting that this kind of builder plugs into. On plain nix-darwin, the alternative is the QEMU-based `nix.linux-builder`.
 
 ## Store Maintenance
 
@@ -257,10 +262,17 @@ Remove old generations and all unreferenced store paths:
 nix-collect-garbage -d
 ```
 
-New CLI equivalent:
+New CLI equivalent for the collection step (does not delete old generations; use `nix profile wipe-history` or `nix-collect-garbage -d` for that):
 
 ```bash
 nix store gc
+nix store gc --dry-run   # Nix 2.34+: reports how many paths would be freed
+```
+
+Collect only dead paths inside one closure (Nix 2.35+):
+
+```bash
+nix store delete --recursive --skip-alive /nix/store/...-foo
 ```
 
 Show what GC roots are preventing collection:
@@ -286,6 +298,15 @@ nix store optimise
 ```
 
 This is safe to run at any time and can reclaim significant space when multiple packages share identical files.
+
+To do it automatically, prefer the periodic job over inline optimisation:
+
+```nix
+nix.optimise.automatic = true;   # NixOS: systemd timer running nix-store --optimise
+# nix.settings.auto-optimise-store = true;  # optimise on every store write
+```
+
+nix-darwin refuses `nix.settings.auto-optimise-store = true` with Nix versions known to corrupt the store on macOS (it accepts Nix 2.31.3+ in the 2.31 series, 2.32.5+, 2.33+, or Lix 2.92+) and suggests `nix.optimise.automatic` instead. The Determinate `nix-installer-action` enables `auto-optimise-store` on Linux only.
 
 ### Store Integrity Verification
 

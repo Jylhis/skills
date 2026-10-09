@@ -44,11 +44,11 @@ pkgs.dockerTools.buildLayeredImage {
   tag = "latest";
   contents = [ pkgs.myapp pkgs.cacert ];
   config.Cmd = [ "${pkgs.myapp}/bin/myapp" ];
-  maxLayers = 120;  # Docker max is 128
+  maxLayers = 120;  # default 100; stay under the runtime's layer limit
 }
 ```
 
-The `layers` parameter lets you explicitly control which store paths go into which layers.
+`buildLayeredImage` is `streamLayeredImage` plus a step that writes the compressed tarball into the store, so both take the same arguments. Since 25.11 the default layering gives each of the largest store paths its own layer and folds in dependencies not shared elsewhere, which shares far more layers between images once the closure exceeds `maxLayers`. For explicit control there is `layeringPipeline` (it replaces `maxLayers`); the source marks that interface as highly experimental. dockerTools has no `layers` argument; that is nix2container.
 
 ### dockerTools.streamLayeredImage
 
@@ -83,6 +83,8 @@ in nix2container.buildImage {
 }
 ```
 
+It is not in Nixpkgs; take it as a flake input (`github:nlewo/nix2container`). Images are never written as tarballs to the store. Push or load with the generated apps: `nix run .#image.copyToDockerDaemon`, `.copyToPodman`, `.copyToRegistry`. `maxLayers` defaults to 1 here (popularity-based splitting applies only to the image's own layer, not to `layers`), and `perms` sets file modes without root or a VM.
+
 ### devenv container
 
 devenv can build OCI images from the developer environment:
@@ -98,13 +100,13 @@ devenv can build OCI images from the developer environment:
 }
 ```
 
-Build: `devenv container app`
+Build: `devenv container build app`. Run with `devenv container run app`; push with `devenv container --registry docker://<registry>/ copy app` (devenv 2.0 removed the old `devenv container --copy <name>` form).
 
 ### Layer Optimization
 
 - Separate stable deps (runtime, cacert, timezone) into lower layers
 - Put application code in the top layer
-- Use `layers` parameter to explicitly assign store paths to layers
+- Explicit layer assignment: `layers = [ (buildLayer { deps = ...; }) ]` in nix2container; `layeringPipeline` (experimental) in dockerTools
 - Binary size: use `removeReferencesTo` to strip build-time deps
 - Use `pkgsStatic` for statically linked binaries (single-file closures)
 
@@ -120,7 +122,7 @@ nix-tree .#myapp                   # Interactive browser
 
 See the nix-performance skill for detailed closure optimization.
 
-### initializeNixDatabase
+### includeNixDB (Nix inside the image)
 
 For CI images that need to run Nix commands:
 
@@ -133,9 +135,11 @@ pkgs.dockerTools.buildLayeredImage {
     ${pkgs.dockerTools.shadowSetup}
   '';
   enableFakechroot = true;
-  initializeNixDatabase = true;  # Populate /nix/var/nix/db
+  includeNixDB = true;  # Register the image's store paths in /nix/var/nix/db
 }
 ```
+
+dockerTools calls this `includeNixDB` (also on `buildImage`; `buildImageWithNixDb`/`buildLayeredImageWithNixDb` are shorthands). It registers the closure of `contents`/`copyToRoot` only and does not combine well with `fromImage`. nix2container's equivalent is `initializeNixDatabase = true`. To get a shell image of a package's build environment, use `dockerTools.buildNixShellImage { drv = pkgs.hello; }` (or `streamNixShellImage`).
 
 ### Running Containers on NixOS
 

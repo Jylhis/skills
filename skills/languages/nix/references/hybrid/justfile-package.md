@@ -3,6 +3,10 @@
 Template for projects where the primary outputs are packages (derivations).
 Includes store-path parity verification across build methods.
 
+Formatting goes through `treefmt` from `pkgs.nixfmt-tree` (add it to the
+devenv `packages`): nixfmt 1.0 deprecated recursive `nixfmt <dir>`.
+`treefmt --ci` disables the cache and fails if any file changed.
+
 ```just
 default_target := "default"
 
@@ -16,14 +20,14 @@ build-legacy target=default_target:
 
 # Run all linters and checks
 check:
-    nixfmt --check .
+    treefmt --ci
     statix check . --ignore '.devenv/*' 'result/*'
     deadnix --fail --exclude .devenv result .
     nix flake check
 
 # Format all Nix files
 fmt:
-    nixfmt .
+    treefmt
 
 # Run statix and deadnix
 lint:
@@ -37,9 +41,9 @@ lint-fix:
 
 # Update all pins and sync lock files
 update:
-    nix flake update
     #!/usr/bin/env bash
     set -euo pipefail
+    nix flake update
     REV=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
     echo "Syncing nixpkgs to $REV"
     # macOS/BSD sed — use sed -i for GNU/Linux

@@ -64,11 +64,23 @@ Complete reference of common Nix errors, causes, and fixes.
 
 **Fix:** Add the argument to the calling attrset, or add a default in the function: `{ foo ? null }:`.
 
-### `error: cannot build during evaluation (import from derivation)`
+### `error: cannot build '...drv^out' during evaluation because the option 'allow-import-from-derivation' is disabled`
 
-**Cause:** Evaluation depends on a build result. Blocked when `--no-allow-import-from-derivation` is set (default in some contexts).
+**Cause:** Evaluation depends on a build result (import from derivation). Blocked when `--no-allow-import-from-derivation` is set (default in some contexts).
 
-**Fix:** Pre-generate files, use builtin fetchers, or pass `--allow-import-from-derivation`.
+**Fix:** Pre-generate files, use builtin fetchers, or pass `--allow-import-from-derivation`. To list every IFD without failing, set `trace-import-from-derivation = true` (Nix 2.30+).
+
+### `error: integer overflow in adding 9223372036854775807 + 1`
+
+**Cause:** Nix integers are signed 64-bit. Since Nix 2.25 overflow is an error instead of silently wrapping; `builtins.fromJSON` of out-of-range numbers fails the same way.
+
+**Fix:** Keep values in range, or handle large numbers as strings.
+
+### `error: syntax error, unexpected '++'`
+
+**Cause:** Parse error. Since Nix 2.34 the token is shown as written (`'++'`) instead of an internal name (`CONCAT`); the caret under the source line marks the position.
+
+**Fix:** Check the marked token. Mixing `|>` and `<|` in one expression without parentheses is also a syntax error upstream. (Using a pipe operator with the feature off gives the experimental-feature error below instead.)
 
 ---
 
@@ -117,23 +129,27 @@ CLI: `NIXPKGS_ALLOW_UNFREE=1 nix build --impure`.
 
 ## Flake Errors
 
-### `error: getting status of '/path/to/file': No such file or directory`
+### `error: Path 'foo.nix' in the repository "/path/to/repo" is not tracked by Git.`
+
+Older Nix (before 2.28) reports the same problem as `error: getting status of '/path/to/file': No such file or directory`.
 
 **Cause:** File exists on disk but is not tracked by git. Flakes only see staged/committed files.
 
-**Fix:** `git add <file>` (staging is enough).
+**Fix:** `git add <file>` (staging is enough), or `git add -N <file>` (intent-to-add, as the error message suggests).
 
-### `error: access to absolute path '/...' is forbidden in pure eval mode`
+### `error: access to absolute path '/...' is forbidden in pure evaluation mode (use '--impure' to override)`
 
-**Cause:** Flake evaluation is pure — no `builtins.getEnv`, no absolute paths outside the flake, no `<nixpkgs>`.
+**Cause:** Flake evaluation is pure — no absolute paths outside the flake, no `<nixpkgs>` (`cannot look up '<nixpkgs>' in pure evaluation mode`). `builtins.getEnv` does not error; it returns `""`, which can surface later as a confusing empty value.
 
 **Fix:** Pass data through flake inputs. Or use `--impure` as escape hatch.
 
-### `error: experimental Nix feature 'flakes' is disabled`
+### `error: experimental Nix feature 'flakes' is disabled; add '--extra-experimental-features flakes' to enable it`
 
 **Fix:** Add to `nix.conf`: `experimental-features = nix-command flakes`
 
 Or per-command: `nix --experimental-features 'nix-command flakes' build`
+
+As of Nix 2.35 this is still needed upstream and in Lix; Determinate Nix treats `flakes` and `nix-command` as stable. The same error shape appears for other gated features such as `pipe-operators` or `fetch-tree` (for `builtins.fetchTree` without flakes).
 
 ### `error: input 'foo' has an unsupported input type`
 
@@ -143,9 +159,9 @@ Or per-command: `nix --experimental-features 'nix-command flakes' build`
 
 ### `error: cached failure of attribute '...'`
 
-**Cause:** A previous evaluation failed and Nix cached the failure.
+**Cause:** A previous evaluation failed and Nix cached the failure. Since Nix 2.29 Nix re-evaluates the attribute to show the original error, so this generic message should be rare.
 
-**Fix:** `nix build --rebuild` or remove the eval cache: `rm -rf ~/.cache/nix/eval-cache-v*`
+**Fix:** Bypass the flake evaluation cache with `--no-eval-cache` (or `--option eval-cache false`), or remove it: `rm -rf ~/.cache/nix/eval-cache-v*` (the directory is `eval-cache-v6` since Nix 2.31). `--rebuild` does not help: it re-runs builds, not evaluation.
 
 ---
 
